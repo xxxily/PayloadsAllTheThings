@@ -100,10 +100,10 @@
 - [x] Headless Browser/README.md
 
 ### Hidden Parameters 目录
-- [ ] Hidden Parameters/README.md
+- [x] Hidden Parameters/README.md
 
 ### HTTP Parameter Pollution 目录
-- [ ] HTTP Parameter Pollution/README.md
+- [x] HTTP Parameter Pollution/README.md
 
 ### Insecure Deserialization 目录
 - [x] Insecure Deserialization/README.md
@@ -115,35 +115,35 @@
 - [x] Insecure Deserialization/Ruby.md
 
 ### Insecure Direct Object References 目录
-- [ ] Insecure Direct Object References/README.md
+- [x] Insecure Direct Object References/README.md
 
 ### Insecure Management Interface 目录
-- [ ] Insecure Management Interface/README.md
+- [x] Insecure Management Interface/README.md
 
 ### Insecure Randomness 目录
-- [ ] Insecure Randomness/README.md
+- [x] Insecure Randomness/README.md
 
 ### Insecure Source Code Management 目录
-- [ ] Insecure Source Code Management/README.md
-- [ ] Insecure Source Code Management/Bazaar.md
-- [ ] Insecure Source Code Management/Git.md
-- [ ] Insecure Source Code Management/Mercurial.md
-- [ ] Insecure Source Code Management/Subversion.md
+- [x] Insecure Source Code Management/README.md
+- [x] Insecure Source Code Management/Bazaar.md
+- [x] Insecure Source Code Management/Git.md
+- [x] Insecure Source Code Management/Mercurial.md
+- [x] Insecure Source Code Management/Subversion.md
 
 ### Java RMI 目录
-- [ ] Java RMI/README.md
+- [x] Java RMI/README.md
 
 ### JSON Web Token 目录
-- [ ] JSON Web Token/README.md
+- [x] JSON Web Token/README.md
 
 ### LaTeX Injection 目录
-- [ ] LaTeX Injection/README.md
+- [x] LaTeX Injection/README.md
 
 ### LDAP Injection 目录
-- [ ] LDAP Injection/README.md
+- [x] LDAP Injection/README.md
 
 ### Mass Assignment 目录
-- [ ] Mass Assignment/README.md
+- [x] Mass Assignment/README.md
 
 ### Methodology and Resources 目录
 - [ ] Methodology and Resources/Active Directory Attack.md

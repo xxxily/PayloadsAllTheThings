@@ -1,69 +1,71 @@
-# HTTP Parameter Pollution
+[原文文档](README.en.md)
 
-> HTTP Parameter Pollution (HPP) is a Web attack evasion technique that allows an attacker to craft a HTTP request in order to manipulate web logics or retrieve hidden information. This evasion technique is based on splitting an attack vector between multiple instances of a parameter with the same name (?param1=value&param1=value). As there is no formal way of parsing HTTP parameters, individual web technologies have their own unique way of parsing and reading URL parameters with the same name. Some taking the first occurrence, some taking the last occurrence, and some reading it as an array. This behavior is abused by the attacker in order to bypass pattern-based security mechanisms.
+# HTTP 参数污染
 
-## Summary
+> HTTP 参数污染 (HPP) 是一种Web攻击规避技术，允许攻击者构造HTTP请求以操纵Web逻辑或检索隐藏信息。这种规避技术基于在同名参数的多个实例之间拆分攻击向量（?param1=value&param1=value）。由于没有正式的方法来解析HTTP参数，各个Web技术都有自己的独特方式来解析和读取同名URL参数。有些取第一个出现的值，有些取最后一个出现的值，有些则将其读取为数组。攻击者利用这种行为来绕过基于模式的安全机制。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [Parameter Pollution Table](#parameter-pollution-table)
-    * [Parameter Pollution Payloads](#parameter-pollution-payloads)
-* [References](#references)
+## 目录
 
-## Tools
+* [工具](#工具)
+* [方法论](#方法论)
+    * [参数污染表](#参数污染表)
+    * [参数污染载荷](#参数污染载荷)
+* [参考资料](#参考资料)
 
-* **Burp Suite**: Manually modify requests to test duplicate parameters.
-* **OWASP ZAP**: Intercept and manipulate HTTP parameters.
+## 工具
 
-## Methodology
+* **Burp Suite**: 手动修改请求以测试重复参数。
+* **OWASP ZAP**: 拦截和操作HTTP参数。
 
-HTTP Parameter Pollution (HPP) is a web security vulnerability where an attacker injects multiple instances of the same HTTP parameter into a request. The server's behavior when processing duplicate parameters can vary, potentially leading to unexpected or exploitable behavior.
+## 方法论
 
-HPP can target two levels:
+HTTP参数污染（HPP）是一种Web安全漏洞，攻击者在请求中注入同一HTTP参数的多个实例。服务器在处理重复参数时的行为可能各不相同，可能导致意外或可利用的行为。
 
-* Client-Side HPP: Exploits JavaScript code running on the client (browser).
-* Server-Side HPP: Exploits how the server processes multiple parameters with the same name.
+HPP可以针对两个级别：
 
-**Examples**:
+* 客户端HPP：利用在客户端（浏览器）上运行的JavaScript代码。
+* 服务器端HPP：利用服务器如何处理同名的多个参数。
+
+**示例**:
 
 ```ps1
 /app?debug=false&debug=true
 /transfer?amount=1&amount=5000
 ```
 
-### Parameter Pollution Table
+### 参数污染表
 
-When ?par1=a&par1=b
+当 ?par1=a&par1=b 时
 
-| Technology                                      | Parsing Result           | outcome (par1=) |
-| ----------------------------------------------- | ------------------------ | --------------- |
-| ASP.NET/IIS                                     | All occurrences          | a,b             |
-| ASP/IIS                                         | All occurrences          | a,b             |
-| Golang net/http - `r.URL.Query().Get("param")`  | First occurrence         | a               |
-| Golang net/http - `r.URL.Query()["param"]`      | All occurrences in array | ['a','b']       |
-| IBM HTTP Server                                 | First occurrence         | a               |
-| IBM Lotus Domino                                | First occurrence         | a               |
-| JSP,Servlet/Tomcat                              | First occurrence         | a               |
-| mod_wsgi (Python)/Apache                        | First occurrence         | a               |
-| Nodejs                                          | All occurrences          | a,b             |
-| Perl CGI/Apache                                 | First occurrence         | a               |
-| Perl CGI/Apache                                 | First occurrence         | a               |
-| PHP/Apache                                      | Last occurrence          | b               |
-| PHP/Zues                                        | Last occurrence          | b               |
-| Python Django                                   | Last occurrence          | b               |
-| Python Flask                                    | First occurrence         | a               |
-| Python/Zope                                     | All occurrences in array | ['a','b']       |
-| Ruby on Rails                                   | Last occurrence          | b               |
+| 技术                                      | 解析结果                  | 结果 (par1=) |
+| ----------------------------------------- | ------------------------ | ------------ |
+| ASP.NET/IIS                               | 所有出现的值             | a,b           |
+| ASP/IIS                                   | 所有出现的值             | a,b           |
+| Golang net/http - `r.URL.Query().Get("param")`  | 第一个出现的值           | a             |
+| Golang net/http - `r.URL.Query()["param"]`      | 数组中的所有出现值       | ['a','b']     |
+| IBM HTTP Server                           | 第一个出现的值           | a             |
+| IBM Lotus Domino                          | 第一个出现的值           | a             |
+| JSP,Servlet/Tomcat                        | 第一个出现的值           | a             |
+| mod_wsgi (Python)/Apache                  | 第一个出现的值           | a             |
+| Nodejs                                    | 所有出现的值             | a,b           |
+| Perl CGI/Apache                           | 第一个出现的值           | a             |
+| Perl CGI/Apache                           | 第一个出现的值           | a             |
+| PHP/Apache                                | 最后一个出现的值         | b             |
+| PHP/Zues                                  | 最后一个出现的值         | b             |
+| Python Django                             | 最后一个出现的值         | b             |
+| Python Flask                              | 第一个出现的值           | a             |
+| Python/Zope                               | 数组中的所有出现值       | ['a','b']     |
+| Ruby on Rails                             | 最后一个出现的值         | b             |
 
-### Parameter Pollution Payloads
+### 参数污染载荷
 
-* Duplicate Parameters:
+* 重复参数:
 
     ```ps1
     param=value1&param=value2
     ```
 
-* Array Injection:
+* 数组注入:
 
     ```ps1
     param[]=value1
@@ -72,19 +74,19 @@ When ?par1=a&par1=b
     param=value1&param[]=value2
     ```
 
-* Encoded Injection:
+* 编码注入:
 
     ```ps1
     param=value1%26other=value2
     ```
 
-* Nested Injection:
+* 嵌套注入:
 
     ```ps1
     param[key1]=value1&param[key2]=value2
     ```
 
-* JSON Injection:
+* JSON注入:
 
     ```ps1
     {
@@ -93,7 +95,7 @@ When ?par1=a&par1=b
     }
     ```
 
-## References
+## 参考资料
 
 * [How to Detect HTTP Parameter Pollution Attacks - Acunetix - January 9, 2024](https://www.acunetix.com/blog/whitepaper-http-parameter-pollution/)
 * [HTTP Parameter Pollution - Itamar Verta - December 20, 2023](https://www.imperva.com/learn/application-security/http-parameter-pollution/)
