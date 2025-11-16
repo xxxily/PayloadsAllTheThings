@@ -1,35 +1,37 @@
-# Denial of Service
+[原文文档](README.en.md)
 
-> A Denial of Service (DoS) attack aims to make a service unavailable by overwhelming it with a flood of illegitimate requests or exploiting vulnerabilities in the target's software to crash or degrade performance. In a Distributed Denial of Service (DDoS), attackers use multiple sources (often compromised machines) to perform the attack simultaneously.
+# 拒绝服务
 
-## Summary
+> 拒绝服务(DoS)攻击旨在通过用大量非法请求淹没目标或利用目标软件中的漏洞使其崩溃或降低性能，使服务不可用。在分布式拒绝服务(DDoS)中，攻击者使用多个来源（通常是受感染的机器）同时执行攻击。
 
-* [Methodology](#methodology)
-    * [Locking Customer Accounts](#locking-customer-accounts)
-    * [File Limits on FileSystem](#file-limits-on-filesystem)
-    * [Memory Exhaustion - Technology Related](#memory-exhaustion---technology-related)
-* [References](#references)
+## 摘要
 
-## Methodology
+* [方法论](#方法论)
+    * [锁定客户账户](#锁定客户账户)
+    * [文件系统上的文件限制](#文件系统上的文件限制)
+    * [内存耗尽 - 技术相关](#内存耗尽---技术相关)
+* [参考资料](#参考资料)
 
-Here are some examples of Denial of Service (DoS) attacks. These examples should serve as a reference for understanding the concept, but any DoS testing should be conducted cautiously, as it can disrupt the target environment and potentially result in loss of access or exposure of sensitive data.
+## 方法论
 
-### Locking Customer Accounts
+以下是一些拒绝服务(DoS)攻击的示例。这些示例应作为理解概念的参考，但任何DoS测试都应谨慎进行，因为它可能破坏目标环境并可能导致访问丢失或敏感数据暴露。
 
-Example of Denial of Service that can occur when testing customer accounts.
-Be very careful as this is most likely **out-of-scope** and can have a high impact on the business.
+### 锁定客户账户
 
-* Multiple attempts on the login page when the account is temporary/indefinitely banned after X bad attempts.
+在测试客户账户时可能发生的拒绝服务示例。
+请务必小心，因为这很可能是**超出范围**的，可能对业务产生高影响。
+
+* 在登录页面上多次尝试，当账户在X次错误尝试后被临时/无限期禁止时。
 
     ```ps1
     for i in {1..100}; do curl -X POST -d "username=user&password=wrong" <target_login_url>; done
     ```
 
-### File Limits on FileSystem
+### 文件系统上的文件限制
 
-When a process is writing a file on the server, try to reach the maximum number of files allowed by the filesystem format. The system should output a message: `No space left on device` when the limit is reached.
+当进程在服务器上写入文件时，尝试达到文件系统格式允许的最大文件数。系统应输出消息：`设备上没有剩余空间`当达到限制时。
 
-| Filesystem | Maximum Inodes |
+| 文件系统 | 最大Inode数 |
 | ---        | --- |
 | BTRFS      | 2^64 (~18 quintillion) |
 | EXT4       | ~4 billion |
@@ -38,17 +40,17 @@ When a process is writing a file on the server, try to reach the maximum number 
 | XFS        | Dynamic (disk size) |
 | ZFS        | ~281 trillion |
 
-An alternative of this technique would be to fill a file used by the application until it reaches the maximum size allowed by the filesystem, for example it can occur on a SQLite database or a log file.
+此技术的替代方案是填充应用程序使用的文件，直到达到文件系统允许的最大大小，例如可能在SQLite数据库或日志文件上发生。
 
-FAT32 has a significant limitation of **4 GB**, which is why it's often replaced with exFAT or NTFS for larger files.
+FAT32有**4 GB**的重要限制，这就是为什么它经常被exFAT或NTFS替换用于更大文件的原因。
 
-Modern filesystems like BTRFS, ZFS, and XFS support exabyte-scale files, well beyond current storage capacities, making them future-proof for large datasets.
+像BTRFS、ZFS和XFS这样的现代文件系统支持exabyte-scale文件，远远超出当前存储容量，使它们对未来大数据集具有前瞻性。
 
-### Memory Exhaustion - Technology Related
+### 内存耗尽 - 技术相关
 
-Depending on the technology used by the website, an attacker may have the ability to trigger specific functions or paradigm that will consume a huge chunk of memory.
+根据网站使用的技术，攻击者可能有能力触发特定函数或范式，这些函数或范式将消耗大量内存。
 
-* **XML External Entity**: Billion laughs attack/XML bomb
+* **XML外部实体**：Billion laughs攻击/XML炸弹
 
     ```xml
     <?xml version="1.0"?>
@@ -68,7 +70,7 @@ Depending on the technology used by the website, an attacker may have the abilit
     <lolz>&lol9;</lolz>
     ```
 
-* **GraphQL**: Deeply-nested GraphQL queries.
+* **GraphQL**：深度嵌套的GraphQL查询。
 
     ```ps1
     query { 
@@ -86,16 +88,16 @@ Depending on the technology used by the website, an attacker may have the abilit
     }
     ```
 
-* **Image Resizing**: try to send invalid pictures with modified headers, e.g: abnormal size, big number of pixels.
-* **SVG handling**: SVG file format is based on XML, try the billion laughs attack.
-* **Regular Expression**: ReDoS
-* **Fork Bomb**: rapidly creates new processes in a loop, consuming system resources until the machine becomes unresponsive.
+* **图像调整大小**：尝试发送带有修改头部的无效图片，例如：异常大小、大量像素。
+* **SVG处理**：SVG文件格式基于XML，尝试billion laughs攻击。
+* **正则表达式**：ReDoS
+* **Fork炸弹**：在循环中快速创建新进程，消耗系统资源直到机器无响应。
 
     ```ps1
     :(){ :|:& };:
     ```
 
-## References
+## 参考资料
 
-* [DEF CON 32 - Practical Exploitation of DoS in Bug Bounty - Roni Lupin Carta - October 16, 2024](https://youtu.be/b7WlUofPJpU)
-* [Denial of Service Cheat Sheet - OWASP Cheat Sheet Series - July 16, 2019](https://cheatsheetseries.owasp.org/cheatsheets/Denial_of_Service_Cheat_Sheet.html)
+* [DEF CON 32 - 漏洞赏金中DoS的实际利用 - Roni Lupin Carta - 2024年10月16日](https://youtu.be/b7WlUofPJpU)
+* [拒绝服务备忘单 - OWASP备忘单系列 - 2019年7月16日](https://cheatsheetseries.owasp.org/cheatsheets/Denial_of_Service_Cheat_Sheet.html)

@@ -1,58 +1,60 @@
-# Insecure Deserialization
+[原文文档](README.en.md)
 
-> Serialization is the process of turning some object into a data format that can be restored later. People often serialize objects in order to save them to storage, or to send as part of communications. Deserialization is the reverse of that process -- taking data structured from some format, and rebuilding it into an object - OWASP
+# 不安全的反序列化
 
-## Summary
+> 序列化是将某些对象转换为可以稍后恢复的数据格式的过程。人们经常序列化对象以便将它们保存到存储中，或作为通信的一部分发送。反序列化是该过程的反向操作——从某种格式获取结构化数据，并将其重建为对象 - OWASP
 
-* [Deserialization Identifier](#deserialization-identifier)
-* [POP Gadgets](#pop-gadgets)
-* [Labs](#labs)
-* [References](#references)
+## 摘要
 
-## Deserialization Identifier
+* [反序列化标识符](#反序列化标识符)
+* [POP 小工具](#pop-小工具)
+* [实验室](#实验室)
+* [参考资料](#参考资料)
 
-Check the following sub-sections, located in other chapters :
+## 反序列化标识符
 
-* [Java deserialization : ysoserial, ...](Java.md)
-* [PHP (Object injection) : phpggc, ...](PHP.md)
-* [Ruby : universal rce gadget, ...](Ruby.md)
+查看以下位于其他章节的小节：
+
+* [Java 反序列化 : ysoserial, ...](Java.md)
+* [PHP (对象注入) : phpggc, ...](PHP.md)
+* [Ruby : 通用 rce 小工具, ...](Ruby.md)
 * [Python : pickle, PyYAML, ...](Python.md)
 * [.NET : ysoserial.net, ...](DotNET.md)
 
-| Object Type     | Header (Hex) | Header (Base64) |
+| 对象类型     | 头部 (十六进制) | 头部 (Base64) |
 |-----------------|--------------|-----------------|
-| Java Serialized | AC ED        | rO              |
+| Java 序列化 | AC ED        | rO              |
 | .NET ViewState  | FF 01        | /w              |
 | Python Pickle   | 80 04 95     | gASV            |
-| PHP Serialized  | 4F 3A        | Tz              |
+| PHP 序列化  | 4F 3A        | Tz              |
 
-## POP Gadgets
+## POP 小工具
 
-> A POP (Property Oriented Programming) gadget is a piece of code implemented by an application's class, that can be called during the deserialization process.
+> POP（面向属性编程）小工具是应用程序类实现的一段代码，可以在反序列化过程中调用。
 
-POP gadgets characteristics:
+POP 小工具特征：
 
-* Can be serialized
-* Has public/accessible properties
-* Implements specific vulnerable methods
-* Has access to other "callable" classes
+* 可以被序列化
+* 具有公共/可访问属性
+* 实现特定的易受攻击方法
+* 可以访问其他"可调用"类
 
-## Labs
+## 实验室
 
-* [PortSwigger - Modifying serialized objects](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-modifying-serialized-objects)
-* [PortSwigger - Modifying serialized data types](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-modifying-serialized-data-types)
-* [PortSwigger - Using application functionality to exploit insecure deserialization](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-using-application-functionality-to-exploit-insecure-deserialization)
-* [PortSwigger - Arbitrary object injection in PHP](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-arbitrary-object-injection-in-php)
-* [PortSwigger - Exploiting Java deserialization with Apache Commons](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-exploiting-java-deserialization-with-apache-commons)
-* [PortSwigger - Exploiting PHP deserialization with a pre-built gadget chain](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-exploiting-php-deserialization-with-a-pre-built-gadget-chain)
-* [PortSwigger - Exploiting Ruby deserialization using a documented gadget chain](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-exploiting-ruby-deserialization-using-a-documented-gadget-chain)
-* [PortSwigger - Developing a custom gadget chain for Java deserialization](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-developing-a-custom-gadget-chain-for-java-deserialization)
-* [PortSwigger - Developing a custom gadget chain for PHP deserialization](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-developing-a-custom-gadget-chain-for-php-deserialization)
-* [PortSwigger - Using PHAR deserialization to deploy a custom gadget chain](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-using-phar-deserialization-to-deploy-a-custom-gadget-chain)
+* [PortSwigger - 修改序列化对象](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-modifying-serialized-objects)
+* [PortSwigger - 修改序列化数据类型](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-modifying-serialized-data-types)
+* [PortSwigger - 使用应用程序功能利用不安全的反序列化](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-using-application-functionality-to-exploit-insecure-deserialization)
+* [PortSwigger - PHP 中的任意对象注入](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-arbitrary-object-injection-in-php)
+* [PortSwigger - 利用 Apache Commons 进行 Java 反序列化](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-exploiting-java-deserialization-with-apache-commons)
+* [PortSwigger - 利用预构建的小工具链进行 PHP 反序列化](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-exploiting-php-deserialization-with-a-pre-built-gadget-chain)
+* [PortSwigger - 使用记录的小工具链利用 Ruby 反序列化](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-exploiting-ruby-deserialization-using-a-documented-gadget-chain)
+* [PortSwigger - 为 Java 反序列化开发自定义小工具链](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-developing-a-custom-gadget-chain-for-java-deserialization)
+* [PortSwigger - 为 PHP 反序列化开发自定义小工具链](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-developing-a-custom-gadget-chain-for-php-deserialization)
+* [PortSwigger - 使用 PHAR 反序列化部署自定义小工具链](https://portswigger.net/web-security/deserialization/exploiting/lab-deserialization-using-phar-deserialization-to-deploy-a-custom-gadget-chain)
 * [NickstaDB - DeserLab](https://github.com/NickstaDB/DeserLab)
 
-## References
+## 参考资料
 
-* [ExploitDB Introduction - Abdelazim Mohammed(@intx0x80) - May 27, 2018](https://www.exploit-db.com/docs/english/44756-deserialization-vulnerability.pdf)
-* [Exploiting insecure deserialization vulnerabilities - PortSwigger - July 25, 2020](https://portswigger.net/web-security/deserialization/exploiting)
-* [Instagram's Million Dollar Bug - Wesley Wineberg - December 17, 2015](http://www.exfiltrated.com/research-Instagram-RCE.php)
+* [ExploitDB 介绍 - Abdelazim Mohammed(@intx0x80) - 2018 年 5 月 27 日](https://www.exploit-db.com/docs/english/44756-deserialization-vulnerability.pdf)
+* [利用不安全的反序列化漏洞 - PortSwigger - 2020 年 7 月 25 日](https://portswigger.net/web-security/deserialization/exploiting)
+* [Instagram 的百万美元漏洞 - Wesley Wineberg - 2015 年 12 月 17 日](http://www.exfiltrated.com/research-Instagram-RCE.php)

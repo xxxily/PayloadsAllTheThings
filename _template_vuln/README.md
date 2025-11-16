@@ -1,39 +1,41 @@
-# Vulnerability Title
+# 漏洞标题
 
-> Vulnerability description - reference
+[原文文档](README.en.md)
 
-## Summary
+> 漏洞描述 - 参考
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [Subentry 1](#subentry-1)
-    * [Subentry 2](#subentry-2)
-* [Labs](#labs)
-* [References](#references)
+## 概要
 
-## Tools
+* [工具](#工具)
+* [方法论](#方法论)
+    * [子条目 1](#子条目-1)
+    * [子条目 2](#子条目-2)
+* [实验室](#实验室)
+* [参考资料](#参考资料)
 
-* [username/tool1](https://github.com/username/tool1) - Description of the tool
-* [username/tool2](https://github.com/username/tool2) - Description of the tool
+## 工具
 
-## Methodology
+* [username/tool1](https://github.com/username/tool1) - 工具描述
+* [username/tool2](https://github.com/username/tool2) - 工具描述
 
-Quick explanation
+## 方法论
+
+简要说明
 
 ```powershell
-Exploit
+利用
 ```
 
-### Subentry 1
+### 子条目 1
 
-### Subentry 2
+### 子条目 2
 
-## Labs
+## 实验室
 
-* [Root Me - Lab 1](https://root-me.org)
-* [PortSwigger - Lab 2](https://portswigger.net)
-* [HackTheBox - Lab 3](https://www.hackthebox.com)
+* [Root Me - 实验室 1](https://root-me.org)
+* [PortSwigger - 实验室 2](https://portswigger.net)
+* [HackTheBox - 实验室 3](https://www.hackthebox.com)
 
-## References
+## 参考资料
 
-* [Blog title - Author (@handle) - Month XX, 202X](https://example.com)
+* [博客标题 - 作者 (@handle) - XX月, 202X](https://example.com)

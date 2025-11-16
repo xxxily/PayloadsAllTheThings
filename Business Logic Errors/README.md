@@ -1,95 +1,97 @@
-# Business Logic Errors
+[原文文档](README.en.md)
 
-> Business logic errors, also known as business logic flaws, are a type of application vulnerability that stems from the application's business logic, which is the part of the program that deals with real-world business rules and processes. These rules could include things like pricing models, transaction limits, or the sequences of operations that need to be followed in a multi-step process.
+# 业务逻辑错误
 
-## Summary
+> 业务逻辑错误，也称为业务逻辑缺陷，是一种源于应用程序业务逻辑的应用程序漏洞类型，业务逻辑是程序中处理现实世界业务规则和流程的部分。这些规则可能包括定价模型、交易限制或多步骤流程中需要遵循的操作序列等内容。
 
-* [Methodology](#methodology)
-    * [Review Feature Testing](#review-feature-testing)
-    * [Discount Code Feature Testing](#discount-code-feature-testing)
-    * [Delivery Fee Manipulation](#delivery-fee-manipulation)
-    * [Currency Arbitrage](#currency-arbitrage)
-    * [Premium Feature Exploitation](#premium-feature-exploitation)
-    * [Refund Feature Exploitation](#refund-feature-exploitation)
-    * [Cart/Wishlist Exploitation](#cartwishlist-exploitation)
-    * [Thread Comment Testing](#thread-comment-testing)
-    * [Rounding Error](#rounding-error)
-* [References](#references)
+## 摘要
 
-## Methodology
+* [方法论](#方法论)
+    * [评论功能测试](#评论功能测试)
+    * [折扣码功能测试](#折扣码功能测试)
+    * [配送费操纵](#配送费操纵)
+    * [货币套利](#货币套利)
+    * [高级功能利用](#高级功能利用)
+    * [退款功能利用](#退款功能利用)
+    * [购物车/愿望清单利用](#购物车愿望清单利用)
+    * [线程评论测试](#线程评论测试)
+    * [舍入错误](#舍入错误)
+* [参考资料](#参考资料)
 
-Unlike other types of security vulnerabilities like SQL injection or cross-site scripting (XSS), business logic errors do not rely on problems in the code itself (like unfiltered user input). Instead, they take advantage of the normal, intended functionality of the application, but use it in ways that the developer did not anticipate and that have undesired consequences.
+## 方法论
 
-Common examples of Business Logic Errors.
+与其他类型的安全漏洞（如SQL注入或跨站脚本攻击（XSS））不同，业务逻辑错误不依赖于代码本身的问题（如未过滤的用户输入）。相反，它们利用应用程序的正常预期功能，但以开发者未曾预料到的方式使用，并产生不良后果。
 
-### Review Feature Testing
+业务逻辑错误的常见示例。
 
-* Assess if you can post a product review as a verified reviewer without having purchased the item.
-* Attempt to provide a rating outside of the standard scale, for instance, a 0, 6 or negative number in a 1 to 5 scale system.
-* Test if the same user can post multiple ratings for a single product. This is useful in detecting potential race conditions.
-* Determine if the file upload field permits all extensions; developers often overlook protections on these endpoints.
-* Investigate the possibility of posting reviews impersonating other users.
-* Attempt Cross-Site Request Forgery (CSRF) on this feature, as it's frequently unprotected by tokens.
+### 评论功能测试
 
-### Discount Code Feature Testing
+* 评估是否可以作为已验证的评论者在未购买商品的情况下发布产品评论。
+* 尝试提供超出标准范围的评分，例如在1到5分的评分系统中使用0、6或负数。
+* 测试同一用户是否可以为单个产品发布多个评分。这对于检测潜在的竞争条件很有用。
+* 确定文件上传字段是否允许所有扩展；开发者经常忽略对这些端点的保护。
+* 调查冒充其他用户发布评论的可能性。
+* 对此功能尝试跨站请求伪造（CSRF），因为它经常没有令牌保护。
 
-* Try to apply the same discount code multiple times to assess if it's reusable.
-* If the discount code is unique, evaluate for race conditions by applying the same code for two accounts simultaneously.
-* Test for Mass Assignment or HTTP Parameter Pollution to see if you can apply multiple discount codes when the application is designed to accept only one.
-* Test for vulnerabilities from missing input sanitization such as XSS, SQL Injection on this feature.
-* Attempt to apply discount codes to non-discounted items by manipulating the server-side request.
+### 折扣码功能测试
 
-### Delivery Fee Manipulation
+* 尝试多次应用相同的折扣码，评估其是否可重复使用。
+* 如果折扣码是唯一的，通过同时为两个账户应用相同代码来评估竞争条件。
+* 测试批量赋值或HTTP参数污染，看看是否可以应用多个折扣码，而应用程序设计只接受一个。
+* 测试由于缺少输入清理而导致的漏洞，如此功能上的XSS、SQL注入。
+* 尝试通过操纵服务器端请求将折扣码应用于非折扣商品。
 
-* Experiment with negative values for delivery charges to see if it reduces the final amount.
-* Evaluate if free delivery can be activated by modifying parameters.
+### 配送费操纵
 
-### Currency Arbitrage
+* 对配送费用尝试负值，看看是否会降低最终金额。
+* 评估是否可以通过修改参数激活免费配送。
 
-* Attempt to pay in one currency, for example, USD, and request a refund in another, like EUR. The difference in conversion rates could result in a profit.
+### 货币套利
 
-### Premium Feature Exploitation
+* 尝试用一种货币支付，例如美元，然后请求以另一种货币（如欧元）退款。汇率差异可能产生利润。
 
-* Explore the possibility of accessing premium account-only sections or endpoints without a valid subscription.
-* Purchase a premium feature, cancel it, and see if you can still use it after a refund.
-* Look for true/false values in requests/responses that validate premium access. Use tools like Burp's Match & Replace to alter these values for unauthorized premium access.
-* Review cookies or local storage for variables validating premium access.
+### 高级功能利用
 
-### Refund Feature Exploitation
+* 探索在没有有效订阅的情况下访问仅限高级账户的部分或端点的可能性。
+* 购买高级功能，取消它，然后看看退款后是否仍能使用它。
+* 在请求/响应中查找验证高级访问的真/假值。使用Burp的Match & Replace等工具更改这些值以获得未经授权的高级访问权限。
+* 查看cookie或本地存储中验证高级访问的变量。
 
-* Purchase a product, ask for a refund, and see if the product remains accessible.
-* Look for opportunities for currency arbitrage.
-* Submit multiple cancellation requests for a subscription to check the possibility of multiple refunds.
+### 退款功能利用
 
-### Cart/Wishlist Exploitation
+* 购买产品，请求退款，看看产品是否仍然可以访问。
+* 寻找货币套利的机会。
+* 为订阅提交多个取消请求，检查多次退款的的可能性。
 
-* Test the system by adding products in negative quantities, along with other products, to balance the total.
-* Try to add more of a product than is available.
-* Check if a product in your wishlist or cart can be moved to another user's cart or removed from it.
+### 购物车/愿望清单利用
 
-### Thread Comment Testing
+* 通过添加负数量产品以及其他产品来平衡总数来测试系统。
+* 尝试添加比可用数量更多的产品。
+* 检查愿望清单或购物车中的产品是否可以移动到其他用户的购物车或从中移除。
 
-* Check if there's a limit to the number of comments on a thread.
-* If a user can only comment once, use race conditions to see if multiple comments can be posted.
-* If the system allows comments by verified or privileged users, try to mimic these parameters and see if you can comment as well.
-* Attempt to post comments impersonating other users.
+### 线程评论测试
 
-### Rounding Error
+* 检查线程上的评论数量是否有限制。
+* 如果用户只能评论一次，使用竞争条件看看是否可以发布多个评论。
+* 如果系统允许已验证或特权用户评论，尝试模拟这些参数，看看是否也可以评论。
+* 尝试冒充其他用户发布评论。
 
-The report [hackerone #176461](https://web.archive.org/web/20170303191338/https://hackerone.com/reports/176461) describes a business logic flaw in a cryptocurrency platform (using XBT/Bitcoin), where an attacker exploits a rounding error in the internal transfer system to generate money out of nothing.
+### 舍入错误
 
-The attacker initiate a transfer of 0.000000005 XBT (0.5 satoshi), this is below the system's minimum precision which is 1 satoshi minimum.
+报告[hackerone #176461](https://web.archive.org/web/20170303191338/https://hackerone.com/reports/176461)描述了一个加密货币平台（使用XBT/比特币）的业务逻辑缺陷，攻击者利用内部转账系统中的舍入错误来凭空生成资金。
 
-* Sender's balance doesn't change. The algorithm might be rounded down to 0 satoshi.
-* Receiver's balance increases by 1 satoshi (0.00000001). The algorithm might be rounding up to 1 satoshi.
+攻击者发起转账0.000000005 XBT（0.5 satoshi），这低于系统的最小精度，即最小1 satoshi。
 
-The attacker generated 0.00000001 XBT from nothing, since there's no rate limit, OTP, or fraud detection, the attacker can automate this process and repeat it infinitely, effectively printing money.
+* 发送者的余额不变。算法可能向下舍入到0 satoshi。
+* 接收者的余额增加1 satoshi（0.00000001）。算法可能向上舍入到1 satoshi。
 
-In this example, instead of rounding and rejecting or enforcing a minimum transfer, it ignores the deduction from the sender and credits the receiver.
+攻击者从0.00000001 XBT中凭空生成了0.00000001 XBT，由于没有速率限制、OTP或欺诈检测，攻击者可以自动化此过程并无限重复，有效地印钱。
 
-## References
+在此示例中，系统没有舍入并拒绝或强制执行最小转账，而是忽略发送者的扣款并记入接收者。
 
-* [Business Logic Vulnerabilities - PortSwigger - 2024](https://portswigger.net/web-security/logic-flaws)
-* [Business Logic Vulnerability - OWASP - 2024](https://owasp.org/www-community/vulnerabilities/Business_logic_vulnerability)
-* [CWE-840: Business Logic Errors - CWE - March 24, 2011](https://cwe.mitre.org/data/definitions/840.html)
-* [Examples of Business Logic Vulnerabilities - PortSwigger - 2024](https://portswigger.net/web-security/logic-flaws/examples)
+## 参考资料
+
+* [业务逻辑漏洞 - PortSwigger - 2024](https://portswigger.net/web-security/logic-flaws)
+* [业务逻辑漏洞 - OWASP - 2024](https://owasp.org/www-community/vulnerabilities/Business_logic_vulnerability)
+* [CWE-840: 业务逻辑错误 - CWE - 2011年3月24日](https://cwe.mitre.org/data/definitions/840.html)
+* [业务逻辑漏洞示例 - PortSwigger - 2024](https://portswigger.net/web-security/logic-flaws/examples)

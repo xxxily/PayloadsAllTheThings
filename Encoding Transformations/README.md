@@ -1,32 +1,34 @@
-# Encoding and Transformations
+[原文文档](README.en.md)
 
-> Encoding and Transformations are techniques that change how data is represented or transferred without altering its core meaning. Common examples include URL encoding, Base64, HTML entity encoding, and Unicode transformations. Attackers use these methods as gadgets to bypass input filters, evade web application firewalls, or break out of sanitization routines.
+# 编码和转换
 
-## Summary
+> 编码和转换是改变数据表示或传输方式而不改变其核心含义的技术。常见示例包括URL编码、Base64、HTML实体编码和Unicode转换。攻击者使用这些方法作为绕过输入过滤器、逃避Web应用程序防火墙或突破清理程序的工具。
+
+## 摘要
 
 * [Unicode](#unicode)
-    * [Unicode Normalization](#unicode-normalization)
+    * [Unicode标准化](#unicode标准化)
     * [Punycode](#punycode)
 * [Base64](#base64)
-* [Labs](#labs)
-* [References](#references)
+* [实验室](#实验室)
+* [参考资料](#参考资料)
 
 ## Unicode
 
-Unicode is a universal character encoding standard used to represent text from virtually every writing system in the world. Each character (letters, numbers, symbols, emojis) is assigned a unique code point (for example, U+0041 for "A"). Unicode encoding formats like UTF-8 and UTF-16 specify how these code points are stored as bytes.
+Unicode是用于表示世界上几乎每个书写系统的文本的通用字符编码标准。每个字符（字母、数字、符号、表情符号）都被分配一个唯一的代码点（例如，"A"的U+0041）。UTF-8和UTF-16等Unicode编码格式指定了这些代码点如何作为字节存储。
 
-### Unicode Normalization
+### Unicode标准化
 
-Unicode normalization is the process of converting Unicode text into a standardized, consistent form so that equivalent characters are represented the same way in memory.
+Unicode标准化是将Unicode文本转换为标准化、一致形式的过程，以便等效字符在内存中以相同方式表示。
 
-[Unicode Normalization reference table](https://appcheck-ng.com/wp-content/uploads/unicode_normalization.html)
+[Unicode标准化参考表](https://appcheck-ng.com/wp-content/uploads/unicode_normalization.html)
 
-* **NFC** (Normalization Form Canonical Composition): Combines decomposed sequences into precomposed characters where possible.
-* **NFD** (Normalization Form Canonical Decomposition): Breaks characters into their decomposed forms (base + combining marks).
-* **NFKC** (Normalization Form Compatibility Composition): Like NFC, but also replaces characters with compatibility equivalents (may change appearance/format).
-* **NFKD** (Normalization Form Compatibility Decomposition): Like NFD, but also decomposes compatibility characters.
+* **NFC**（标准化形式规范组合）：将分解的序列组合为预组合字符（如果可能）。
+* **NFD**（标准化形式规范分解）：将字符分解为其分解形式（基础+组合标记）。
+* **NFKC**（标准化形式兼容性组合）：类似NFC，但也用兼容性等效字符替换字符（可能改变外观/格式）。
+* **NFKD**（标准化形式兼容性分解）：类似NFD，但也分解兼容性字符。
 
-| Character    | Payload               | After Normalization   |
+| 字符    | 有效载荷               | 标准化后   |
 | ------------ | --------------------- | --------------------- |
 | `‥` (U+2025) | `‥/‥/‥/etc/passwd` | `../../../etc/passwd` |
 | `︰` (U+FE30) | `︰/︰/︰/etc/passwd` | `../../../etc/passwd` |
@@ -45,7 +47,7 @@ Unicode normalization is the process of converting Unicode text into a standardi
 
 ```py
 import unicodedata
-string = "ᴾᵃʸˡᵒᵃᵈˢ𝓐𝓵𝓵𝕋𝕙𝕖𝒯𝒽𝒾𝓃ℊ𝓈"
+string = "ᴾᵃʸˡᵒᵃᵈˢ𝓐𝓵𝓵𝕋𝕙𝕖𝒯𝒽𝒾𝓷ℊ𝓈"
 print ('NFC: ' + unicodedata.normalize('NFC', string))
 print ('NFD: ' + unicodedata.normalize('NFD', string))
 print ('NFKC: ' + unicodedata.normalize('NFKC', string))
@@ -54,16 +56,16 @@ print ('NFKD: ' + unicodedata.normalize('NFKD', string))
 
 ### Punycode
 
-Punycode is a way to represent Unicode characters (including non-ASCII letters, symbols, and scripts) using only the limited set of ASCII characters (letters, digits, and hyphens).
+Punycode是一种表示Unicode字符（包括非ASCII字母、符号和脚本）的方法，仅使用有限的ASCII字符集（字母、数字和连字符）。
 
-It's mainly used in the Domain Name System (DNS), which traditionally supports only ASCII. Punycode allows internationalized domain names (IDNs), so that domain names can include characters from many languages by converting them into a safe ASCII form.
+它主要用于域名系统（DNS），传统上只支持ASCII。Punycode允许国际化域名（IDN），以便域名可以通过将字符转换为安全的ASCII形式来包含来自许多语言的字符。
 
-| Visible in Browser (IDN support) | Actual ASCII (Punycode) |
+| 浏览器中可见（IDN支持） | 实际ASCII (Punycode) |
 | -------------------------------- | ----------------------- |
 | раypal.com                       | xn--ypal-43d9g.com      |
 | paypal.com                       | paypal.com              |
 
-In MySQL, similar character are treated as equal. This behavior can be abused in Password Reset, Forgot Password, and OAuth Provider sections.
+在MySQL中，相似字符被视为相等。这种行为可以在密码重置、忘记密码和OAuth提供商部分中被滥用。
 
 ```sql
 SELECT 'a' = 'ᵃ';
@@ -74,7 +76,7 @@ SELECT 'a' = 'ᵃ';
 +-------------+
 ```
 
-This trick works the SQL query uses `COLLATE utf8mb4_0900_as_cs`.
+这个技巧适用于SQL查询使用`COLLATE utf8mb4_0900_as_cs`。
 
 ```sql
 SELECT 'a' = 'ᵃ' COLLATE utf8mb4_0900_as_cs;
@@ -87,7 +89,7 @@ SELECT 'a' = 'ᵃ' COLLATE utf8mb4_0900_as_cs;
 
 ## Base64
 
-Base64 encoding is a method for converting binary data (like images or files) or text with special characters into a readable string that uses only ASCII characters (A-Z, a-z, 0-9, +, and /). Every 3 bytes of input are divided into 4 groups of 6 bits and mapped to 4 Base64 characters. If the input isn't a multiple of 3 bytes, the output is padded with `=` characters.
+Base64编码是一种将二进制数据（如图像或文件）或带有特殊字符的文本转换为可读字符串的方法，该字符串仅使用ASCII字符（A-Z、a-z、0-9、+和/）。输入的每3个字节被分为4组6位，并映射到4个Base64字符。如果输入不是3字节的倍数，输出用`=`字符填充。
 
 ```ps1
 echo -n admin | base64                            
@@ -97,15 +99,15 @@ echo -n YWRtaW4= | base64 -d
 admin
 ```
 
-## Labs
+## 实验室
 
-* [NahamCon - Puny-Code: 0-Click Account Takeover](https://github.com/VoorivexTeam/white-box-challenges/tree/main/punycode)
-* [PentesterLab - Unicode and NFKC](https://pentesterlab.com/exercises/unicode-transform)
+* [NahamCon - Puny-Code: 0-Click账户接管](https://github.com/VoorivexTeam/white-box-challenges/tree/main/punycode)
+* [PentesterLab - Unicode和NFKC](https://pentesterlab.com/exercises/unicode-transform)
 
-## References
+## 参考资料
 
-* [Puny-Code, 0-Click Account Takeover - Voorivex - June 1, 2025](https://blog.voorivex.team/puny-code-0-click-account-takeover)
-* [Unicode normalization vulnerabilities - Lazar - September 30, 2021](https://lazarv.com/posts/unicode-normalization-vulnerabilities/)
-* [Unicode Normalization Vulnerabilities & the Special K Polyglot - AppCheck - September 2, 2019](https://appcheck-ng.com/unicode-normalization-vulnerabilities-the-special-k-polyglot/)
-* [WAF Bypassing with Unicode Compatibility - Jorge Lajara - February 19, 2020](https://jlajara.gitlab.io/Bypass_WAF_Unicode)
-* [When "Zoë" !== "Zoë". Or why you need to normalize Unicode strings - Alessandro Segala - March 11, 2019](https://withblue.ink/2019/03/11/why-you-need-to-normalize-unicode-strings.html)
+* [Puny-Code，0-Click账户接管 - Voorivex - 2025年6月1日](https://blog.voorivex.team/puny-code-0-click-account-takeover)
+* [Unicode标准化漏洞 - Lazar - 2021年9月30日](https://lazarv.com/posts/unicode-normalization-vulnerabilities/)
+* [Unicode标准化漏洞和特殊K多语言 - AppCheck - 2019年9月2日](https://appcheck-ng.com/unicode-normalization-vulnerabilities-the-special-k-polyglot/)
+* [使用Unicode兼容性绕过WAF - Jorge Lajara - 2020年2月19日](https://jlajara.gitlab.io/Bypass_WAF_Unicode)
+* [当"Zoë" !== "Zoë"时。为什麼你需要标准化Unicode字符串 - Alessandro Segala - 2019年3月11日](https://withblue.ink/2019/03/11/why-you-need-to-normalize-unicode-strings.html)

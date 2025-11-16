@@ -1,11 +1,13 @@
-# DISCLAIMER
+# 免责声明
 
-The authors and contributors of this repository disclaim any and all responsibility for the misuse of the information, tools, or techniques described herein. The content is provided solely for educational and research purposes. Users are strictly advised to utilize this information in accordance with applicable laws and regulations and only on systems for which they have explicit authorization.
+[原文文档](DISCLAIMER.en.md)
 
-By accessing and using this repository, you agree to:
+本仓库的作者和贡献者对于本文档中描述的信息、工具或技术的误用不承担任何责任。内容仅用于教育和研究目的。严格建议用户按照适用法律法规使用此信息，仅对获得明确授权的系统使用。
 
-* Refrain from using the provided information for any unethical or illegal activities.
-* Ensure that all testing and experimentation are conducted responsibly and with proper authorization.
-* Acknowledge that any actions you take based on the contents of this repository are solely your responsibility.
+访问和使用本仓库，您同意：
 
-Neither the authors nor contributors shall be held liable for any damages, direct or indirect, resulting from the misuse or unauthorized application of the knowledge contained herein. Always act mindfully, ethically, and within the boundaries of the law.
+* 避免将提供的信息用于任何不道德或非法活动。
+* 确保所有测试和实验都负责任地进行并获得适当的授权。
+* 承认您基于本仓库内容采取的任何行动都完全由您负责。
+
+作者和贡献者对于因误用或未经授权应用此处包含的知识而造成的任何直接或间接损害均不承担责任。请始终谨慎、道德地行事，并在法律范围内行动。

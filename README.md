@@ -1,53 +1,55 @@
-# Payloads All The Things
+[原文文档](README.en.md)
 
-A list of useful payloads and bypasses for Web Application Security.
-Feel free to improve with your payloads and techniques!
+# 所有东西都是有效载荷
 
-You can also contribute with a :beers: IRL, or using the sponsor button.
+Web应用程序安全的有用有效载荷和绕过方法列表。
+请随时用您的有效载荷和技术来改进！
 
-[![Sponsor](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&link=https://github.com/sponsors/swisskyrepo)](https://github.com/sponsors/swisskyrepo)
-[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Payloads%20All%20The%20Things,%20a%20list%20of%20useful%20payloads%20and%20bypasses%20for%20Web%20Application%20Security%20-%20by%20@pentest_swissky&url=https://github.com/swisskyrepo/PayloadsAllTheThings/)
+您也可以通过现实生活中的:beers:或使用赞助按钮来贡献。
 
-An alternative display version is available at [PayloadsAllTheThingsWeb](https://swisskyrepo.github.io/PayloadsAllTheThings/).
+[![赞助](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&link=https://github.com/sponsors/swisskyrepo)](https://github.com/sponsors/swisskyrepo)
+[![推特](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Payloads%20All%20The%20Things,%20a%20list%20of%20useful%20payloads%20and%20bypasses%20for%20Web%20Application%20Security%20-%20by%20@pentest_swissky&url=https://github.com/swisskyrepo/PayloadsAllTheThings/)
+
+另一个显示版本可在[PayloadsAllTheThingsWeb](https://swisskyrepo.github.io/PayloadsAllTheThings/)获得。
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/swisskyrepo/PayloadsAllTheThings/master/.github/banner.png" alt="banner">
+  <img src="https://raw.githubusercontent.com/swisskyrepo/PayloadsAllTheThings/master/.github/banner.png" alt="横幅">
 </p>
 
-## :book: Documentation
+## :book: 文档
 
-Every section contains the following files, you can use the `_template_vuln` folder to create a new chapter:
+每个部分都包含以下文件，您可以使用`_template_vuln`文件夹创建新章节：
 
-- README.md - vulnerability description and how to exploit it, including several payloads
-- Intruder - a set of files to give to Burp Intruder
-- Images - pictures for the README.md
-- Files - some files referenced in the README.md
+- README.md - 漏洞描述和如何利用它，包括几个有效载荷
+- Intruder - 一组提供给Burp Intruder的文件
+- Images - README.md的图片
+- Files - README.md中引用的一些文件
 
-You might also like the other projects from the AllTheThings family :
+您可能还喜欢AllTheThings家族的其他项目：
 
-- [InternalAllTheThings](https://swisskyrepo.github.io/InternalAllTheThings/) - Active Directory and Internal Pentest Cheatsheets
-- [HardwareAllTheThings](https://swisskyrepo.github.io/HardwareAllTheThings/) - Hardware/IOT Pentesting Wiki
+- [InternalAllTheThings](https://swisskyrepo.github.io/InternalAllTheThings/) - Active Directory和内部渗透测试备忘单
+- [HardwareAllTheThings](https://swisskyrepo.github.io/HardwareAllTheThings/) - 硬件/IOT渗透测试维基
 
-You want more? Check the [Books](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/_LEARNING_AND_SOCIALS/BOOKS.md) and [YouTube channel](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/_LEARNING_AND_SOCIALS/YOUTUBE.md) selections.
+想要更多？查看[书籍](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/_LEARNING_AND_SOCIALS/BOOKS.md)和[YouTube频道](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/_LEARNING_AND_SOCIALS/YOUTUBE.md)精选。
 
-## :technologist: Contributions
+## :technologist: 贡献
 
-Be sure to read [CONTRIBUTING.md](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/CONTRIBUTING.md)
+请务必阅读[CONTRIBUTING.md](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/CONTRIBUTING.md)
 
 <p align="center">
 <a href="https://github.com/swisskyrepo/PayloadsAllTheThings/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=swisskyrepo/PayloadsAllTheThings&max=36" alt="sponsors-list" >
+  <img src="https://contrib.rocks/image?repo=swisskyrepo/PayloadsAllTheThings&max=36" alt="赞助商列表" >
 </a>
 </p>
 
-Thanks again for your contribution! :heart:
+再次感谢您的贡献！:heart:
 
-## :beers: Sponsors
+## :beers: 赞助商
 
-This project is proudly sponsored by these companies.
+该项目得到以下公司的赞助。
 
-| Logo | Description |
+| Logo | 描述 |
 | --- | --- |
-| [<img src="https://avatars.githubusercontent.com/u/34724717?s=40&v=4" alt="sponsor-serpapi">](https://serpapi.com) | **SerpApi** is a real time API to access Google search results. It solves the issues of having to rent proxies, solving captchas, and JSON parsing. |
-| [<img src="https://avatars.githubusercontent.com/u/50994705?s=40&v=4" alt="sponsor-projectdiscovery">](https://projectdiscovery.io/) | **ProjectDiscovery** - Detect real, exploitable vulnerabilities. Harness the power of Nuclei for fast and accurate findings without false positives. |
-| [<img src="https://avatars.githubusercontent.com/u/48131541?s=40&v=4" alt="sponsor-vaadata">](https://www.vaadata.com/) | **VAADATA** - Ethical Hacking Services |
+| [<img src="https://avatars.githubusercontent.com/u/34724717?s=40&v=4" alt="sponsor-serpapi">](https://serpapi.com) | **SerpApi** 是一个实时API，用于访问Google搜索结果。它解决了租用代理、解决验证码和JSON解析的问题。 |
+| [<img src="https://avatars.githubusercontent.com/u/50994705?s=40&v=4" alt="sponsor-projectdiscovery">](https://projectdiscovery.io/) | **ProjectDiscovery** - 检测真实、可利用的漏洞。利用Nuclei的力量进行快速准确的发现，没有误报。 |
+| [<img src="https://avatars.githubusercontent.com/u/48131541?s=40&v=4" alt="sponsor-vaadata">](https://www.vaadata.com/) | **VAADATA** - 道德黑客服务 |

