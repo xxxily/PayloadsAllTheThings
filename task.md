@@ -146,140 +146,140 @@
 - [x] Mass Assignment/README.md
 
 ### Methodology and Resources 目录
-- [ ] Methodology and Resources/Active Directory Attack.md
-- [ ] Methodology and Resources/Bind Shell Cheatsheet.md
-- [ ] Methodology and Resources/Cloud - AWS Pentest.md
-- [ ] Methodology and Resources/Cloud - Azure Pentest.md
-- [ ] Methodology and Resources/Cobalt Strike - Cheatsheet.md
-- [ ] Methodology and Resources/Container - Docker Pentest.md
-- [ ] Methodology and Resources/Container - Kubernetes Pentest.md
-- [ ] Methodology and Resources/Escape Breakout.md
-- [ ] Methodology and Resources/Hash Cracking.md
-- [ ] Methodology and Resources/HTML Smuggling.md
-- [ ] Methodology and Resources/Initial Access.md
-- [ ] Methodology and Resources/Linux - Evasion.md
-- [ ] Methodology and Resources/Linux - Persistence.md
-- [ ] Methodology and Resources/Linux - Privilege Escalation.md
-- [ ] Methodology and Resources/Metasploit - Cheatsheet.md
-- [ ] Methodology and Resources/Methodology and enumeration.md
-- [ ] Methodology and Resources/MSSQL Server - Cheatsheet.md
-- [ ] Methodology and Resources/Network Discovery.md
-- [ ] Methodology and Resources/Network Pivoting Techniques.md
-- [ ] Methodology and Resources/Office - Attacks.md
-- [ ] Methodology and Resources/Powershell - Cheatsheet.md
-- [ ] Methodology and Resources/Reverse Shell Cheatsheet.md
-- [ ] Methodology and Resources/Source Code Management.md
-- [ ] Methodology and Resources/Vulnerability Reports.md
-- [ ] Methodology and Resources/Web Attack Surface.md
-- [ ] Methodology and Resources/Windows - AMSI Bypass.md
-- [ ] Methodology and Resources/Windows - Defenses.md
-- [ ] Methodology and Resources/Windows - DPAPI.md
-- [ ] Methodology and Resources/Windows - Download and Execute.md
-- [ ] Methodology and Resources/Windows - Mimikatz.md
-- [ ] Methodology and Resources/Windows - Persistence.md
-- [ ] Methodology and Resources/Windows - Privilege Escalation.md
-- [ ] Methodology and Resources/Windows - Using credentials.md
+- [x] Methodology and Resources/Active Directory Attack.md
+- [x] Methodology and Resources/Bind Shell Cheatsheet.md
+- [x] Methodology and Resources/Cloud - AWS Pentest.md
+- [x] Methodology and Resources/Cloud - Azure Pentest.md
+- [x] Methodology and Resources/Cobalt Strike - Cheatsheet.md
+- [x] Methodology and Resources/Container - Docker Pentest.md
+- [x] Methodology and Resources/Container - Kubernetes Pentest.md
+- [x] Methodology and Resources/Escape Breakout.md
+- [x] Methodology and Resources/Hash Cracking.md
+- [x] Methodology and Resources/HTML Smuggling.md
+- [x] Methodology and Resources/Initial Access.md
+- [x] Methodology and Resources/Linux - Evasion.md
+- [x] Methodology and Resources/Linux - Persistence.md
+- [x] Methodology and Resources/Linux - Privilege Escalation.md
+- [x] Methodology and Resources/Metasploit - Cheatsheet.md
+- [x] Methodology and Resources/Methodology and enumeration.md
+- [x] Methodology and Resources/MSSQL Server - Cheatsheet.md
+- [x] Methodology and Resources/Network Discovery.md
+- [x] Methodology and Resources/Network Pivoting Techniques.md
+- [x] Methodology and Resources/Office - Attacks.md
+- [x] Methodology and Resources/Powershell - Cheatsheet.md
+- [x] Methodology and Resources/Reverse Shell Cheatsheet.md
+- [x] Methodology and Resources/Source Code Management.md
+- [x] Methodology and Resources/Vulnerability Reports.md
+- [x] Methodology and Resources/Web Attack Surface.md
+- [x] Methodology and Resources/Windows - AMSI Bypass.md
+- [x] Methodology and Resources/Windows - Defenses.md
+- [x] Methodology and Resources/Windows - DPAPI.md
+- [x] Methodology and Resources/Windows - Download and Execute.md
+- [x] Methodology and Resources/Windows - Mimikatz.md
+- [x] Methodology and Resources/Windows - Persistence.md
+- [x] Methodology and Resources/Windows - Privilege Escalation.md
+- [x] Methodology and Resources/Windows - Using credentials.md
 
 ### NoSQL Injection 目录
-- [ ] NoSQL Injection/README.md
+- [x] NoSQL Injection/README.md
 
 ### OAuth Misconfiguration 目录
-- [ ] OAuth Misconfiguration/README.md
+- [x] OAuth Misconfiguration/README.md
 
 ### Open Redirect 目录
-- [ ] Open Redirect/README.md
+- [x] Open Redirect/README.md
 
 ### ORM Leak 目录
-- [ ] ORM Leak/README.md
+- [x] ORM Leak/README.md
 
 ### Prompt Injection 目录
-- [ ] Prompt Injection/README.md
+- [x] Prompt Injection/README.md
 
 ### Prototype Pollution 目录
-- [ ] Prototype Pollution/README.md
+- [x] Prototype Pollution/README.md
 
 ### Race Condition 目录
-- [ ] Race Condition/README.md
+- [x] Race Condition/README.md
 
 ### Regular Expression 目录
-- [ ] Regular Expression/README.md
+- [x] Regular Expression/README.md
 
 ### Request Smuggling 目录
-- [ ] Request Smuggling/README.md
+- [x] Request Smuggling/README.md
 
 ### Reverse Proxy Misconfigurations 目录
-- [ ] Reverse Proxy Misconfigurations/README.md
+- [x] Reverse Proxy Misconfigurations/README.md
 
 ### SAML Injection 目录
-- [ ] SAML Injection/README.md
+- [x] SAML Injection/README.md
 
 ### Server Side Include Injection 目录
-- [ ] Server Side Include Injection/README.md
+- [x] Server Side Include Injection/README.md
 
 ### Server Side Request Forgery 目录
-- [ ] Server Side Request Forgery/README.md
-- [ ] Server Side Request Forgery/SSRF-Advanced-Exploitation.md
-- [ ] Server Side Request Forgery/SSRF-Cloud-Instances.md
+- [x] Server Side Request Forgery/README.md
+- [x] Server Side Request Forgery/SSRF-Advanced-Exploitation.md
+- [x] Server Side Request Forgery/SSRF-Cloud-Instances.md
 
 ### Server Side Template Injection 目录
-- [ ] Server Side Template Injection/README.md
-- [ ] Server Side Template Injection/ASP.md
-- [ ] Server Side Template Injection/Java.md
-- [ ] Server Side Template Injection/JavaScript.md
-- [ ] Server Side Template Injection/PHP.md
-- [ ] Server Side Template Injection/Python.md
-- [ ] Server Side Template Injection/Ruby.md
+- [x] Server Side Template Injection/README.md
+- [x] Server Side Template Injection/ASP.md
+- [x] Server Side Template Injection/Java.md
+- [x] Server Side Template Injection/JavaScript.md
+- [x] Server Side Template Injection/PHP.md
+- [x] Server Side Template Injection/Python.md
+- [x] Server Side Template Injection/Ruby.md
 
 ### SQL Injection 目录
-- [ ] SQL Injection/README.md
-- [ ] SQL Injection/BigQuery Injection.md
-- [ ] SQL Injection/Cassandra Injection.md
-- [ ] SQL Injection/DB2 Injection.md
-- [ ] SQL Injection/MySQL Injection.md
-- [ ] SQL Injection/MSSQL Injection.md
-- [ ] SQL Injection/OracleSQL Injection.md
-- [ ] SQL Injection/PostgreSQL Injection.md
-- [ ] SQL Injection/SQLmap.md
-- [ ] SQL Injection/SQLite Injection.md
+- [x] SQL Injection/README.md
+- [x] SQL Injection/BigQuery Injection.md
+- [x] SQL Injection/Cassandra Injection.md
+- [x] SQL Injection/DB2 Injection.md
+- [x] SQL Injection/MySQL Injection.md
+- [x] SQL Injection/MSSQL Injection.md
+- [x] SQL Injection/OracleSQL Injection.md
+- [x] SQL Injection/PostgreSQL Injection.md
+- [x] SQL Injection/SQLmap.md
+- [x] SQL Injection/SQLite Injection.md
 
 ### Tabnabbing 目录
-- [ ] Tabnabbing/README.md
+- [x] Tabnabbing/README.md
 
 ### Type Juggling 目录
-- [ ] Type Juggling/README.md
+- [x] Type Juggling/README.md
 
 ### Upload Insecure Files 目录
-- [ ] Upload Insecure Files/README.md
-- [ ] Upload Insecure Files/Configuration Apache .htaccess/README.md
+- [x] Upload Insecure Files/README.md
+- [x] Upload Insecure Files/Configuration Apache .htaccess/README.md
 
 ### Virtual Hosts 目录
-- [ ] Virtual Hosts/README.md
+- [x] Virtual Hosts/README.md
 
 ### Web Cache Deception 目录
-- [ ] Web Cache Deception/README.md
+- [x] Web Cache Deception/README.md
 
 ### Web Sockets 目录
-- [ ] Web Sockets/README.md
+- [x] Web Sockets/README.md
 
 ### XPATH Injection 目录
-- [ ] XPATH Injection/README.md
+- [x] XPATH Injection/README.md
 
 ### XSLT Injection 目录
-- [ ] XSLT Injection/README.md
+- [x] XSLT Injection/README.md
 
 ### XSS Injection 目录
-- [ ] XSS Injection/README.md
-- [ ] XSS Injection/1 - XSS Filter Bypass.md
-- [ ] XSS Injection/2 - XSS Polyglot.md
-- [ ] XSS Injection/3 - XSS Common WAF Bypass.md
-- [ ] XSS Injection/4 - CSP Bypass.md
-- [ ] XSS Injection/5 - XSS in Angular.md
+- [x] XSS Injection/README.md
+- [x] XSS Injection/1 - XSS Filter Bypass.md
+- [x] XSS Injection/2 - XSS Polyglot.md
+- [x] XSS Injection/3 - XSS Common WAF Bypass.md
+- [x] XSS Injection/4 - CSP Bypass.md
+- [x] XSS Injection/5 - XSS in Angular.md
 
 ### XXE Injection 目录
-- [ ] XXE Injection/README.md
+- [x] XXE Injection/README.md
 
 ### Zip Slip 目录
-- [ ] Zip Slip/README.md
+- [x] Zip Slip/README.md
 
 ## 翻译后处理说明
 

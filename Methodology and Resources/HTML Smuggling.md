@@ -1,6 +1,8 @@
-# HTML Smuggling
+[HTML Smuggling.en.md](HTML Smuggling.en.md)
 
-:warning: Content of this page has been moved to [InternalAllTheThings/redteam/access/html-smuggling](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/html-smuggling/)
+# HTML 走私
 
-- [Description](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/html-smuggling/#description)
-- [Executable Storage](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/html-smuggling/#executable-storage)
+:warning: 此页面内容已移动至 [InternalAllTheThings/redteam/access/html-smuggling](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/html-smuggling/)
+
+- [描述](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/html-smuggling/#description)
+- [可执行文件存储](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/html-smuggling/#executable-storage)

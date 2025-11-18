@@ -1,41 +1,43 @@
-# Tabnabbing
+[原文文档](README.en.md)
 
-> Reverse tabnabbing is an attack where a page linked from the target page is able to rewrite that page, for example to replace it with a phishing site. As the user was originally on the correct page they are less likely to notice that it has been changed to a phishing site, especially if the site looks the same as the target. If the user authenticates to this new page then their credentials (or other sensitive data) are sent to the phishing site rather than the legitimate one.
+# 标签页劫持
 
-## Summary
+> 反向标签页劫持是一种攻击方式，其中从目标页面链接的页面能够重写该页面，例如将其替换为钓鱼网站。由于用户最初在正确的页面上，他们不太可能注意到页面已被更改为钓鱼网站，特别是如果该网站看起来与目标相同。如果用户向这个新页面进行身份验证，那么他们的凭证（或其他敏感数据）将被发送到钓鱼网站而不是合法网站。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-* [Exploit](#exploit)
-* [Discover](#discover)
-* [References](#references)
+## 概述
 
-## Tools
+* [工具](#工具)
+* [方法论](#方法论)
+* [利用](#利用)
+* [发现](#发现)
+* [参考文献](#参考文献)
 
-* [PortSwigger/discovering-reversetabnabbing](https://portswigger.net/bappstore/80eb8fd46bf847b4b17861482c2f2a30) - Discovering Reverse Tabnabbing
+## 工具
 
-## Methodology
+* [PortSwigger/discovering-reversetabnabbing](https://portswigger.net/bappstore/80eb8fd46bf847b4b17861482c2f2a30) - 发现反向标签页劫持
 
-When tabnabbing, the attacker searches for links that are inserted into the website and are under his control. Such links may be contained in a forum post, for example. Once he has found this kind of functionality, it checks that the link's `rel` attribute does not contain the value `noopener` and the target attribute contains the value `_blank`. If this is the case, the website is vulnerable to tabnabbing.
+## 方法论
 
-## Exploit
+在进行标签页劫持时，攻击者搜索插入到网站中并受其控制的链接。例如，此类链接可能包含在论坛帖子中。一旦他找到了这种功能，就会检查链接的 `rel` 属性不包含值 `noopener` 且 target 属性包含值 `_blank`。如果是这样的话，网站就容易受到标签页劫持攻击。
 
-1. Attacker posts a link to a website under his control that contains the following JS code: `window.opener.location = "http://evil.com"`
-2. He tricks the victim into visiting the link, which is opened in the browser in a new tab.
-3. At the same time the JS code is executed and the background tab is redirected to the website evil.com, which is most likely a phishing website.
-4. If the victim opens the background tab again and doesn't look at the address bar, it may happen that he thinks he is logged out, because a login page appears, for example.
-5. The victim tries to log on again and the attacker receives the credentials
+## 利用
 
-## Discover
+1. 攻击者发布一个指向受其控制网站的链接，该链接包含以下 JS 代码：`window.opener.location = "http://evil.com"`
+2. 他欺骗受害者访问该链接，该链接在浏览器的新标签页中打开。
+3. 同时执行 JS 代码，后台标签页被重定向到 evil.com 网站，这很可能是一个钓鱼网站。
+4. 如果受害者再次打开后台标签页且没有查看地址栏，可能会认为已注销，因为出现了登录页面等。
+5. 受害者尝试重新登录，攻击者获取凭证
 
-Search for the following link formats:
+## 发现
+
+搜索以下链接格式：
 
 ```html
 <a href="..." target="_blank" rel=""> 
 <a href="..." target="_blank">
 ```
 
-## References
+## 参考文献
 
-* [Reverse Tabnabbing - OWASP - October 20, 2020](https://owasp.org/www-community/attacks/Reverse_Tabnabbing)
-* [Tabnabbing - Wikipedia - May 25, 2010](https://en.wikipedia.org/wiki/Tabnabbing)
+* [反向标签页劫持 - OWASP - 2020年10月20日](https://owasp.org/www-community/attacks/Reverse_Tabnabbing)
+* [标签页劫持 - 维基百科 - 2010年5月25日](https://en.wikipedia.org/wiki/Tabnabbing)

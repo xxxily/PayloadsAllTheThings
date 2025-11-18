@@ -1,55 +1,57 @@
-# Race Condition
+[README.en.md](README.en.md)
 
-> Race conditions may occur when a process is critically or unexpectedly dependent on the sequence or timings of other events. In a web application environment, where multiple requests can be processed at a given time, developers may leave concurrency to be handled by the framework, server, or programming language.
+# 竞争条件
 
-## Summary
+> 当一个进程严重或意外地依赖于其他事件的序列或时机时，竞争条件可能会发生。在 Web 应用程序环境中，可以同时处理多个请求，开发人员可能会让并发性由框架、服务器或编程语言来处理。
 
-- [Tools](#tools)
-- [Methodology](#methodology)
-    - [Limit-overrun](#limit-overrun)
-    - [Rate-limit Bypass](#rate-limit-bypass)
-- [Techniques](#techniques)
-    - [HTTP/1.1 Last-byte Synchronization](#http11-last-byte-synchronization)
-    - [HTTP/2 Single-packet Attack](#http2-single-packet-attack)
+## 摘要
+
+- [工具](#tools)
+- [方法](#methodology)
+    - [限制溢出](#limit-overrun)
+    - [速率限制绕过](#rate-limit-bypass)
+- [技术](#techniques)
+    - [HTTP/1.1 最后字节同步](#http11-last-byte-synchronization)
+    - [HTTP/2 单包攻击](#http2-single-packet-attack)
 - [Turbo Intruder](#turbo-intruder)
-    - [Example 1](#example-1)
-    - [Example 2](#example-2)
-- [Labs](#labs)
-- [References](#references)
+    - [示例 1](#example-1)
+    - [示例 2](#example-2)
+- [实验室](#labs)
+- [参考资料](#references)
 
-## Tools
+## 工具
 
-- [PortSwigger/turbo-intruder](https://github.com/PortSwigger/turbo-intruder) - a Burp Suite extension for sending large numbers of HTTP requests and analyzing the results.
-- [JavanXD/Raceocat](https://github.com/JavanXD/Raceocat) - Make exploiting race conditions in web applications highly efficient and ease-of-use.
-- [nxenon/h2spacex](https://github.com/nxenon/h2spacex) - HTTP/2 Single Packet Attack low Level Library / Tool based on Scapy‌ + Exploit Timing Attacks
+- [PortSwigger/turbo-intruder](https://github.com/PortSwigger/turbo-intruder) - 用于发送大量 HTTP 请求并分析结果的 Burp Suite 扩展。
+- [JavanXD/Raceocat](https://github.com/JavanXD/Raceocat) - 使在 Web 应用程序中利用竞争条件变得高度高效和易于使用。
+- [nxenon/h2spacex](https://github.com/nxenon/h2spacex) - 基于 Scapy‌ + 利用时序攻击的 HTTP/2 单包攻击低级库/工具
 
-## Methodology
+## 方法
 
-### Limit-overrun
+### 限制溢出
 
-Limit-overrun refers to a scenario where multiple threads or processes compete to update or access a shared resource, resulting in the resource exceeding its intended limits.
+限制溢出指的是多个线程或进程竞争更新或访问共享资源，导致资源超出其预期限制的场景。
 
-**Examples**: Overdrawing limit, multiple voting, multiple spending of a giftcard.
+**示例**：超额限制、多次投票、多次消费礼品卡。
 
-- [Race Condition allows to redeem multiple times gift cards which leads to free "money" - @muon4](https://hackerone.com/reports/759247)
-- [Race conditions can be used to bypass invitation limit - @franjkovic](https://hackerone.com/reports/115007)
-- [Register multiple users using one invitation - @franjkovic](https://hackerone.com/reports/148609)
+- [竞争条件允许多次兑换礼品卡，导致免费"金钱" - @muon4](https://hackerone.com/reports/759247)
+- [竞争条件可用于绕过邀请限制 - @franjkovic](https://hackerone.com/reports/115007)
+- [使用一个邀请注册多个用户 - @franjkovic](https://hackerone.com/reports/148609)
 
-### Rate-limit Bypass
+### 速率限制绕过
 
-Rate-limit bypass occurs when an attacker exploits the lack of proper synchronization in rate-limiting mechanisms to exceed intended request limits. Rate-limiting is designed to control the frequency of actions (e.g., API requests, login attempts), but race conditions can allow attackers to bypass these restrictions.
+当攻击者利用速率限制机制中缺乏适当同步来超出预期的请求限制时，就会发生速率限制绕过。速率限制旨在控制操作的频率（例如，API 请求、登录尝试），但竞争条件可以允许攻击者绕过这些限制。
 
-**Examples**: Bypassing anti-bruteforce mechanism and 2FA.
+**示例**：绕过反暴力机制和 2FA。
 
-- [Instagram Password Reset Mechanism Race Condition - Laxman Muthiyah](https://youtu.be/4O9FjTMlHUM)
+- [Instagram 密码重置机制竞争条件 - Laxman Muthiyah](https://youtu.be/4O9FjTMlHUM)
 
-## Techniques
+## 技术
 
-### HTTP/1.1 Last-byte Synchronization
+### HTTP/1.1 最后字节同步
 
-Send every requests except the last byte, then "release" each request by sending the last byte.
+发送除最后一个字节之外的所有请求，然后通过发送最后一个字节来"释放"每个请求。
 
-Execute a last-byte synchronization using Turbo Intruder
+使用 Turbo Intruder 执行最后字节同步
 
 ```py
 engine.queue(request, gate='race1')
@@ -57,31 +59,31 @@ engine.queue(request, gate='race1')
 engine.openGate('race1')
 ```
 
-**Examples**:
+**示例**:
 
-- [Cracking reCAPTCHA, Turbo Intruder style - James Kettle](https://portswigger.net/research/cracking-recaptcha-turbo-intruder-style)
+- [破解 reCAPTCHA，Turbo Intruder 风格 - James Kettle](https://portswigger.net/research/cracking-recaptcha-turbo-intruder-style)
 
-### HTTP/2 Single-packet Attack
+### HTTP/2 单包攻击
 
-In HTTP/2 you can send multiple HTTP requests concurrently over a single connection. In the single-packet attack around ~20/30 requests will be sent and they will arrive at the same time on the server. Using a single request remove the network jitter.
+在 HTTP/2 中，您可以通过单个连接并发发送多个 HTTP 请求。在单包攻击中，大约 ~20/30 个请求将被发送，它们将同时到达服务器。使用单个请求消除网络抖动。
 
 - [PortSwigger/turbo-intruder/race-single-packet-attack.py](https://github.com/PortSwigger/turbo-intruder/blob/master/resources/examples/race-single-packet-attack.py)
 - Burp Suite
-    - Send a request to Repeater
-    - Duplicate the request 20 times (CTRL+R)
-    - Create a new group and add all the requests
-    - Send group in parallel (single-packet attack)
+    - 将请求发送到 Repeater
+    - 复制请求 20 次 (CTRL+R)
+    - 创建新组并添加所有请求
+    - 并行发送组（单包攻击）
 
-**Examples**:
+**示例**:
 
-- [CVE-2022-4037 - Discovering a race condition vulnerability in Gitlab with the single-packet attack - James Kettle](https://youtu.be/Y0NVIVucQNE)
+- [CVE-2022-4037 - 使用单包攻击在 Gitlab 中发现竞争条件漏洞 - James Kettle](https://youtu.be/Y0NVIVucQNE)
 
 ## Turbo Intruder
 
-### Example 1
+### 示例 1
 
-1. Send request to turbo intruder
-2. Use this python code as a payload of the turbo intruder
+1. 将请求发送到 turbo intruder
+2. 使用此 Python 代码作为 turbo intruder 的负载
 
    ```python
    def queueRequests(target, wordlists):
@@ -106,12 +108,12 @@ In HTTP/2 you can send multiple HTTP requests concurrently over a single connect
        table.add(req)
    ```
 
-3. Now set the external HTTP header x-request: %s - :warning: This is needed by the turbo intruder
-4. Click "Attack"
+3. 现在设置外部 HTTP 标头 x-request: %s - :warning: 这是 turbo intruder 所需的
+4. 点击"Attack"
 
-### Example 2
+### 示例 2
 
-This following template can use when use have to send race condition of request2 immediately after send a request1 when the window may only be a few milliseconds.
+当您必须在发送 request1 后立即发送 request2 的竞争条件时，可以使用以下模板，窗口可能只有几毫秒。
 
 ```python
 def queueRequests(target, wordlists):
@@ -143,23 +145,23 @@ def handleResponse(req, interesting):
     table.add(req)
 ```
 
-## Labs
+## 实验室
 
-- [PortSwigger - Limit overrun race conditions](https://portswigger.net/web-security/race-conditions/lab-race-conditions-limit-overrun)
-- [PortSwigger - Multi-endpoint race conditions](https://portswigger.net/web-security/race-conditions/lab-race-conditions-multi-endpoint)
-- [PortSwigger - Bypassing rate limits via race conditions](https://portswigger.net/web-security/race-conditions/lab-race-conditions-bypassing-rate-limits)
-- [PortSwigger - Multi-endpoint race conditions](https://portswigger.net/web-security/race-conditions/lab-race-conditions-multi-endpoint)
-- [PortSwigger - Single-endpoint race conditions](https://portswigger.net/web-security/race-conditions/lab-race-conditions-single-endpoint)
-- [PortSwigger - Exploiting time-sensitive vulnerabilities](https://portswigger.net/web-security/race-conditions/lab-race-conditions-exploiting-time-sensitive-vulnerabilities)
-- [PortSwigger - Partial construction race conditions](https://portswigger.net/web-security/race-conditions/lab-race-conditions-partial-construction)
+- [PortSwigger - 限制溢出竞争条件](https://portswigger.net/web-security/race-conditions/lab-race-conditions-limit-overrun)
+- [PortSwigger - 多端点竞争条件](https://portswigger.net/web-security/race-conditions/lab-race-conditions-multi-endpoint)
+- [PortSwigger - 通过竞争条件绕过速率限制](https://portswigger.net/web-security/race-conditions/lab-race-conditions-bypassing-rate-limits)
+- [PortSwigger - 多端点竞争条件](https://portswigger.net/web-security/race-conditions/lab-race-conditions-multi-endpoint)
+- [PortSwigger - 单端点竞争条件](https://portswigger.net/web-security/race-conditions/lab-race-conditions-single-endpoint)
+- [PortSwigger - 利用时序敏感漏洞](https://portswigger.net/web-security/race-conditions/lab-race-conditions-exploiting-time-sensitive-vulnerabilities)
+- [PortSwigger - 部分构建竞争条件](https://portswigger.net/web-security/race-conditions/lab-race-conditions-partial-construction)
 
-## References
+## 参考资料
 
-- [Beyond the Limit: Expanding single-packet race condition with a first sequence sync for breaking the 65,535 byte limit - @ryotkak - August 2, 2024](https://flatt.tech/research/posts/beyond-the-limit-expanding-single-packet-race-condition-with-first-sequence-sync/)
-- [DEF CON 31 - Smashing the State Machine the True Potential of Web Race Conditions - James Kettle (@albinowax) - September 15, 2023](https://youtu.be/tKJzsaB1ZvI)
-- [Exploiting Race Condition Vulnerabilities in Web Applications - Javan Rasokat - October 6, 2022](https://conference.hitb.org/hitbsecconf2022sin/materials/D2%20COMMSEC%20-%20Exploiting%20Race%20Condition%20Vulnerabilities%20in%20Web%20Applications%20-%20Javan%20Rasokat.pdf)
-- [New techniques and tools for web race conditions - Emma Stocks - August 10, 2023](https://portswigger.net/blog/new-techniques-and-tools-for-web-race-conditions)
-- [Race Condition Bug In Web App: A Use Case - Mandeep Jadon - April 24, 2018](https://medium.com/@ciph3r7r0ll/race-condition-bug-in-web-app-a-use-case-21fd4df71f0e)
-- [Race conditions on the web - Josip Franjkovic - July 12, 2016](https://www.josipfranjkovic.com/blog/race-conditions-on-web)
-- [Smashing the state machine: the true potential of web race conditions - James Kettle (@albinowax) - August 9, 2023](https://portswigger.net/research/smashing-the-state-machine)
-- [Turbo Intruder: Embracing the billion-request attack - James Kettle (@albinowax) - January 25, 2019](https://portswigger.net/research/turbo-intruder-embracing-the-billion-request-attack)
+- [超越限制：通过第一个序列同步扩展单包竞争条件以突破 65,535 字节限制 - @ryotkak - 2024年8月2日](https://flatt.tech/research/posts/beyond-the-limit-expanding-single-packet-race-condition-with-first-sequence-sync/)
+- [DEF CON 31 - 打破状态机 Web 竞争条件的真正潜力 - James Kettle (@albinowax) - 2023年9月15日](https://youtu.be/tKJzsaB1ZvI)
+- [利用 Web 应用程序中的竞争条件漏洞 - Javan Rasokat - 2022年10月6日](https://conference.hitb.org/hitbsecconf2022sin/materials/D2%20COMMSEC%20-%20Exploiting%20Race%20Condition%20Vulnerabilities%20in%20Web%20Applications%20-%20Javan%20Rasokat.pdf)
+- [Web 竞争条件的新技术和工具 - Emma Stocks - 2023年8月10日](https://portswigger.net/blog/new-techniques-and-tools-for-web-race-conditions)
+- [Web 应用程序中的竞争条件错误：用例 - Mandeep Jadon - 2018年4月24日](https://medium.com/@ciph3r7r0ll/race-condition-bug-in-web-app-a-use-case-21fd4df71f0e)
+- [Web 上的竞争条件 - Josip Franjkovic - 2016年7月12日](https://www.josipfranjkovic.com/blog/race-conditions-on-web)
+- [打破状态机：Web 竞争条件的真正潜力 - James Kettle (@albinowax) - 2023年8月9日](https://portswigger.net/research/smashing-the-state-machine)
+- [Turbo Intruder：拥抱十亿请求攻击 - James Kettle (@albinowax) - 2019年1月25日](https://portswigger.net/research/turbo-intruder-embracing-the-billion-request-attack)

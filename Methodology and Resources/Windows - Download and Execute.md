@@ -1,9 +1,11 @@
-# Windows - Download and execute methods
+[原文文档](Windows - Download and Execute.en.md)
 
-:warning: Content of this page has been moved to [InternalAllTheThings/redteam/access/windows-download-execute](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/)
+# Windows - 下载和执行方法
 
-- [Downloaded files location](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#downloaded-files-location)
-- [Powershell](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#powershell)
+:warning: 此页面的内容已移动到 [InternalAllTheThings/redteam/access/windows-download-execute](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/)
+
+- [下载文件位置](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#downloaded-files-location)
+- [PowerShell](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#powershell)
 - [Cmd](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#cmd)
 - [Cscript / Wscript](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#cscript-wscript)
 - [Mshta](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#mshta)
@@ -14,4 +16,4 @@
 - [Msbuild](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#msbuild)
 - [Certutil](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#certutil)
 - [Bitsadmin](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#bitsadmin)
-- [References](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#references)
+- [参考资料](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/windows-download-execute/#references)

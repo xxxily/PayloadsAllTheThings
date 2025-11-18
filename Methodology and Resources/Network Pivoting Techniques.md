@@ -1,13 +1,15 @@
-# Network Pivoting Techniques
+[原文文档](Network Pivoting Techniques.en.md)
 
-:warning: Content of this page has been moved to [InternalAllTheThings/redteam/pivoting/network-pivoting-techniques](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/)
+# 网络枢纽技术
 
-- [SOCKS Compatibility Table](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#socks-compatibility-table)
-- [Windows netsh Port Forwarding](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#windows-netsh-port-forwarding)
+:warning: 此页面的内容已移动到 [InternalAllTheThings/redteam/pivoting/network-pivoting-techniques](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/)
+
+- [SOCKS兼容性表](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#socks-compatibility-table)
+- [Windows netsh 端口转发](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#windows-netsh-port-forwarding)
 - [SSH](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#ssh)
-    - [SOCKS Proxy](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#socks-proxy)
-    - [Local Port Forwarding](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#local-port-forwarding)
-    - [Remote Port Forwarding](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#remote-port-forwarding)
+    - [SOCKS代理](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#socks-proxy)
+    - [本地端口转发](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#local-port-forwarding)
+    - [远程端口转发](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#remote-port-forwarding)
 - [Proxychains](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#proxychains)
 - [Graftcp](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#graftcp)
 - [Web SOCKS - reGeorg](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#web-socks---regeorg)
@@ -21,9 +23,9 @@
 - [RevSocks](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#revsocks)
 - [plink](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#plink)
 - [ngrok](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#ngrok)
-- [Capture a network trace with builtin tools](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#capture-a-network-trace-with-builtin-tools)
-- [Basic Pivoting Types](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#basic-pivoting-types)
-    - [Listen - Listen](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#listen---listen)
-    - [Listen - Connect](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#listen---connect)
-    - [Connect - Connect](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#connect---connect)
-- [References](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#references)
+- [使用内置工具捕获网络跟踪](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#capture-a-network-trace-with-builtin-tools)
+- [基本枢纽类型](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#basic-pivoting-types)
+    - [监听 - 监听](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#listen---listen)
+    - [监听 - 连接](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#listen---connect)
+    - [连接 - 连接](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#connect---connect)
+- [参考资料](https://swisskyrepo.github.io/InternalAllTheThings/redteam/pivoting/network-pivoting-techniques/#references)

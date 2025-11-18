@@ -1,16 +1,18 @@
-# Application Escape and Breakout
+[Escape Breakout.en.md](Escape Breakout.en.md)
 
-:warning: Content of this page has been moved to [InternalAllTheThings/cheatsheets/escape-breakout](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/)
+# 应用程序逃逸和突破
 
-- [Gaining a command shell](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#gaining-a-command-shell)
-- [Sticky Keys](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#sticky-keys)
-- [Dialog Boxes](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#dialog-boxes)
-    - [Creating new files](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#creating-new-files)
-    - [Open a new Windows Explorer instance](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#open-a-new-windows-explorer-instance)
-    - [Exploring Context Menus](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#exploring-context-menus)
-    - [Save as](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#save-as)
-    - [Input Boxes](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#input-boxes)
-    - [Bypass file restrictions](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#bypass-file-restrictions)
+:warning: 此页面内容已移动至 [InternalAllTheThings/cheatsheets/escape-breakout](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/)
+
+- [获取命令 shell](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#gaining-a-command-shell)
+- [粘滞键](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#sticky-keys)
+- [对话框](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#dialog-boxes)
+    - [创建新文件](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#creating-new-files)
+    - [打开新的 Windows 资源管理器实例](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#open-a-new-windows-explorer-instance)
+    - [探索上下文菜单](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#exploring-context-menus)
+    - [另存为](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#save-as)
+    - [输入框](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#input-boxes)
+    - [绕过文件限制](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#bypass-file-restrictions)
 - [Internet Explorer](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#internet-explorer)
-- [Shell URI Handlers](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#shell-uri-handlers)
-- [References](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#references)
+- [Shell URI 处理器](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#shell-uri-handlers)
+- [参考资料](https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/escape-breakout/#references)

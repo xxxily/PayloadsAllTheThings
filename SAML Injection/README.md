@@ -1,39 +1,41 @@
-# SAML Injection
+[原文文档](README.en.md)
 
-> SAML (Security Assertion Markup Language) is an open standard for exchanging authentication and authorization data between parties, in particular, between an identity provider and a service provider. While SAML is widely used to facilitate single sign-on (SSO) and other federated authentication scenarios, improper implementation or misconfiguration can expose systems to various vulnerabilities.
+# SAML 注入
 
-## Summary
+> SAML（安全断言标记语言）是在各方之间交换身份验证和授权数据的开放标准，特别是身份提供者和服务提供者之间。虽然 SAML 被广泛用于促进单点登录（SSO）和其他联邦身份验证场景，但不当实施或配置错误可能使系统面临各种漏洞风险。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [Invalid Signature](#invalid-signature)
-    * [Signature Stripping](#signature-stripping)
-    * [XML Signature Wrapping Attacks](#xml-signature-wrapping-attacks)
-    * [XML Comment Handling](#xml-comment-handling)
-    * [XML External Entity](#xml-external-entity)
-    * [Extensible Stylesheet Language Transformation](#extensible-stylesheet-language-transformation)
-* [References](#references)
+## 摘要
 
-## Tools
+* [工具](#工具)
+* [方法论](#方法论)
+    * [无效签名](#无效签名)
+    * [签名剥离](#签名剥离)
+    * [XML 签名包装攻击](#xml-签名包装攻击)
+    * [XML 注释处理](#xml-注释处理)
+    * [XML 外部实体](#xml-外部实体)
+    * [可扩展样式表语言转换](#可扩展样式表语言转换)
+* [参考资料](#参考资料)
 
-* [CompassSecurity/SAMLRaider](https://github.com/SAMLRaider/SAMLRaider) - SAML2 Burp Extension.
-* [ZAP Addon/SAML Support](https://www.zaproxy.org/docs/desktop/addons/saml-support/) - Allows to detect, show, edit, and fuzz SAML requests.
+## 工具
 
-## Methodology
+* [CompassSecurity/SAMLRaider](https://github.com/SAMLRaider/SAMLRaider) - SAML2 Burp 扩展。
+* [ZAP Addon/SAML Support](https://www.zaproxy.org/docs/desktop/addons/saml-support/) - 允许检测、显示、编辑和模糊测试 SAML 请求。
 
-A SAML Response should contain the `<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"`.
+## 方法论
 
-### Invalid Signature
+SAML 响应应包含 `<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"`。
 
-Signatures which are not signed by a real CA are prone to cloning. Ensure the signature is signed by a real CA. If the certificate is self-signed, you may be able to clone the certificate or create your own self-signed certificate to replace it.
+### 无效签名
 
-### Signature Stripping
+未由真实 CA 签名的签名容易被克隆。确保签名由真实 CA 签名。如果证书是自签名的，您可能能够克隆证书或创建自己的自签名证书来替换它。
 
-> [...]accepting unsigned SAML assertions is accepting a username without checking the password - @ilektrojohn
+### 签名剥离
 
-The goal is to forge a well formed SAML Assertion without signing it. For some default configurations if the signature section is omitted from a SAML response, then no signature verification is performed.
+> [...]接受未签名的 SAML 断言就是接受用户名而不检查密码 - @ilektrojohn
 
-Example of SAML assertion where `NameID=admin` without signature.
+目标是伪造一个格式良好的 SAML 断言而不签名。对于某些默认配置，如果从 SAML 响应中省略了签名部分，则不执行签名验证。
+
+不包含签名的 SAML 断言示例，其中 `NameID=admin`。
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -64,32 +66,32 @@ Example of SAML assertion where `NameID=admin` without signature.
 </saml2p:Response>
 ```
 
-### XML Signature Wrapping Attacks
+### XML 签名包装攻击
 
-XML Signature Wrapping (XSW) attack, some implementations check for a valid signature and match it to a valid assertion, but do not check for multiple assertions, multiple signatures, or behave differently depending on the order of assertions.
+XML 签名包装（XSW）攻击，一些实现检查有效签名并将其与有效断言匹配，但不检查多个断言、多个签名，或根据断言的顺序表现不同。
 
-* **XSW1**: Applies to SAML Response messages. Add a cloned unsigned copy of the Response after the existing signature.
-* **XSW2**: Applies to SAML Response messages. Add a cloned unsigned copy of the Response before the existing signature.
-* **XSW3**: Applies to SAML Assertion messages. Add a cloned unsigned copy of the Assertion before the existing Assertion.
-* **XSW4**: Applies to SAML Assertion messages. Add a cloned unsigned copy of the Assertion within the existing Assertion.
-* **XSW5**: Applies to SAML Assertion messages. Change a value in the signed copy of the Assertion and adds a copy of the original Assertion with the signature removed at the end of the SAML message.
-* **XSW6**: Applies to SAML Assertion messages. Change a value in the signed copy of the Assertion and adds a copy of the original Assertion with the signature removed after the original signature.
-* **XSW7**: Applies to SAML Assertion messages. Add an “Extensions” block with a cloned unsigned assertion.
-* **XSW8**: Applies to SAML Assertion messages. Add an “Object” block containing a copy of the original assertion with the signature removed.
+* **XSW1**: 适用于 SAML Response 消息。在现有签名后添加响应的克隆未签名副本。
+* **XSW2**: 适用于 SAML Response 消息。在现有签名之前添加响应的克隆未签名副本。
+* **XSW3**: 适用于 SAML Assertion 消息。在现有断言之前添加断言的克隆未签名副本。
+* **XSW4**: 适用于 SAML Assertion 消息。在现有断言内添加断言的克隆未签名副本。
+* **XSW5**: 适用于 SAML Assertion 消息。更改断言签名副本中的值，并在 SAML 消息末尾添加删除签名的原始断言副本。
+* **XSW6**: 适用于 SAML Assertion 消息。更改断言签名副本中的值，并在原始签名之后添加删除签名的原始断言副本。
+* **XSW7**: 适用于 SAML Assertion 消息。添加包含克隆未签名断言的"扩展"块。
+* **XSW8**: 适用于 SAML Assertion 消息。添加包含删除签名的原始断言副本的"对象"块。
 
-In the following example, these terms are used.
+在以下示例中，使用了以下术语。
 
-* **FA**: Forged Assertion
-* **LA**: Legitimate Assertion
-* **LAS**: Signature of the Legitimate Assertion
+* **FA**: 伪造断言
+* **LA**: 合法断言
+* **LAS**: 合法断言的签名
 
 ```xml
 <SAMLResponse>
   <FA ID="evil">
-      <Subject>Attacker</Subject>
+      <Subject>攻击者</Subject>
   </FA>
   <LA ID="legitimate">
-      <Subject>Legitimate User</Subject>
+      <Subject>合法用户</Subject>
       <LAS>
          <Reference Reference URI="legitimate">
          </Reference>
@@ -98,11 +100,11 @@ In the following example, these terms are used.
 </SAMLResponse>
 ```
 
-In the Github Enterprise vulnerability, this request would verify and create a sessions for `Attacker` instead of `Legitimate User`, even if `FA` is not signed.
+在 Github Enterprise 漏洞中，此请求将为 `攻击者` 验证并创建会话，而不是为 `合法用户`，即使 `FA` 未签名。
 
-### XML Comment Handling
+### XML 注释处理
 
-A threat actor who already has authenticated access into a SSO system can authenticate as another user without that individual’s SSO password. This [vulnerability](https://www.bleepstatic.com/images/news/u/986406/attacks/Vulnerabilities/SAML-flaw.png) has multiple CVE in the following libraries and products.
+已经对 SSO 系统进行身份验证的威胁行为者可以在没有该个人 SSO 密码的情况下以另一个用户身份进行身份验证。此[漏洞](https://www.bleepstatic.com/images/news/u/986406/attacks/Vulnerabilities/SAML-flaw.png)在以下库和产品中有多个 CVE。
 
 * OneLogin - python-saml - CVE-2017-11427
 * OneLogin - ruby-saml - CVE-2017-11428
@@ -111,7 +113,7 @@ A threat actor who already has authenticated access into a SSO system can authen
 * Shibboleth - CVE-2018-0489
 * Duo Network Gateway - CVE-2018-7340
 
-Researchers have noticed that if an attacker inserts a comment inside the username field in such a way that it breaks the username, the attacker might gain access to a legitimate user's account.
+研究人员已经注意到，如果攻击者以某种方式在用户名字段中插入注释来中断用户名，攻击者可能会获得对合法用户账户的访问权限。
 
 ```xml
 <SAMLResponse>
@@ -121,16 +123,16 @@ Researchers have noticed that if an attacker inserts a comment inside the userna
             <NameID>user@user.com<!--XMLCOMMENT-->.evil.com</NameID>
 ```
 
-Where `user@user.com` is the first part of the username, and `.evil.com` is the second.
+其中 `user@user.com` 是用户名的第一部分，`.evil.com` 是第二部分。
 
-### XML External Entity
+### XML 外部实体
 
-An alternative exploitation would use `XML entities` to bypass the signature verification, since the content will not change, except during XML parsing.
+另一种利用将使用 `XML 实体` 来绕过签名验证，因为内容不会改变，只会在 XML 解析期间改变。
 
-In the following example:
+在以下示例中：
 
-* `&s;` will resolve to the string `"s"`
-* `&f1;` will resolve to the string `"f1"`
+* `&s;` 将解析为字符串 `"s"`
+* `&f1;` 将解析为字符串 `"f1"`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -155,14 +157,14 @@ In the following example:
 </saml2p:Response>
 ```
 
-The SAML response is accepted by the service provider. Due to the vulnerability, the service provider application reports "taf" as the value of the "uid" attribute.
+SAML 响应被服务提供者接受。由于漏洞，服务提供者应用程序将 "taf" 报告为 "uid" 属性的值。
 
-### Extensible Stylesheet Language Transformation
+### 可扩展样式表语言转换
 
-An XSLT can be carried out by using the `transform` element.
+XSLT 可以通过使用 `transform` 元素来执行。
 
 ![http://sso-attacks.org/images/4/49/XSLT1.jpg](http://sso-attacks.org/images/4/49/XSLT1.jpg)
-Picture from [http://sso-attacks.org/XSLT_Attack](http://sso-attacks.org/XSLT_Attack)
+图片来源 [http://sso-attacks.org/XSLT_Attack](http://sso-attacks.org/XSLT_Attack)
 
 ```xml
 <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
@@ -184,7 +186,7 @@ Picture from [http://sso-attacks.org/XSLT_Attack](http://sso-attacks.org/XSLT_At
 </ds:Signature>
 ```
 
-## References
+## 参考资料
 
 * [Attacking SSO: Common SAML Vulnerabilities and Ways to Find Them - Jem Jensen - March 7, 2017](https://blog.netspi.com/attacking-sso-common-saml-vulnerabilities-ways-find/)
 * [How to Hunt Bugs in SAML; a Methodology - Part I - Ben Risher (@epi052) - March 7, 2019](https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/)

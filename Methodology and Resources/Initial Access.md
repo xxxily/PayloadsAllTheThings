@@ -1,11 +1,13 @@
-# Initial Access
+[Initial Access.en.md](Initial Access.en.md)
 
-:warning: Content of this page has been moved to [InternalAllTheThings/redteam/access/initial-access](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/)
+# 初始访问
 
-- [Complex Chains](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#complex-chains)
-- [Container](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#container)
-- [Payload](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#payload)
-    - [Binary Files](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#binary-files)
-    - [Code Execution Files](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#code-execution-files)
-    - [Embedded Files](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#embedded-files)
-- [Code Signing](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#code-signing)
+:warning: 此页面内容已移动至 [InternalAllTheThings/redteam/access/initial-access](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/)
+
+- [复杂链](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#complex-chains)
+- [容器](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#container)
+- [负载](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#payload)
+    - [二进制文件](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#binary-files)
+    - [代码执行文件](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#code-execution-files)
+    - [嵌入式文件](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#embedded-files)
+- [代码签名](https://swisskyrepo.github.io/InternalAllTheThings/redteam/access/initial-access/#code-signing)

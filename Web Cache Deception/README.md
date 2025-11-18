@@ -1,75 +1,77 @@
-# Web Cache Deception
+[原文文档](README.en.md)
 
-> Web Cache Deception (WCD) is a security vulnerability that occurs when a web server or caching proxy misinterprets a client's request for a web resource and subsequently serves a different resource, which may often be more sensitive or private, after caching it.
+# Web 缓存欺骗
 
-## Summary
+> Web 缓存欺骗（WCD）是一种安全漏洞，当 Web 服务器或缓存代理误解客户端对 Web 资源的请求，并在缓存后提供可能更敏感或更私密的不同的资源时发生。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [Caching Sensitive Data](#caching-sensitive-data)
-    * [Caching Custom JavaScript](#caching-custom-javascript)
-* [CloudFlare Caching](#cloudflare-caching)
-* [Labs](#labs)
-* [References](#references)
+## 概述
 
-## Tools
+* [工具](#工具)
+* [方法论](#方法论)
+    * [缓存敏感数据](#缓存敏感数据)
+    * [缓存自定义 JavaScript](#缓存自定义-javascript)
+* [CloudFlare 缓存](#cloudflare-缓存)
+* [实验室](#实验室)
+* [参考文献](#参考文献)
 
-* [PortSwigger/param-miner](https://github.com/PortSwigger/param-miner) - Web Cache Poisoning Burp Extension
+## 工具
 
-## Methodology
+* [PortSwigger/param-miner](https://github.com/PortSwigger/param-miner) - Web 缓存中毒 Burp 扩展
 
-Example of Web Cache Deception:
+## 方法论
 
-Imagine an attacker lures a logged-in victim into accessing `http://www.example.com/home.php/non-existent.css`
+Web 缓存欺骗示例：
 
-1. The victim's browser requests the resource `http://www.example.com/home.php/non-existent.css`
-2. The requested resource is searched for in the cache server, but it's not found (resource not in cache).
-3. The request is then forwarded to the main server.
-4. The main server returns the content of `http://www.example.com/home.php`, most probably with HTTP caching headers that instruct not to cache this page.
-5. The response passes through the cache server.
-6. The cache server identifies that the file has a CSS extension.
-7. Under the cache directory, the cache server creates a directory named home.php and caches the imposter "CSS" file (non-existent.css) inside it.
-8. When the attacker requests `http://www.example.com/home.php/non-existent.css`, the request is sent to the cache server, and the cache server returns the cached file with the victim's sensitive `home.php` data.
+想象一下，攻击者诱骗已登录的受害者访问 `http://www.example.com/home.php/non-existent.css`
 
-![WCD Demonstration](Images/wcd.jpg)
+1. 受害者的浏览器请求资源 `http://www.example.com/home.php/non-existent.css`
+2. 在缓存服务器中搜索请求的资源，但没有找到（资源不在缓存中）。
+3. 然后将请求转发到主服务器。
+4. 主服务器返回 `http://www.example.com/home.php` 的内容，很可能带有 HTTP 缓存头，指示不要缓存此页面。
+5. 响应通过缓存服务器。
+6. 缓存服务器识别文件具有 CSS 扩展名。
+7. 在缓存目录下，缓存服务器创建一个名为 home.php 的目录，并将冒充的"CSS"文件（non-existent.css）缓存在其中。
+8. 当攻击者请求 `http://www.example.com/home.php/non-existent.css` 时，请求被发送到缓存服务器，缓存服务器返回带有受害者敏感的 `home.php` 数据的缓存文件。
 
-### Caching Sensitive Data
+![WCD 演示](Images/wcd.jpg)
 
-**Example 1** - Web Cache Deception on PayPal Home Page
+### 缓存敏感数据
 
-1. Normal browsing, visit home : `https://www.example.com/myaccount/home/`
-2. Open the malicious link : `https://www.example.com/myaccount/home/malicious.css`
-3. The page is displayed as /home and the cache is saving the page
-4. Open a private tab with the previous URL : `https://www.example.com/myaccount/home/malicious.css`
-5. The content of the cache is displayed
+**示例 1** - PayPal 主页上的 Web 缓存欺骗
 
-Video of the attack by Omer Gil - Web Cache Deception Attack in PayPal Home Page
-[![DEMO](https://i.vimeocdn.com/video/674856618-f9bac811a4c7bcf635c4eff51f68a50e3d5532ca5cade3db784c6d178b94d09a-d)](https://vimeo.com/249130093)
+1. 正常浏览，访问主页：`https://www.example.com/myaccount/home/`
+2. 打开恶意链接：`https://www.example.com/myaccount/home/malicious.css`
+3. 页面显示为 /home，缓存正在保存页面
+4. 打开带有上一页面的私有标签页：`https://www.example.com/myaccount/home/malicious.css`
+5. 显示缓存内容
 
-**Example 2** - Web Cache Deception on OpenAI
+Omer Gil 的攻击视频 - PayPal 主页上的 Web 缓存欺骗攻击
+[![演示](https://i.vimeocdn.com/video/674856618-f9bac811a4c7bcf635c4eff51f68a50e3d5532ca5cade3db784c6d178b94d09a-d)](https://vimeo.com/249130093)
 
-1. Attacker crafts a dedicated .css path of the `/api/auth/session` endpoint.
-2. Attacker distributes the link
-3. Victims visit the legitimate link.
-4. Response is cached.
-5. Attacker harvests JWT Credentials.
+**示例 2** - OpenAI 上的 Web 缓存欺骗
 
-### Caching Custom JavaScript
+1. 攻击者制作 `/api/auth/session` 端点的专用 .css 路径。
+2. 攻击者分发链接
+3. 受害者访问合法链接。
+4. 响应被缓存。
+5. 攻击者获取 JWT 凭据。
 
-1. Find an un-keyed input for a Cache Poisoning
+### 缓存自定义 JavaScript
+
+1. 查找缓存中毒的未键入输入
 
     ```js
-    Values: User-Agent
-    Values: Cookie
-    Header: X-Forwarded-Host
-    Header: X-Host
-    Header: X-Forwarded-Server
-    Header: X-Forwarded-Scheme (header; also in combination with X-Forwarded-Host)
-    Header: X-Original-URL (Symfony)
-    Header: X-Rewrite-URL (Symfony)
+    值：User-Agent
+    值：Cookie
+    头：X-Forwarded-Host
+    头：X-Host
+    头：X-Forwarded-Server
+    头：X-Forwarded-Scheme（头；也与 X-Forwarded-Host 组合）
+    头：X-Original-URL（Symfony）
+    头：X-Rewrite-URL（Symfony）
     ```
 
-2. Cache poisoning attack - Example for `X-Forwarded-Host` un-keyed input (remember to use a buster to only cache this webpage instead of the main page of the website)
+2. 缓存中毒攻击 - `X-Forwarded-Host` 未键入输入的示例（记住使用破坏器仅缓存此网页，而不是网站的主页）
 
     ```js
     GET /test?buster=123 HTTP/1.1
@@ -82,38 +84,38 @@ Video of the attack by Omer Gil - Web Cache Deception Attack in PayPal Home Page
     <meta property="og:image" content="https://test"><script>alert(1)</script>">
     ```
 
-## Tricks
+## 技巧
 
-The following URL format are a good starting point to check for "cache" feature.
+以下 URL 格式是检查"缓存"功能的良好起点。
 
 * `https://example.com/app/conversation/.js?test`
 * `https://example.com/app/conversation/;.js`
 * `https://example.com/home.php/non-existent.css`
 
-## Detecting Web Cache Deception
+## 检测 Web 缓存欺骗
 
-1. Detecting delimiter discrepancies: `/path/<dynamic-resource>;<static-resource>`
-   * For example: `/settings/profile;script.js`
-   * If the origin server uses `;` as a delimiter but the cache isn't
-   * The cache interprets the path as: `/settings/profile;script.js`
-   * The origin server interprets the path as: `/settings/profile`
-   * For more delimiter characters: see [Web cache deception lab delimiter list](https://portswigger.net/web-security/web-cache-deception/wcd-lab-delimiter-list)
-2. Detecting normalization: `/wcd/..%2fprofile`
-   * If the origin server resolved the path traversal sequence but the cache isn't
-   * The cache interprets the path as: `/wcd/..%2fprofile`
-   * The origin server interprets the path as: `/profile`
+1. 检测分隔符差异：`/path/<dynamic-resource>;<static-resource>`
+   * 例如：`/settings/profile;script.js`
+   * 如果原始服务器使用 `;` 作为分隔符但缓存不是
+   * 缓存解释路径为：`/settings/profile;script.js`
+   * 原始服务器解释路径为：`/settings/profile`
+   * 更多分隔符字符：请参阅 [Web 缓存欺骗实验室分隔符列表](https://portswigger.net/web-security/web-cache-deception/wcd-lab-delimiter-list)
+2. 检测规范化：`/wcd/..%2fprofile`
+   * 如果原始服务器解析了路径遍历序列但缓存没有
+   * 缓存解释路径为：`/wcd/..%2fprofile`
+   * 原始服务器解释路径为：`/profile`
 
-## CloudFlare Caching
+## CloudFlare 缓存
 
-CloudFlare caches the resource when the `Cache-Control` header is set to `public` and `max-age` is greater than 0.
+当 `Cache-Control` 头设置为 `public` 且 `max-age` 大于 0 时，CloudFlare 会缓存资源。
 
-* The Cloudflare CDN does not cache HTML by default
-* Cloudflare only caches based on file extension and not by MIME type: [cloudflare/default-cache-behavior](https://developers.cloudflare.com/cache/about/default-cache-behavior/)
+* Cloudflare CDN 默认不缓存 HTML
+* Cloudflare 仅基于文件扩展名而不是 MIME 类型缓存：[cloudflare/default-cache-behavior](https://developers.cloudflare.com/cache/about/default-cache-behavior/)
 
-In Cloudflare CDN, one can implement a `Cache Deception Armor`, it is not enabled by default.
-When the `Cache Deception Armor` is enabled, the rule will verify a URL's extension matches the returned `Content-Type`.
+在 Cloudflare CDN 中，可以实现 `Cache Deception Armor`，它默认不启用。
+当启用 `Cache Deception Armor` 时，规则将验证 URL 的扩展名与返回的 `Content-Type` 匹配。
 
-CloudFlare has a list of default extensions that gets cached behind their Load Balancers.
+CloudFlare 有一个默认扩展名列表，会在其负载均衡器后面缓存。
 
 |       |      |      |      |      |       |      |
 |-------|------|------|------|------|-------|------|
@@ -126,26 +128,26 @@ CloudFlare has a list of default extensions that gets cached behind their Load B
 | BZ2   | EPS  | JPEG | PDF  | SVGZ | WOFF2 | TAR  |
 | CLASS | EXE  | JS   | PICT | SWF  | XLS   | XLSX |
 
-Exceptions and bypasses:
+例外和绕过：
 
-* If the returned Content-Type is application/octet-stream, the extension does not matter because that is typically a signal to instruct the browser to save the asset instead of to display it.
-* Cloudflare allows .jpg to be served as image/webp or .gif as video/webm and other cases that we think are unlikely to be attacks.
-* [Bypassing Cache Deception Armor using .avif extension file - fixed](https://hackerone.com/reports/1391635)
+* 如果返回的 Content-Type 是 application/octet-stream，则扩展名无关紧要，因为这通常是指示浏览器保存资产而不是显示它的信号。
+* CloudFlare 允许将 .jpg 作为 image/webp 提供或 .gif 作为 video/webm 提供，以及其他我们认为不太可能是攻击的情况。
+* [使用 .avif 扩展名文件绕过缓存欺骗防护 - 已修复](https://hackerone.com/reports/1391635)
 
-## Labs
+## 实验室
 
-* [PortSwigger Labs for Web Cache Deception](https://portswigger.net/web-security/all-labs#web-cache-poisoning)
+* [Web 缓存欺骗的 PortSwigger 实验室](https://portswigger.net/web-security/all-labs#web-cache-poisoning)
 
-## References
+## 参考文献
 
-* [Cache Deception Armor - Cloudflare - May 20, 2023](https://developers.cloudflare.com/cache/cache-security/cache-deception-armor/)
-* [Exploiting cache design flaws - PortSwigger - May 4, 2020](https://portswigger.net/web-security/web-cache-poisoning/exploiting-design-flaws)
-* [Exploiting cache implementation flaws - PortSwigger - May 4, 2020](https://portswigger.net/web-security/web-cache-poisoning/exploiting-implementation-flaws)
-* [How I Test For Web Cache Vulnerabilities + Tips And Tricks - bombon (0xbxmbn) - July 21, 2022](https://bxmbn.medium.com/how-i-test-for-web-cache-vulnerabilities-tips-and-tricks-9b138da08ff9)
-* [OpenAI Account Takeover - Nagli (@naglinagli) - March 24, 2023](https://twitter.com/naglinagli/status/1639343866313601024)
-* [Practical Web Cache Poisoning - James Kettle (@albinowax) - August 9, 2018](https://portswigger.net/blog/practical-web-cache-poisoning)
-* [Shockwave Identifies Web Cache Deception and Account Takeover Vulnerability affecting OpenAI's ChatGPT - Nagli (@naglinagli) - July 15, 2024](https://www.shockwave.cloud/blog/shockwave-works-with-openai-to-fix-critical-chatgpt-vulnerability)
-* [Web Cache Deception Attack - Omer Gil - February 27, 2017](http://omergil.blogspot.fr/2017/02/web-cache-deception-attack.html)
-* [Web Cache Deception Attack leads to user info disclosure - Kunal Pandey (@kunal94) - February 25, 2019](https://medium.com/@kunal94/web-cache-deception-attack-leads-to-user-info-disclosure-805318f7bb29)
-* [Web Cache Entanglement: Novel Pathways to Poisoning - James Kettle (@albinowax) - August 5, 2020](https://portswigger.net/research/web-cache-entanglement)
-* [Web cache poisoning - PortSwigger - May 4, 2020](https://portswigger.net/web-security/web-cache-poisoning)
+* [缓存欺骗防护 - CloudFlare - 2023年5月20日](https://developers.cloudflare.com/cache/cache-security/cache-deception-armor/)
+* [利用缓存设计缺陷 - PortSwigger - 2020年5月4日](https://portswigger.net/web-security/web-cache-poisoning/exploiting-design-flaws)
+* [利用缓存实现缺陷 - PortSwigger - 2020年5月4日](https://portswigger.net/web-security/web-cache-poisoning/exploiting-implementation-flaws)
+* [我如何测试 Web 缓存漏洞 + 技巧和窍门 - bombon (0xbxmbn) - 2022年7月21日](https://bxmbn.medium.com/how-i-test-for-web-cache-vulnerabilities-tips-and-tricks-9b138da08ff9)
+* [OpenAI 账户接管 - Nagli (@naglinagli) - 2023年3月24日](https://twitter.com/naglinagli/status/1639343866313601024)
+* [实用的 Web 缓存中毒 - James Kettle (@albinowax) - 2018年8月9日](https://portswigger.net/blog/practical-web-cache-poisoning)
+* [Shockwave 识别影响 OpenAI ChatGPT 的 Web 缓存欺骗和账户接管漏洞 - Nagli (@naglinagli) - 2024年7月15日](https://www.shockwave.cloud/blog/shockwave-works-with-openai-to-fix-critical-chatgpt-vulnerability)
+* [Web 缓存欺骗攻击 - Omer Gil - 2017年2月27日](http://omergil.blogspot.fr/2017/02/web-cache-deception-attack.html)
+* [Web 缓存欺骗攻击导致用户信息泄露 - Kunal Pandey (@kunal94) - 2019年2月25日](https://medium.com/@kunal94/web-cache-deception-attack-leads-to-user-info-disclosure-805318f7bb29)
+* [Web 缓存纠缠：中毒的新途径 - James Kettle (@albinowax) - 2020年8月5日](https://portswigger.net/research/web-cache-entanglement)
+* [Web 缓存中毒 - PortSwigger - 2020年5月4日](https://portswigger.net/web-security/web-cache-poisoning)

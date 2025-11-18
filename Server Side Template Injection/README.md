@@ -1,28 +1,30 @@
-# Server Side Template Injection
+[原文文档](README.en.md)
 
-> Template injection allows an attacker to include template code into an existing (or not) template. A template engine makes designing HTML pages easier by using static template files which at runtime replaces variables/placeholders with actual values in the HTML pages
+# 服务器端模板注入
 
-## Summary
+> 模板注入允许攻击者将模板代码包含到现有（或不存在）模板中。模板引擎通过使用静态模板文件使设计HTML页面变得更容易，这些模板文件在运行时用HTML页面中的实际值替换变量/占位符
 
-- [Tools](#tools)
-- [Methodology](#methodology)
-    - [Identify the Vulnerable Input Field](#identify-the-vulnerable-input-field)
-    - [Inject Template Syntax](#inject-template-syntax)
-    - [Enumerate the Template Engine](#enumerate-the-template-engine)
-    - [Escalate to Code Execution](#escalate-to-code-execution)
-- [Labs](#labs)
-- [References](#references)
+## 概述
 
-## Tools
+- [工具](#工具)
+- [方法论](#方法论)
+    - [识别易受攻击的输入字段](#识别易受攻击的输入字段)
+    - [注入模板语法](#注入模板语法)
+    - [枚举模板引擎](#枚举模板引擎)
+    - [升级到代码执行](#升级到代码执行)
+- [实验环境](#实验环境)
+- [参考资料](#参考资料)
 
-- [Hackmanit/TInjA](https://github.com/Hackmanit/TInjA) - An efficient SSTI + CSTI scanner which utilizes novel polyglots
+## 工具
+
+- [Hackmanit/TInjA](https://github.com/Hackmanit/TInjA) - 高效的SSTI + CSTI扫描器，利用新颖的多语言
 
   ```bash
   tinja url -u "http://example.com/?name=Kirlia" -H "Authentication: Bearer ey..."
   tinja url -u "http://example.com/" -d "username=Kirlia"  -c "PHPSESSID=ABC123..."
   ```
 
-- [epinna/tplmap](https://github.com/epinna/tplmap) - Server-Side Template Injection and Code Injection Detection and Exploitation Tool
+- [epinna/tplmap](https://github.com/epinna/tplmap) - 服务器端模板注入和代码注入检测与利用工具
 
   ```powershell
   python2.7 ./tplmap.py -u 'http://www.target.com/page?name=John*' --os-shell
@@ -30,7 +32,7 @@
   python2.7 ./tplmap.py -u "http://192.168.56.101:3000/ti?user=InjectHere*&comment=A&link" --level 5 -e jade
   ```
 
-- [vladko312/SSTImap](https://github.com/vladko312/SSTImap) - Automatic SSTI detection tool with interactive interface based on [epinna/tplmap](https://github.com/epinna/tplmap)
+- [vladko312/SSTImap](https://github.com/vladko312/SSTImap) - 基于[epinna/tplmap](https://github.com/epinna/tplmap)的自动SSTI检测工具，具有交互式界面
 
   ```powershell
   python3 ./sstimap.py -u 'https://example.com/page?name=John' -s
@@ -38,60 +40,60 @@
   python3 ./sstimap.py -i -A -m POST -l 5 -H 'Authorization: Basic bG9naW46c2VjcmV0X3Bhc3N3b3Jk'
   ```
 
-## Methodology
+## 方法论
 
-### Identify the Vulnerable Input Field
+### 识别易受攻击的输入字段
 
-The attacker first locates an input field, URL parameter, or any user-controllable part of the application that is passed into a server-side template without proper sanitization or escaping.
+攻击者首先定位一个输入字段、URL参数或应用程序的任何用户可控制的部分，该部分被传递到服务器端模板中而没有适当的清理或转义。
 
-For example, the attacker might identify a web form, search bar, or template preview functionality that seems to return results based on dynamic user input.
+例如，攻击者可能识别一个Web表单、搜索栏或模板预览功能，该功能似乎基于动态用户输入返回结果。
 
-**TIP**: Generated PDF files, invoices and emails usually use a template.
+**提示**：生成的PDF文件、发票和电子邮件通常使用模板。
 
-### Inject Template Syntax
+### 注入模板语法
 
-The attacker tests the identified input field by injecting template syntax specific to the template engine in use. Different web frameworks use different template engines (e.g., Jinja2 for Python, Twig for PHP, or FreeMarker for Java).
+攻击者通过注入特定于正在使用的模板引擎的模板语法来测试已识别的输入字段。不同的Web框架使用不同的模板引擎（例如，Python使用Jinja2，PHP使用Twig，或Java使用FreeMarker）。
 
-Common template expressions:
+常见的模板表达式：
 
-- `{{7*7}}` for Jinja2 (Python).
-- `#{7*7}` for Thymeleaf (Java).
+- Jinja2（Python）的`{{7*7}}`。
+- Thymeleaf（Java）的`#{7*7}`。
 
-Find more template expressions in the page dedicated to the technology (PHP, Python, etc).
+在专门针对该技术的页面（PHP、Python等）中找到更多模板表达式。
 
-![SSTI cheatsheet workflow](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Server%20Side%20Template%20Injection/Images/serverside.png?raw=true)
+![SSTI备忘单工作流程](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Server%20Side%20Template%20Injection/Images/serverside.png?raw=true)
 
-In most cases, this polyglot payload will trigger an error in presence of a SSTI vulnerability:
+在大多数情况下，这个多语言负载在存在SSTI漏洞时会触发错误：
 
 ```ps1
 ${{<%[%'"}}%\.
 ```
 
-The [Hackmanit/Template Injection Table](https://github.com/Hackmanit/template-injection-table) is an interactive table containing the most efficient template injection polyglots along with the expected responses of the 44 most important template engines.
+[Hackmanit/模板注入表](https://github.com/Hackmanit/template-injection-table)是一个交互式表格，包含最有效的模板注入多语言以及44个最重要模板引擎的预期响应。
 
-### Enumerate the Template Engine
+### 枚举模板引擎
 
-Based on the successful response, the attacker determines which template engine is being used. This step is critical because different template engines have different syntax, features, and potential for exploitation. The attacker may try different payloads to see which one executes, thereby identifying the engine.
+基于成功的响应，攻击者确定正在使用哪个模板引擎。这一步至关重要，因为不同的模板引擎具有不同的语法、功能和利用潜力。攻击者可能尝试不同的负载来查看哪一个执行，从而识别引擎。
 
-- **Python**: Django, Jinja2, Mako, ...
-- **Java**: Freemarker, Jinjava, Velocity, ...
-- **Ruby**: ERB, Slim, ...
+- **Python**：Django、Jinja2、Mako、...
+- **Java**：Freemarker、Jinjava、Velocity、...
+- **Ruby**：ERB、Slim、...
 
-[The post "template-engines-injection-101" from @0xAwali](https://medium.com/@0xAwali/template-engines-injection-101-4f2fe59e5756) summarize the syntax and detection method for most of the template engines for JavaScript, Python, Ruby, Java and PHP and how to differentiate between engines that use the same syntax.
+[@0xAwali的文章"template-engines-injection-101"](https://medium.com/@0xAwali/template-engines-injection-101-4f2fe59e5756)总结了JavaScript、Python、Ruby、Java和PHP的大多数模板引擎的语法和检测方法，以及如何区分使用相同语法的引擎。
 
-### Escalate to Code Execution
+### 升级到代码执行
 
-Once the template engine is identified, the attacker injects more complex expressions, aiming to execute server-side commands or arbitrary code.
+一旦识别出模板引擎，攻击者注入更复杂的表达式，旨在执行服务器端命令或任意代码。
 
-## Labs
+## 实验环境
 
-- [Root Me - Java - Server-side Template Injection](https://www.root-me.org/en/Challenges/Web-Server/Java-Server-side-Template-Injection)
-- [Root Me - Python - Server-side Template Injection Introduction](https://www.root-me.org/en/Challenges/Web-Server/Python-Server-side-Template-Injection-Introduction)
-- [Root Me - Python - Blind SSTI Filters Bypass](https://www.root-me.org/en/Challenges/Web-Server/Python-Blind-SSTI-Filters-Bypass)
+- [Root Me - Java - 服务器端模板注入](https://www.root-me.org/en/Challenges/Web-Server/Java-Server-side-Template-Injection)
+- [Root Me - Python - 服务器端模板注入介绍](https://www.root-me.org/en/Challenges/Web-Server/Python-Server-side-Template-Injection-Introduction)
+- [Root Me - Python - 盲SSTI过滤器绕过](https://www.root-me.org/en/Challenges/Web-Server/Python-Blind-SSTI-Filters-Bypass)
 
-## References
+## 参考资料
 
-- [A Pentester's Guide to Server Side Template Injection (SSTI) - Busra Demir - December 24, 2020](https://www.cobalt.io/blog/a-pentesters-guide-to-server-side-template-injection-ssti)
-- [Gaining Shell using Server Side Template Injection (SSTI) - David Valles - August 22, 2018](https://medium.com/@david.valles/gaining-shell-using-server-side-template-injection-ssti-81e29bb8e0f9)
-- [Template Engines Injection 101 - Mahmoud M. Awali - November 1, 2024](https://medium.com/@0xAwali/template-engines-injection-101-4f2fe59e5756)
-- [Template Injection On Hardened Targets - Lucas 'BitK' Philippe - September 28, 2022](https://youtu.be/M0b_KA0OMFw)
+- [服务器端模板注入（SSTI）渗透测试人员指南 - Busra Demir - 2020年12月24日](https://www.cobalt.io/blog/a-pentesters-guide-to-server-side-template-injection-ssti)
+- [使用服务器端模板注入（SSTI）获取Shell - David Valles - 2018年8月22日](https://medium.com/@david.valles/gaining-shell-using-server-side-template-injection-ssti-81e29bb8e0f9)
+- [模板引擎注入101 - Mahmoud M. Awali - 2024年11月1日](https://medium.com/@0xAwali/template-engines-injection-101-4f2fe59e5756)
+- [在加固目标上的模板注入 - Lucas 'BitK' Philippe - 2022年9月28日](https://youtu.be/M0b_KA0OMFw)

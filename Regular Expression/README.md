@@ -1,33 +1,35 @@
-# Regular Expression
+[原文文档](README.en.md)
 
-> Regular Expression Denial of Service (ReDoS) is a type of attack that exploits the fact that certain regular expressions can take an extremely long time to process, causing applications or services to become unresponsive or crash.
+# 正则表达式
 
-## Summary
+> 正则表达式拒绝服务（ReDoS）是一种攻击类型，它利用某些正则表达式可能需要极长时间处理的事实，导致应用程序或服务变得无响应或崩溃。
 
-* [Tools](#tools)
-* [Methodology](#methodology)
-    * [Evil Regex](#evil-regex)
-    * [Backtrack Limit](#backtrack-limit)
-* [References](#references)
+## 摘要
 
-## Tools
+* [工具](#tools)
+* [方法论](#methodology)
+    * [邪恶正则表达式](#evil-regex)
+    * [回溯限制](#backtrack-limit)
+* [参考资料](#references)
 
-* [tjenkinson/redos-detector](https://github.com/tjenkinson/redos-detector) - A CLI and library which tests with certainty if a regex pattern is safe from ReDoS attacks. Supported in the browser, Node and Deno.
-* [doyensec/regexploit](https://github.com/doyensec/regexploit) - Find regular expressions which are vulnerable to ReDoS (Regular Expression Denial of Service)
-* [devina.io/redos-checker](https://devina.io/redos-checker) - Examine regular expressions for potential Denial of Service vulnerabilities
+## 工具
 
-## Methodology
+* [tjenkinson/redos-detector](https://github.com/tjenkinson/redos-detector) - 一个CLI和库，它确实测试正则表达式模式是否安全免受ReDoS攻击。支持的浏览器、Node和Deno。
+* [doyensec/regexploit](https://github.com/doyensec/regexploit) - 查找容易受到ReDoS（正则表达式拒绝服务）攻击的正则表达式
+* [devina.io/redos-checker](https://devina.io/redos-checker) - 检查正则表达式是否存在潜在的拒绝服务漏洞
 
-### Evil Regex
+## 方法论
 
-Evil Regex contains:
+### 邪恶正则表达式
 
-* Grouping with repetition
-* Inside the repeated group:
-    * Repetition
-    * Alternation with overlapping
+邪恶正则表达式包含：
 
-**Examples**:
+* 带重复的分组
+* 在重复组内：
+    * 重复
+    * 重叠的交替
+
+**示例**：
 
 * `(a+)+`
 * `([a-zA-Z]+)*`
@@ -35,27 +37,27 @@ Evil Regex contains:
 * `(a|a?)+`
 * `(.*a){x}` for x \> 10
 
-These regular expressions can be exploited with `aaaaaaaaaaaaaaaaaaaaaaaa!` (20 'a's followed by a '!').
+这些正则表达式可以用`aaaaaaaaaaaaaaaaaaaaaaaa!`（20个'a'后跟一个'!'）来利用。
 
 ```ps1
 aaaaaaaaaaaaaaaaaaaa! 
 ```
 
-For this input, the regex engine will try all possible ways to group the `a` characters before realizing that the match ultimately fails because of the `!`. This results in an explosion of backtracking attempts.
+对于此输入，正则表达式引擎将尝试所有可能的方式来分组'a'字符，然后才意识到由于'！'字符匹配最终失败。这导致回溯尝试的爆炸。
 
-### Backtrack Limit
+### 回溯限制
 
-Backtracking in regular expressions occurs when the regex engine tries to match a pattern and encounters a mismatch. The engine then backtracks to the previous matching position and tries an alternative path to find a match. This process can be repeated many times, especially with complex patterns and large input strings.  
+正则表达式中的回溯发生在正则表达式引擎尝试匹配模式并遇到不匹配时。然后引擎回溯到前一个匹配位置并尝试替代路径来查找匹配。此过程可以重复多次，特别是对于复杂模式和大型输入字符串。
 
-**PHP PCRE configuration options**:
+**PHP PCRE配置选项**：
 
-| Name                 | Default | Note |
-|----------------------|---------|---------|
-| pcre.backtrack_limit | 1000000 | 100000 for `PHP < 5.3.7`|
-| pcre.recursion_limit | 100000  | / |
-| pcre.jit             | 1       | / |
+| 名称                | 默认值 | 备注 |
+|---------------------|--------|---------|
+| pcre.backtrack_limit| 1000000| `PHP < 5.3.7`为100000|
+| pcre.recursion_limit| 100000 | / |
+| pcre.jit            | 1      | / |
 
-Sometimes it is possible to force the regex to exceed more than 100 000 recursions which will cause a ReDOS and make `preg_match` returning false:
+有时有可能强制正则表达式超过100,000次递归，这会导致ReDOS并使`preg_match`返回false：
 
 ```php
 $pattern = '/(a+)+$/';
@@ -68,7 +70,7 @@ if (preg_match($pattern, $subject)) {
 }
 ```
 
-## References
+## 参考资料
 
 * [Intigriti Challenge 1223 - Hackbook Of A Hacker - December 21, 2023](https://simones-organization-4.gitbook.io/hackbook-of-a-hacker/ctf-writeups/intigriti-challenges/1223)
 * [MyBB Admin Panel RCE CVE-2023-41362 - SorceryIE - September 11, 2023](https://blog.sorcery.ie/posts/mybb_acp_rce/)

